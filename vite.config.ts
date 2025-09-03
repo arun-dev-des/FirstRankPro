@@ -9,4 +9,11 @@ export default defineConfig({
     build: {
         target: "ES2022",
     },
+    server: {
+        https: true,
+        host: true
+    },
+    optimizeDeps: {
+        include: ['framer-plugin']
+    }
 })

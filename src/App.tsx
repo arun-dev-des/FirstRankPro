@@ -1,46 +1,77 @@
-import { framer, CanvasNode } from "framer-plugin"
-import { useState, useEffect } from "react"
-import "./App.css"
+import { framer } from "framer-plugin"
+import { useState } from 'react'
+import { usePages } from './hooks/usePages'
+import { Page } from './types/page'
+import { PagesList } from './components/PagesList/PagesList'
+import { SEOAnalysis } from './components/SEOAnalysis/SEOAnalysis'
+import { LoadingSpinner } from './components/common/LoadingSpinner'
+import { ErrorMessage } from './components/common/ErrorMessage'
+import './App.css'
 
+// Configure Framer plugin UI
 framer.showUI({
     position: "top right",
-    width: 240,
-    height: 95,
+    width: 2000,
+    height: 800,
+    resizable: true,
 })
 
-function useSelection() {
-    const [selection, setSelection] = useState<CanvasNode[]>([])
-
-    useEffect(() => {
-        return framer.subscribeToSelection(setSelection)
-    }, [])
-
-    return selection
-}
-
 export function App() {
-    const selection = useSelection()
-    const layer = selection.length === 1 ? "layer" : "layers"
+    const [currentView, setCurrentView] = useState<'pages' | 'analysis'>('pages')
+    const [selectedPage, setSelectedPage] = useState<Page | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+    
+    const { pages, publishInfo, loading, error } = usePages()
+    // More detailed logging
+    console.log('[App] Current state:', {
+        pages,
+        publishInfo,
+        loading,
+        error,
+        timestamp: new Date().toISOString()
+    })
 
-    const handleAddSvg = async () => {
-        await framer.addSVG({
-            svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path fill="#999" d="M20 0v8h-8L4 0ZM4 8h8l8 8h-8v8l-8-8Z"/></svg>`,
-            name: "Logo.svg",
-        })
+    const handlePageSelect = (page: Page) => {
+        setSelectedPage(page)
+        setCurrentView('analysis')
+    }
+
+    if (loading) {
+        return <LoadingSpinner />
     }
 
     return (
-        <main>
-            <p>
-                Welcome! Check out the{" "}
-                <a href="https://framer.com/developers/plugins/introduction" target="_blank">
-                    Docs
-                </a>{" "}
-                to start. You have {selection.length} {layer} selected.
-            </p>
-            <button className="framer-button-primary" onClick={handleAddSvg}>
-                Insert Logo
-            </button>
+        <main className="seo-plugin">
+            {currentView === 'pages' ? (
+                <>
+                    <div className="pages-header">
+                        <h1>Pages</h1>
+                        {error && <ErrorMessage message={error} />}
+                        <input 
+                            type="text" 
+                            placeholder="Search pages..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="search-input"
+                        />
+                    </div>
+                    <PagesList 
+                        pages={pages}
+                        publishInfo={publishInfo}
+                        onPageSelect={handlePageSelect}
+                        searchTerm={searchTerm}
+                    />
+                </>
+            ) : selectedPage && (
+                <SEOAnalysis 
+                    page={selectedPage}
+                    publishInfo={publishInfo}
+                    onBack={() => {
+                        setCurrentView('pages')
+                        setSelectedPage(null)
+                    }}
+                />
+            )}
         </main>
     )
 }
