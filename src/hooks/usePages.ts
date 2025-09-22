@@ -6,13 +6,13 @@ export function usePages() {
     const [pages, setPages] = useState<Page[]>([])
     const [publishInfo, setPublishInfo] = useState<PublishInfo | null>(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<boolean>(false)
 
     useEffect(() => {
         const loadPages = async () => {
             try {
                 setLoading(true)
-                setError(null)
+                setError(false)
                 
                 
                 const pubInfo = await FramerService.getPublishInfo()
@@ -26,7 +26,7 @@ export function usePages() {
                 
             } catch (err) {
                 console.error('Error loading pages:', err)
-                setError('Failed to load pages. Make sure your project is published.')
+                setError(true)
                 setPages([
                     { id: '1', name: 'Home', category: 'Static' },
                     { id: '2', name: 'About', category: 'Static' },
@@ -39,6 +39,14 @@ export function usePages() {
 
         loadPages()
     }, [])
+
+    useEffect(() => {
+        if (!publishInfo?.staging && !publishInfo?.production) {
+            setError(true)
+        } else {
+            setError(false)
+        }
+    }, [publishInfo])
 
     return { pages, publishInfo, loading, error }
 }
