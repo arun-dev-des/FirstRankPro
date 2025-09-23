@@ -6,6 +6,10 @@ import { PagesList } from './components/PagesList/PagesList'
 import { SEOAnalysis } from './components/SEOAnalysis/SEOAnalysis'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
 import './App.css'
+import { Navbar } from './components/Navbar/Navbar'
+
+import { Input } from "@/components/ui/input"
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 // Configure Framer plugin UI
 framer.showUI({
@@ -45,7 +49,7 @@ export function App() {
             {currentView === 'pages' ? (
                 <>
                     <div className="pages-header">
-                        {/* if site is not published, show this state asking user to publish their site */}
+                        {/* Case A: Site is not published, show this state asking user to publish their site */}
                         {error ? (
                             <div className="text-center p-8">
                                 <h2 className="text-xl mb-2">Site not published yet</h2>
@@ -53,20 +57,35 @@ export function App() {
                             </div>
                         ) : (
                             <>
-                                <h1 className="text-3xl font-bold underline text-red-500">Site Audit</h1>
-                                <input 
-                                    type="text" 
-                                    placeholder="Search pages..." 
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="search-input"
+                                <Navbar 
+                                    url={publishInfo?.staging?.url || publishInfo?.production?.url || 'No URL'}
+                                    environment={publishInfo?.staging ? 'STAGING' : 'PRODUCTION'}
+                                    score={75}
+                                    onAuditClick={() => {
+                                        // Handle audit click
+                                    }}
+                                    onChangeAuditLink={() => {
+                                        // Handle change audit link
+                                    }}
                                 />
-                                <PagesList 
-                                    pages={pages}
-                                    publishInfo={publishInfo}
-                                    onPageSelect={handlePageSelect}
-                                    searchTerm={searchTerm}
-                                />
+                                <div className="flex flex-col gap-2 !p-6">
+                                    <div className="relative flex items-center">
+                                        <SearchRoundedIcon className="absolute left-3 w-5 h-5 text-[#565E7B]" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search pages..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="!bg-[#0A0C13] !text-sm !text-[#96A2D0] !placeholder-[#565E7B] !pl-10 !py-2 !border !border-[#141824] !w-full !h-10"
+                                        />
+                                    </div>
+                                    <PagesList 
+                                        pages={pages}
+                                        publishInfo={publishInfo}
+                                        onPageSelect={handlePageSelect}
+                                        searchTerm={searchTerm}
+                                    />
+                                </div>
                             </>
                         )}
                     </div>
