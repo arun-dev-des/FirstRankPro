@@ -25,13 +25,13 @@ export function PagesList({ pages, publishInfo, onPageSelect, searchTerm }: Page
 
     return (
         <div className="pages-list">
-            {publishInfo?.production && (
+            {/* {publishInfo?.production && (
                 <div className="publish-info">
                     <span className="publish-status">✓ Published:</span>
                     <span className="publish-url">{publishInfo.production.url}</span>
                 </div>
             )}
-            
+             */}
             {filteredPages.length === 0 ? (
                 <div className="no-pages">
                     <p>No pages found. Make sure your project has pages and is published.</p>

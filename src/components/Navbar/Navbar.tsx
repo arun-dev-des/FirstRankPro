@@ -14,7 +14,7 @@ export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAudi
         <nav className="flex flex-col bg-[#0F111B] border-b border-[#141824] !px-8 !py-5 gap-2">
             <div className="flex items-center gap-2">
                 
-                <span className="text-[#96A2D0] text-base font-normal">{url}</span>
+                <span className="text-[#B8C5F6] text-base font-normal">{url}</span>
                 <span className="!px-2 !py-1 text-xs font-bold bg-[#141824] rounded-md text-[#96A2D0]">
                     {environment}
                 </span>

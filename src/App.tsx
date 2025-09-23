@@ -8,7 +8,6 @@ import { LoadingSpinner } from './components/common/LoadingSpinner'
 import './App.css'
 import { Navbar } from './components/Navbar/Navbar'
 
-import { Input } from "@/components/ui/input"
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 // Configure Framer plugin UI
