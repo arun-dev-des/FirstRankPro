@@ -20,8 +20,10 @@ export function usePages() {
                 setPublishInfo(pubInfo)
                 
                 const projectPages = await FramerService.getPages()
-                console.log('projectPages', projectPages)
-                setPages(projectPages)
+                // Todo: filter out page with :slug at the end of the url
+                const filteredPages = projectPages.filter(page => !page.url?.endsWith(':slug'))
+                console.log('filteredPages', filteredPages)
+                setPages(filteredPages)
                 
                 
             } catch (err) {

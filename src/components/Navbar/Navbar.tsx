@@ -11,7 +11,7 @@ interface NavbarProps {
 
 export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAuditLink }: NavbarProps) {
     return (
-        <nav className="flex flex-col bg-[#0F111B] border-b border-[#141824] !px-8 !py-5 gap-2">
+        <nav className="flex flex-col bg-[#0A0C13] border-b border-[#141824] !px-8 !py-5 gap-2">
             <div className="flex items-center gap-2">
                 
                 <span className="text-[#B8C5F6] text-base font-normal">{url}</span>
@@ -24,7 +24,7 @@ export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAudi
 
                 <button 
                     onClick={onChangeAuditLink}
-                    className="inline-flex items-center gap-1 !bg-[#141824] !text-[#73D5FF] !text-xs !font-bold hover:text-[#2DD4BF] ![width:fit-content]"
+                    className="inline-flex items-center gap-1 !bg-[#141824] !text-[#73D5FF] !text-xs !font-bold hover:bg-[#73D5FF] ![width:fit-content]"
                 >
                     <EditRoundedIcon className="!w-4 !h-4" />
                     CHANGE AUDIT LINK
@@ -32,7 +32,7 @@ export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAudi
 
                 <button 
                     onClick={onAuditClick}
-                    className="inline-flex items-center gap-1 !bg-[#73D5FF] !text-[#0A0C13] !text-xs !font-bold ![width:fit-content]"
+                    className="inline-flex items-center gap-1 !bg-[#141824] !text-[#73D5FF] !text-xs !font-bold hover:bg-[#73D5FF] ![width:fit-content]"
                 >
                     <SyncRoundedIcon className="!w-4 !h-4" />
                     RUN AUDIT
