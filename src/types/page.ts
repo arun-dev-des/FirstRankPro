@@ -6,6 +6,14 @@ export interface Page {
 }
 
 export interface PublishInfo {
-    production: { url: string; currentPageUrl: string } | null
-    staging: { url: string; currentPageUrl: string } | null
+    production: { 
+        url: string; 
+        currentPageUrl: string;
+        deploymentTime: number;
+    } | null
+    staging: { 
+        url: string; 
+        currentPageUrl: string;
+        deploymentTime: number;
+    } | null
 }

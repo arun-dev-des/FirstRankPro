@@ -1,5 +1,5 @@
 import { framer } from "framer-plugin"
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { usePages } from './hooks/usePages'
 import { Page } from './types/page'
 import { PagesList } from './components/PagesList/PagesList'
@@ -22,24 +22,24 @@ export function App() {
     const [currentView, setCurrentView] = useState<'pages' | 'analysis'>('pages')
     const [selectedPage, setSelectedPage] = useState<Page | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
-
     
-    const { pages, publishInfo, loading, error } = usePages()
-    // More detailed logging
-    console.log('[App] Current state:', {
-        pages,
-        publishInfo,
-        loading,
-        error: error,
-        timestamp: new Date().toISOString()
-    })
-
+    const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
+    
     const handlePageSelect = (page: Page) => {
         setSelectedPage(page)
         setCurrentView('analysis')
     }
+    
+    // Memoize deployment times to prevent unnecessary updates
+    const rootDeploymentTimes = useMemo(() => ({
+        staging: publishInfo?.staging?.deploymentTime || null,
+        production: publishInfo?.production?.deploymentTime || null
+    }), [
+        publishInfo?.staging?.deploymentTime,
+        publishInfo?.production?.deploymentTime
+    ])
 
-    if (loading) {
+    if (loading || !publishInfo) {
         return <LoadingSpinner />
     }
 
@@ -93,6 +93,7 @@ export function App() {
                 <SEOAnalysis 
                     page={selectedPage}
                     publishInfo={publishInfo}
+                    rootDeploymentTimes={rootDeploymentTimes}
                     onBack={() => {
                         setCurrentView('pages')
                         setSelectedPage(null)

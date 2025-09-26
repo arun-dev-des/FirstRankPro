@@ -1,86 +1,129 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { SEOAnalysis } from '../types/seo'
 import { Page } from '../types/page'
 import { SEOService } from '../services/seoService'
+import { computeAnalysisDecision, type AnalysisState, getCachedState, setCachedState, getCachedAnalysis, setCachedAnalysis } from '../lib/analysisCache'
 
-export function useSEOAnalysis(page: Page | null, focusKeyword: string = '') {
+export function useSEOAnalysis(
+    page: Page | null, 
+    focusKeyword: string = '',
+    deploymentTimes?: { staging: number | null; production: number | null }
+) {
     const [analysis, setAnalysis] = useState<SEOAnalysis | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [lastAnalyzedUrl, setLastAnalyzedUrl] = useState<string | null>(null)
 
-    const analyzePage = useCallback(async (url: string, keyword: string) => {
-        try {
-            setLoading(true)
-            setError(null)
-            
-            console.log(`🔍 Starting analysis for URL: ${url}`)
-            
-            const result = await SEOService.analyzePage(url, keyword)
-            setAnalysis(result)
-            setLastAnalyzedUrl(url)
-            
-            console.log('✅ Analysis completed successfully')
-            
-        } catch (err) {
-            console.error('❌ Error analyzing page:', err)
-            setError(err instanceof Error ? err.message : 'Failed to analyze page. Please try again.')
-            setAnalysis(null)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
+    // Persist last analyzed across mounts via in-memory cache
+    const lastAnalyzed = useRef<AnalysisState | null>(null)
+    const analysisInProgress = useRef(false)
 
-    // Analyze when page or keyword changes
+    // Initialize from caches at mount / URL change
     useEffect(() => {
         if (!page?.url) return
         
-        // Skip if we've already analyzed this URL with this keyword
-        if (lastAnalyzedUrl === page.url && analysis?.focusKeyword === focusKeyword) {
+        // Don't restore cache if analysis is already running
+        if (analysisInProgress.current) {
+            console.log('[CACHE TEST] 🔄 Skipping cache restore - analysis in progress')
             return
         }
 
-        analyzePage(page.url, focusKeyword)
-    }, [page?.url, focusKeyword, analyzePage, lastAnalyzedUrl, analysis?.focusKeyword])
+        // Restore last analyzed state
+        const cachedState = getCachedState(page.url)
+        if (cachedState) {
+            console.log('[CACHE TEST] 📦 Found cached state:', {
+                url: cachedState.url,
+                times: cachedState.times
+            })
+            lastAnalyzed.current = cachedState
+        }
 
-    // Function to update page content (placeholder for future implementation)
-    // const updatePageContent = useCallback(async (
-    //     newTitle?: string,
-    //     newMetaDescription?: string,
-    //     newH1?: string
-    // ) => {
-    //     if (!analysis || !page?.url) return
+        // Optimistically show last analysis while we decide
+        const cachedAnalysis = getCachedAnalysis(page.url)
+        if (cachedAnalysis) {
+            console.log('[CACHE TEST] ⚡️ Restoring cached analysis')
+            setAnalysis(cachedAnalysis)
+        }
+    }, [page?.url])
 
-    //     try {
-    //         setLoading(true)
-    //         setError(null)
+    const analyzePage = useCallback(async (url: string, keyword: string) => {
+        if (analysisInProgress.current) {
+            console.log('[CACHE TEST] ⚠️ Analysis already in progress, skipping')
+            return
+        }
+        
+        analysisInProgress.current = true
+        setLoading(true)
+        setError(null)
+        
+        console.log('[CACHE TEST] 🔄 Starting fresh analysis:', {
+            url,
+            keyword,
+            deploymentTimes
+        })
 
-    //         // TODO: Implement content updates via Framer API
-    //         console.log('Content updates not yet implemented:', {
-    //             url: page.url,
-    //             title: newTitle,
-    //             metaDescription: newMetaDescription,
-    //             h1: newH1
-    //         })
+        try {
+            const result = await SEOService.analyzePage(url, keyword, deploymentTimes)
+            
+            // Set and cache the new analysis
+            setAnalysis(result)
+            setCachedAnalysis(url, result)
+            
+            // Update state cache with new times
+            const state: AnalysisState = { url, keyword, times: deploymentTimes }
+            lastAnalyzed.current = state
+            setCachedState(state)
+            
+            console.log('[CACHE TEST] ✅ Analysis complete and cached with new times')
+        } catch (err) {
+            console.error('[CACHE TEST] ❌ Analysis failed:', err)
+            setError(err instanceof Error ? err.message : 'Failed to analyze page')
+            setAnalysis(null)
+        } finally {
+            analysisInProgress.current = false
+            setLoading(false)
+        }
+    }, [deploymentTimes])
 
-    //         // Re-analyze the page after changes
-    //         await analyzePage(page.url, focusKeyword)
+    useEffect(() => {
+        const next: AnalysisState = {
+            url: page?.url,
+            keyword: focusKeyword,
+            times: deploymentTimes
+        }
+        if (!next.url) return
 
-    //     } catch (err) {
-    //         console.error('Error updating page:', err)
-    //         setError('Failed to update page. Please try again.')
-    //     } finally {
-    //         setLoading(false)
-    //     }
-    // }, [analysis, page?.url, focusKeyword, analyzePage])
+        if (analysisInProgress.current) {
+            console.log('[CACHE TEST] ⏳ Skipping decision while analysis in progress')
+            return
+        }
+
+        const decision = computeAnalysisDecision(lastAnalyzed.current, next)
+        console.log('[CACHE TEST] 🤔 Analysis decision:', {
+            prev: {
+                url: lastAnalyzed.current?.url,
+                times: lastAnalyzed.current?.times
+            },
+            next: {
+                url: next.url,
+                times: next.times
+            },
+            decision
+        })
+
+        if (!decision.needsAnalysis) {
+            console.log('[CACHE TEST] ✨ Using cached analysis')
+            return
+        }
+
+        const reason = decision.reasons[0]
+        console.log(`[CACHE TEST] 🔄 Running analysis due to: ${reason}`)
+        analyzePage(next.url, next.keyword)
+    }, [page?.url, focusKeyword, deploymentTimes, analyzePage])
 
     return { 
         analysis, 
         loading, 
         error,
-        updatePageContent: async () => {
-            console.log('Content updates are not yet implemented in Framer')
-            return Promise.resolve()
-        }
+        updatePageContent: async () => Promise.resolve()
     }
 }

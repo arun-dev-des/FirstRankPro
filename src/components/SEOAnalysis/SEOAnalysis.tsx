@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Page, PublishInfo } from '../../types/page'
 import { useSEOAnalysis } from '../../hooks/useSEOAnalysis'
 import { LoadingSpinner } from '../common/LoadingSpinner'
@@ -11,13 +11,28 @@ import './styles.css'
 interface SEOAnalysisProps {
     page: Page
     publishInfo: PublishInfo | null
+    rootDeploymentTimes: {
+        staging: number | null
+        production: number | null
+    }
     onBack: () => void
 }
 
-export function SEOAnalysis({ page, publishInfo, onBack }: SEOAnalysisProps) {
+export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: SEOAnalysisProps) {
     const [focusKeyword, setFocusKeyword] = useState('')
     const [selectedCheckId, setSelectedCheckId] = useState<string | null>(null)
-    const { analysis, loading, error, updatePageContent } = useSEOAnalysis(page, focusKeyword)
+
+    // Memoize deployment times to prevent unnecessary re-renders
+    const memoizedTimes = useMemo(() => rootDeploymentTimes, [
+        rootDeploymentTimes?.staging,
+        rootDeploymentTimes?.production
+    ])
+    
+    const { analysis, loading, error, updatePageContent } = useSEOAnalysis(
+        page, 
+        focusKeyword,
+        memoizedTimes
+    )
 
     // Auto-select first check when analysis loads
     useEffect(() => {

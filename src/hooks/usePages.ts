@@ -2,45 +2,51 @@ import { useState, useEffect } from 'react'
 import { Page, PublishInfo } from '../types/page'
 import { FramerService } from '../services/framerService'
 
-export function usePages() {
-    const [pages, setPages] = useState<Page[]>([])
+export function usePages(shouldPoll: boolean = true) {
     const [publishInfo, setPublishInfo] = useState<PublishInfo | null>(null)
+    const [pages, setPages] = useState<Page[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<boolean>(false)
 
     useEffect(() => {
+        const POLL_INTERVAL = process.env.NODE_ENV === 'development' ? 5000 : 30000
+        let failedAttempts = 0
+
         const loadPages = async () => {
             try {
                 setLoading(true)
-                setError(false)
-                
-                
                 const pubInfo = await FramerService.getPublishInfo()
-                console.log('pubInfo', pubInfo)
+                console.log('📊 Latest publish info:', pubInfo)
                 setPublishInfo(pubInfo)
                 
                 const projectPages = await FramerService.getPages()
-                // Todo: filter out page with :slug at the end of the url
                 const filteredPages = projectPages.filter(page => !page.url?.endsWith(':slug'))
-                console.log('filteredPages', filteredPages)
                 setPages(filteredPages)
                 
-                
+                failedAttempts = 0
+                setError(false)
             } catch (err) {
-                console.error('Error loading pages:', err)
+                console.error('❌ Error loading pages:', err)
+                failedAttempts++
                 setError(true)
-                setPages([
-                    { id: '1', name: 'Home', category: 'Static' },
-                    { id: '2', name: 'About', category: 'Static' },
-                    { id: '3', name: 'Contact', category: 'Static' },
-                ])
             } finally {
                 setLoading(false)
             }
         }
 
+        // Initial load
         loadPages()
-    }, [])
+
+        // Only set up polling if shouldPoll is true
+        let interval: NodeJS.Timeout | null = null
+        if (shouldPoll) {
+            interval = setInterval(loadPages, POLL_INTERVAL)
+        }
+
+        return () => {
+            if (interval) clearInterval(interval)
+        }
+    }, [shouldPoll])
 
     useEffect(() => {
         if (!publishInfo?.staging && !publishInfo?.production) {
@@ -53,6 +59,7 @@ export function usePages() {
     return { pages, publishInfo, loading, error }
 }
 
+// Example response types:
 
 // FramerService.getPublishInfo() will return:
 // { 
@@ -69,7 +76,6 @@ export function usePages() {
 //       currentPageUrl: "https://your-site.framer.app/contact"
 //     } | null
 // }
-
 
 // FramerService.getPages() will resolve to:
 // [

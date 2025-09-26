@@ -61,9 +61,9 @@ export interface SEOAnalysis {
     checks: SEOCheck[]
     publishedUrl?: string
     extractedData: ExtractedSEOData
-    duplicatePages?: {
-        title: string[]
-        metaDescription: string[]
+    pageAnalyzedOnDeploymentTime?: {
+        staging: number | null
+        production: number | null
     }
     keywordStats?: {
         density: number
@@ -74,5 +74,9 @@ export interface SEOAnalysis {
             headings: number[]
             firstParagraph: boolean
         }
+    }
+    duplicatePages?: {
+        title: string[]
+        metaDescription: string[]
     }
 }

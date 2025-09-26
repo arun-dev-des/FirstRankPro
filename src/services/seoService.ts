@@ -15,7 +15,9 @@ export class SEOService {
         console.log(`🔍 Fetching HTML for: ${url}`)
 
         try {
-            const proxyUrl = `${this.PROXY_URL}?url=${encodeURIComponent(url)}`
+            // Add cache-busting timestamp to prevent cached responses
+            const cacheBuster = Date.now()
+            const proxyUrl = `${this.PROXY_URL}?url=${encodeURIComponent(url)}&t=${cacheBuster}`
             
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
@@ -54,7 +56,7 @@ export class SEOService {
             }
 
         } catch (error) {
-            console.error('❌ Error fetching HTML:', error)
+            // console.error('❌ Error fetching HTML:', error)
             if (error instanceof Error) {
                 throw new Error(`Failed to fetch page content: ${error.message}`)
             } else {
@@ -575,23 +577,29 @@ export class SEOService {
         return Math.round((totalScore / totalWeight) * 100)
     }
 
-    static async analyzePage(url: string, focusKeyword: string = ''): Promise<SEOAnalysis> {
+    static async analyzePage(
+        url: string, 
+        focusKeyword: string = '',
+        deploymentTimes?: { staging: number | null; production: number | null }
+    ): Promise<SEOAnalysis> {
         try {
-            console.log(`🔍 Starting SEO analysis for: ${url}`)
+            console.log('🔍 Starting SEO analysis with deployment times:', deploymentTimes)
             
-            // Fetch HTML using our proxy service
+            // Fetch HTML content
             const html = await this.fetchPageHTML(url)
             
-            // Extract and analyze data
+            // Analyze content
             const extractedData = this.extractSEOData(html, url)
             const checks = this.performChecks(extractedData, focusKeyword)
             const score = this.calculateScore(checks)
             const keywordStats = this.analyzeKeywordUsage(extractedData, focusKeyword)
+            
+            // Only store deployment times if they have actual values
+            const hasValidTimes = deploymentTimes && (deploymentTimes.staging || deploymentTimes.production)
+            const timesToStore = hasValidTimes ? deploymentTimes : undefined
 
-            console.log(`✅ Analysis complete. Score: ${score}`)
-
-            console.log('checks', checks)
-
+            console.log('✅ Analysis complete. Storing times:', timesToStore)
+            
             return {
                 pageId: url,
                 score,
@@ -599,6 +607,7 @@ export class SEOService {
                 checks,
                 publishedUrl: url,
                 extractedData,
+                pageAnalyzedOnDeploymentTime: timesToStore,
                 keywordStats
             }
         } catch (error) {
