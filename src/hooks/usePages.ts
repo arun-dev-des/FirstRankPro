@@ -16,10 +16,12 @@ export function usePages(shouldPoll: boolean = true) {
             try {
                 setLoading(true)
                 const pubInfo = await FramerService.getPublishInfo()
-                console.log('📊 Latest publish info:', pubInfo)
+                // console.log('📊 Latest publish info:', pubInfo)
                 setPublishInfo(pubInfo)
                 
+                // Get list of pages
                 const projectPages = await FramerService.getPages()
+                // Filter out dynamic pages (with :slug)
                 const filteredPages = projectPages.filter(page => !page.url?.endsWith(':slug'))
                 setPages(filteredPages)
                 
@@ -58,48 +60,3 @@ export function usePages(shouldPoll: boolean = true) {
 
     return { pages, publishInfo, loading, error }
 }
-
-// Example response types:
-
-// FramerService.getPublishInfo() will return:
-// { 
-//     staging: {
-//       deploymentTime: 1692206400000,
-//       optimizationStatus: "optimized",
-//       url: "https://your-site-staging.framer.app",
-//       currentPageUrl: "https://your-site-staging.framer.app/about"
-//     } | null,
-//     production: {
-//       deploymentTime: 1692120000000,
-//       optimizationStatus: "optimized",
-//       url: "https://your-site.framer.app",
-//       currentPageUrl: "https://your-site.framer.app/contact"
-//     } | null
-// }
-
-// FramerService.getPages() will resolve to:
-// [
-//     {
-//       "id": "page-1",
-//       "name": "Home",
-//       "category": "Static",
-//       "url": "https://my-portfolio.framer.app"
-//     },
-//     {
-//       "id": "page-2",
-//       "name": "About me",
-//       "category": "Static",
-//       "url": "https://my-portfolio.framer.app/about-me"
-//     },
-//     {
-//       "id": "page-3",
-//       "name": "Contact",
-//       "category": "Static",
-//       "url": "https://my-portfolio.framer.app/contact"
-//     }
-//   ]
-
-// FramerService.getPages() always returns a Page array.
-// If published → nice full URLs.
-// If not published → URLs are undefined.
-// If no pages exist at all → it fakes a "Home" page using the production URL if available.

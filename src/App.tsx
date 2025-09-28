@@ -1,5 +1,5 @@
 import { framer } from "framer-plugin"
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { usePages } from './hooks/usePages'
 import { Page } from './types/page'
 import { PagesList } from './components/PagesList/PagesList'
@@ -15,7 +15,7 @@ framer.showUI({
     position: "top right",
     width: 800,
     height: 800,
-    resizable: false,
+    resizable: true,
 })
 
 export function App() {

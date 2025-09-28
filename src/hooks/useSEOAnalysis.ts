@@ -18,16 +18,19 @@ export function useSEOAnalysis(
     const analysisInProgress = useRef(false)
 
     // Initialize from caches at mount / URL change
+    // Cache Restoration
     useEffect(() => {
+        // If no page, return
         if (!page?.url) return
-        
+
+        // If analysis is already in progress, skip cache restore
         // Don't restore cache if analysis is already running
         if (analysisInProgress.current) {
             console.log('[CACHE TEST] 🔄 Skipping cache restore - analysis in progress')
             return
         }
 
-        // Restore last analyzed state
+        // Restore last analyzed state from cache
         const cachedState = getCachedState(page.url)
         if (cachedState) {
             console.log('[CACHE TEST] 📦 Found cached state:', {
@@ -46,11 +49,13 @@ export function useSEOAnalysis(
     }, [page?.url])
 
     const analyzePage = useCallback(async (url: string, keyword: string) => {
+        // If analysis is already in progress, skip
         if (analysisInProgress.current) {
             console.log('[CACHE TEST] ⚠️ Analysis already in progress, skipping')
             return
         }
-        
+
+        // Set analysis in progress
         analysisInProgress.current = true
         setLoading(true)
         setError(null)
