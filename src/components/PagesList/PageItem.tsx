@@ -1,5 +1,5 @@
-import React from 'react'
 import { Page } from '../../types/page'
+import { OptimizedIcon, UnoptimizedIcon } from '../../assets/icons/index.tsx'
 import './styles.css'
 
 interface PageItemProps {
@@ -13,7 +13,11 @@ export function PageItem({ page, onSelect }: PageItemProps) {
             className="page-item"
             onClick={() => onSelect(page)}
         >
-            <span className="page-status">✗</span>
+            {page.status === 'published' 
+                ? <OptimizedIcon />
+                : <UnoptimizedIcon />
+            }
+
             <span className="page-name">{page.name}</span>
         </div>
     )

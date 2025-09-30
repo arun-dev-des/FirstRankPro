@@ -23,6 +23,7 @@ export function PagesList({ pages, publishInfo, onPageSelect, searchTerm }: Page
                     <p>No pages found. Make sure your project has pages and is published.</p>
                 </div>
             ) : (
+                
                 filteredPages.map((page) => (   
                     <PageItem 
                         key={page.id}

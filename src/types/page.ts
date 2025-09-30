@@ -3,6 +3,7 @@ export interface Page {
     name: string
     url?: string
     category?: string
+    status: 'published' | 'draft'
 }
 
 export interface PublishInfo {

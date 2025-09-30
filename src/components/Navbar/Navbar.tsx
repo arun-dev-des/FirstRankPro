@@ -11,33 +11,31 @@ interface NavbarProps {
 
 export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAuditLink }: NavbarProps) {
     return (
-        <nav className="flex flex-col bg-[#0A0C13] border-b border-[#141824] !px-8 !py-5 gap-2">
-            <div className="flex items-center gap-2">
-                
-                <span className="text-[#B8C5F6] text-base font-normal">{url}</span>
-                <span className="!px-2 !py-1 text-xs font-bold bg-[#141824] rounded-md text-[#96A2D0]">
+        <nav className="navbar">
+            <div className="navbar-content">
+                <span className="navbar-url">{url}</span>
+                <span className="navbar-environment">
                     {environment}
                 </span>
             </div>
 
-            <div className="flex flex-row items-center gap-2">
-
+            <div className="navbar-actions">
                 <button 
                     onClick={onChangeAuditLink}
-                    className="inline-flex items-center gap-1 !bg-[#141824] !text-[#73D5FF] !text-xs !font-bold hover:bg-[#73D5FF] ![width:fit-content]"
+                    className="navbar-button"
                 >
-                    <EditRoundedIcon className="!w-4 !h-4" />
+                    <EditRoundedIcon sx={{ fontSize: 16 }} />
                     CHANGE AUDIT LINK
                 </button>
 
                 <button 
                     onClick={onAuditClick}
-                    className="inline-flex items-center gap-1 !bg-[#141824] !text-[#73D5FF] !text-xs !font-bold hover:bg-[#73D5FF] ![width:fit-content]"
+                    className="navbar-button"
                 >
-                    <SyncRoundedIcon className="!w-4 !h-4" />
+                    <SyncRoundedIcon sx={{ fontSize: 16 }} />
                     RUN AUDIT
                 </button>
-        </div>
+            </div>
         </nav>
     );
 }

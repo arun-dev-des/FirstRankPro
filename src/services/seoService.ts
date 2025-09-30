@@ -3,10 +3,10 @@ import { SEOCheck, SEOAnalysis, ExtractedSEOData, SEOHeading, SEOImage, SEOLink 
 export class SEOService {
     private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
     private static readonly TIMEOUT = 10000 // 10 seconds
-    private static readonly TITLE_MIN_LENGTH = 30
-    private static readonly TITLE_MAX_LENGTH = 60
-    private static readonly META_MIN_LENGTH = 120
-    private static readonly META_MAX_LENGTH = 160
+    // private static readonly TITLE_MIN_LENGTH = 30
+    // private static readonly TITLE_MAX_LENGTH = 60
+    // private static readonly META_MIN_LENGTH = 120
+    // private static readonly META_MAX_LENGTH = 160
 
     // Content length check - guideline, not a rule
     private static readonly MIN_WORD_COUNT_GUIDELINE = 200;

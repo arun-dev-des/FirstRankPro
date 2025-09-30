@@ -5,7 +5,9 @@ import { Page } from './types/page'
 import { PagesList } from './components/PagesList/PagesList'
 import { SEOAnalysis } from './components/SEOAnalysis/SEOAnalysis'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
+
 import './App.css'
+
 import { Navbar } from './components/Navbar/Navbar'
 
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -23,8 +25,11 @@ export function App() {
     const [selectedPage, setSelectedPage] = useState<Page | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     
-    const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
-    
+    // const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
+
+    // Temporarily disabled polling for CSS debugging
+    const { pages, publishInfo, loading, error } = usePages(false)
+
     const handlePageSelect = (page: Page) => {
         setSelectedPage(page)
         setCurrentView('analysis')
@@ -44,15 +49,15 @@ export function App() {
     }
 
     return (
-        <main className="flex flex-col h-screen bg-[#0F111B] text-[#96A2D0] text-sm overflow-hidden">
+        <main className="app-main">
             {currentView === 'pages' ? (
                 <>
                     <div className="pages-header">
                         {/* Case A: Site is not published, show this state asking user to publish their site */}
                         {error ? (
-                            <div className="text-center p-8">
-                                <h2 className="text-xl mb-2">Site not published yet</h2>
-                                <p className="text-gray-400">Please publish your site to analyze SEO</p>
+                            <div className="error-state">
+                                <h2 className="error-title">Site not published yet</h2>
+                                <p className="error-message">Please publish your site to analyze SEO</p>
                             </div>
                         ) : (
                             <>
@@ -67,16 +72,19 @@ export function App() {
                                         // Handle change audit link
                                     }}
                                 />
-                                <div className="flex flex-col gap-2 !p-6">
-                                    <div className="relative flex items-center">
-                                        <SearchRoundedIcon className="absolute left-3 w-5 h-5 text-[#565E7B]" />
+                                <div className="pages-content">
+                                    <div className="search-container">
+                                        <SearchRoundedIcon sx={{ fontSize: 20 }} className="search-icon" />
                                         <input
                                             type="text"
-                                            placeholder="Search pages..."
+                                            placeholder="Search Pages"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="!bg-[#0A0C13] !text-sm !text-[#96A2D0] !placeholder-[#565E7B] !pl-10 !py-2 !border !border-[#141824] !w-full !h-10"
+                                            className="search-input"
                                         />
+                                    </div>
+                                    <div className="pages-header-title">
+                                        Pages
                                     </div>
                                     <PagesList 
                                         pages={pages}
