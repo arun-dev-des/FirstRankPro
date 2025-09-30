@@ -105,6 +105,7 @@ body {
     background-color: var(--color-surface);
     color: var(--color-text-tertiary);
     border-bottom: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border);
     padding: 8px 16px;
 }
 
@@ -114,7 +115,7 @@ body {
 
 /* Search styles */
 .search-icon {
-    color: var(--color-text-tertiary);
+    color: var(--color-text-secondary);
     margin-right: 4px;
 }
 
