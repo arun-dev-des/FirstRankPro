@@ -21,7 +21,6 @@
 .back-button {
     display: flex;
     align-items: center;
-    gap: 4px;
     cursor: pointer;
 }
 
@@ -71,7 +70,7 @@
     gap: 4px;
     padding: 16px;
     border-bottom: 1px solid var(--color-border);
-    border-left: 2px solid var(--color-surface);
+    border-left: 4px solid var(--color-surface);
     cursor: pointer;
     transition: background-color 0.2s;
     font-size: 14px;
@@ -81,13 +80,13 @@
 
 .check-item:hover {
     background-color: var(--color-border);
-    border-left: 2px solid var(--color-accent);
+    border-left: 4px solid var(--color-accent);
     color: var(--color-accent);
 }
 
 .check-item.selected {
     background-color: var(--color-border);
-    border-left: 2px solid var(--color-accent);
+    border-left: 4px solid var(--color-accent);
     color: var(--color-accent);
     font-weight: var(--font-weight-semibold);
 }
