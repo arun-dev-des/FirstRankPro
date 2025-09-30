@@ -1,4 +1,5 @@
 import { SEOCheck } from '../../types/seo'
+import { OptimizedIcon, UnoptimizedIcon, WarningIcon } from '../../assets/icons'
 import './styles.css'
 
 interface SEOChecklistProps {
@@ -8,6 +9,19 @@ interface SEOChecklistProps {
 }
 
 export function SEOChecklist({ checks, selectedCheckId, onCheckSelect }: SEOChecklistProps) {
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'pass':
+                return <OptimizedIcon />;
+            case 'fail':
+                return <UnoptimizedIcon />;
+            case 'warning':
+                return <WarningIcon />;
+            default:
+                return null;
+        }
+    };
+    
     return (
         <div className="checks-list">
             {checks.map(check => (
@@ -16,11 +30,8 @@ export function SEOChecklist({ checks, selectedCheckId, onCheckSelect }: SEOChec
                     className={`check-item ${check.status} ${selectedCheckId === check.id ? 'selected' : ''}`}
                     onClick={() => onCheckSelect(check.id)}
                 >
-                    <span className={`status-icon ${check.status}`}>
-                        {check.status === 'pass' ? '✓' : check.status === 'fail' ? '✗' : '⚠'}
-                    </span>
+                    <span className={`status-icon`}>{getStatusIcon(check.status)}</span>
                     <span className="check-label">{check.name}</span>
-                    <span className="arrow">→</span>
                 </div>
             ))}
         </div>

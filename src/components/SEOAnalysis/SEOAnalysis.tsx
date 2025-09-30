@@ -5,8 +5,9 @@ import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ErrorMessage } from '../common/ErrorMessage'
 import { SEOChecklist } from './SEOChecklist'
 import { OptimizationDetail } from './OptimizationDetail'
-import { SEOScore } from './SEOScore.tsx'
+// import { SEOScore } from './SEOScore.tsx'
 import './styles.css'
+import { BackIcon } from '../../assets/icons'
 
 interface SEOAnalysisProps {
     page: Page
@@ -49,28 +50,14 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
 
     return (
         <div className="seo-analysis">
-            <div className="header">
+            <div className="analysis-header">
                 <button className="back-button" onClick={onBack}>
-                    ← Back
+                    <BackIcon />
+                    <span className='analysis-page-name'>{page.name}</span>
                 </button>
-                <div className="page-info">
-                    <h1>{page.name}</h1>
-                    <div className="page-url">
-                        {page.url || publishInfo?.production?.url || 'Not published'}
-                    </div>
+                <div className="page-url">
+                    URL: {page.url || publishInfo?.production?.url || 'Not published'}
                 </div>
-                {analysis && (
-                    <div className="score-section">
-                        <SEOScore score={analysis.score} />
-                        <div className="score-details">
-                            <div className="score-label">SEO Score</div>
-                            <div className="score-band">
-                                {analysis.score >= 80 ? 'Good' : 
-                                 analysis.score >= 60 ? 'Needs Work' : 'Poor'}
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {loading ? (
@@ -85,20 +72,6 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
             ) : (
                 <div className="analysis-content">
                     <div className="left-panel">
-                        <div className="panel-header">
-                            <h2>SEO Checklist</h2>
-                            <div className="stats-summary">
-                                <span className="stat-item pass">
-                                    {analysis.checks.filter(c => c.status === 'pass').length} Passing
-                                </span>
-                                <span className="stat-item warning">
-                                    {analysis.checks.filter(c => c.status === 'warning').length} Warnings
-                                </span>
-                                <span className="stat-item fail">
-                                    {analysis.checks.filter(c => c.status === 'fail').length} Errors
-                                </span>
-                            </div>
-                        </div>
                         <SEOChecklist 
                             checks={analysis.checks}
                             selectedCheckId={selectedCheckId}

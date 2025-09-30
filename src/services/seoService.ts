@@ -257,29 +257,29 @@ export class SEOService {
         const keywordStats = this.analyzeKeywordUsage(data, keyword)
         
         // focus keyword checks
-        if (!keyword) {
-            checks.push({
-                id: 'focus-keyword-missing',
-                name: 'Focus Keyword',
-                status: 'fail',
-                description: 'Focus keyword is missing',
-                evidence: 'No focus keyword found',
-                importance: 'high',
-                category: 'content',
-                suggestions: ['Add a focus keyword', 'Use it naturally in the content']
-            });
-        } else {
-            checks.push({
-                id: 'focus-keyword-present',
-                name: 'Focus Keyword',
-                status: 'pass',
-                description: 'Focus keyword is present',
-                evidence: keyword,
-                importance: 'high',
-                category: 'content',
-                suggestions: []
-            });
-        }
+        // if (!keyword) {
+        //     checks.push({
+        //         id: 'focus-keyword-missing',
+        //         name: 'Focus Keyword',
+        //         status: 'fail',
+        //         description: 'Focus keyword is missing',
+        //         evidence: 'No focus keyword found',
+        //         importance: 'high',
+        //         category: 'content',
+        //         suggestions: ['Add a focus keyword', 'Use it naturally in the content']
+        //     });
+        // } else {
+        //     checks.push({
+        //         id: 'focus-keyword-present',
+        //         name: 'Focus Keyword',
+        //         status: 'pass',
+        //         description: 'Focus keyword is present',
+        //         evidence: keyword,
+        //         importance: 'high',
+        //         category: 'content',
+        //         suggestions: []
+        //     });
+        // }
 
         // Title checks
         if (!data.title) {
@@ -321,7 +321,7 @@ export class SEOService {
         if (!data.metaDescription) {
             checks.push({
                 id: 'meta-desc-missing',
-                name: 'Meta Description',
+                name: 'Page Description',
                 status: 'fail',
                 description: 'Page is missing a meta description',
                 evidence: 'No meta description found',
@@ -332,7 +332,7 @@ export class SEOService {
         } else {
             const metaCheck: SEOCheck = {
                 id: 'meta-desc-check',
-                name: 'Meta Description',
+                name: 'Page Description',
                 status: 'pass',
                 description: 'Meta description is present',
                 evidence: data.metaDescription,
@@ -356,7 +356,7 @@ export class SEOService {
         if (h1s.length === 0) {
             checks.push({
                 id: 'h1-missing',
-                name: 'Main Heading',
+                name: 'H1 Heading',
                 status: 'fail',
                 description: 'Page is missing a main heading',
                 evidence: 'No H1 tag found',
@@ -367,7 +367,7 @@ export class SEOService {
         } else {
             const headingCheck: SEOCheck = {
                 id: 'h1-check',
-                name: 'Main Heading',
+                name: 'H1 Heading',
                 status: 'pass',
                 description: h1s.length === 1 ? 'Page has a main heading' : `Page has ${h1s.length} main headings`,
                 evidence: h1s.map(h => h.text).join(', '),
@@ -390,7 +390,7 @@ export class SEOService {
         if (data.headings.length > 0) {
             const hierarchyCheck: SEOCheck = {
                 id: 'heading-hierarchy',
-                name: 'Heading Structure',
+                name: 'H2 - H6 Hierarchy',
                 status: 'pass',
                 description: 'Heading structure is logical',
                 evidence: data.headings.map(h => `${h.level}: ${h.text}`).join('\n'),
@@ -428,55 +428,55 @@ export class SEOService {
         }
 
         // Image checks
-        const isSVG = (src: string) => src.toLowerCase().endsWith('.svg') || src.toLowerCase().includes('data:image/svg');
-        const validImages = data.images.filter(img => !isSVG(img.src));
-        const totalImages = validImages.length;
-        const imagesWithoutAlt = validImages.filter(img => !img.alt);
+        // const isSVG = (src: string) => src.toLowerCase().endsWith('.svg') || src.toLowerCase().includes('data:image/svg');
+        // const validImages = data.images.filter(img => !isSVG(img.src));
+        // const totalImages = validImages.length;
+        // const imagesWithoutAlt = validImages.filter(img => !img.alt);
 
-        if (totalImages > 0) {
-            const missingCount = imagesWithoutAlt.length;
-            const missingPercent = (missingCount / totalImages) * 100;
+        // if (totalImages > 0) {
+        //     const missingCount = imagesWithoutAlt.length;
+        //     const missingPercent = (missingCount / totalImages) * 100;
 
-            if (missingCount === 0) {
-                checks.push({
-                    id: 'images-alt',
-                    name: 'Image Alt Text',
-                    status: 'pass',
-                    description: `All ${totalImages} images have alt text`,
-                    evidence: `${totalImages} images checked`,
-                    importance: 'high',
-                    category: 'images'
-                });
-            } else if (missingPercent > 20) {
-                checks.push({
-                    id: 'images-alt',
-                    name: 'Image Alt Text',
-                    status: 'fail',
-                    description: `${missingCount} of ${totalImages} images (${missingPercent.toFixed(0)}%) missing alt text`,
-                    evidence: imagesWithoutAlt.map(img => img.src).join('\n'),
-                    importance: 'high',
-                    category: 'images',
-                    suggestions: [
-                        'Add descriptive alt text to all meaningful images',
-                        'Use empty alt="" for decorative images'
-                    ]
-                });
-            } else {
-                checks.push({
-                    id: 'images-alt',
-                    name: 'Image Alt Text',
-                    status: 'warning',
-                    description: `${missingCount} of ${totalImages} images (${missingPercent.toFixed(0)}%) missing alt text`,
-                    evidence: imagesWithoutAlt.map(img => img.src).join('\n'),
-                    importance: 'medium',
-                    category: 'images',
-                    suggestions: [
-                        'Add alt text to the missing images',
-                        'Use empty alt="" for decorative ones'
-                    ]
-                });
-            }
-        }
+        //     if (missingCount === 0) {
+        //         checks.push({
+        //             id: 'images-alt',
+        //             name: 'Image Alt Text',
+        //             status: 'pass',
+        //             description: `All ${totalImages} images have alt text`,
+        //             evidence: `${totalImages} images checked`,
+        //             importance: 'high',
+        //             category: 'images'
+        //         });
+        //     } else if (missingPercent > 20) {
+        //         checks.push({
+        //             id: 'images-alt',
+        //             name: 'Image Alt Text',
+        //             status: 'fail',
+        //             description: `${missingCount} of ${totalImages} images (${missingPercent.toFixed(0)}%) missing alt text`,
+        //             evidence: imagesWithoutAlt.map(img => img.src).join('\n'),
+        //             importance: 'high',
+        //             category: 'images',
+        //             suggestions: [
+        //                 'Add descriptive alt text to all meaningful images',
+        //                 'Use empty alt="" for decorative images'
+        //             ]
+        //         });
+        //     } else {
+        //         checks.push({
+        //             id: 'images-alt',
+        //             name: 'Image Alt Text',
+        //             status: 'warning',
+        //             description: `${missingCount} of ${totalImages} images (${missingPercent.toFixed(0)}%) missing alt text`,
+        //             evidence: imagesWithoutAlt.map(img => img.src).join('\n'),
+        //             importance: 'medium',
+        //             category: 'images',
+        //             suggestions: [
+        //                 'Add alt text to the missing images',
+        //                 'Use empty alt="" for decorative ones'
+        //             ]
+        //         });
+        //     }
+        // }
 
         // Content length check
         if (data.wordCount < this.MIN_WORD_COUNT_GUIDELINE) {
@@ -506,54 +506,54 @@ export class SEOService {
         }
 
         // Keyword density check
-        if (keyword && keywordStats) {
-            if (keywordStats.density > 3) {
-                checks.push({
-                    id: 'keyword-density',
-                    name: 'Keyword Density',
-                    status: 'warning',
-                    description: 'Keyword appears too frequently',
-                    evidence: `Keyword density: ${keywordStats.density.toFixed(1)}% (${keywordStats.count} times)`,
-                    importance: 'medium',
-                    category: 'content',
-                    suggestions: ['Reduce keyword repetition', 'Use synonyms and related terms']
-                })
-            } else if (keywordStats.count === 0) {
-                checks.push({
-                    id: 'keyword-presence',
-                    name: 'Keyword Usage',
-                    status: 'warning',
-                    description: 'Focus keyword not found in content',
-                    evidence: `Keyword "${keyword}" not found in main content`,
-                    importance: 'high',
-                    category: 'content',
-                    suggestions: ['Include your focus keyword in the content', 'Use it naturally in paragraphs']
-                })
-            } else {
-                checks.push({
-                    id: 'keyword-usage',
-                    name: 'Keyword Usage',
-                    status: 'pass',
-                    description: 'Keyword usage is good',
-                    evidence: `Keyword density: ${keywordStats.density.toFixed(1)}% (${keywordStats.count} times)`,
-                    importance: 'high',
-                    category: 'content'
-                })
-            }
+        // if (keyword && keywordStats) {
+        //     if (keywordStats.density > 3) {
+        //         checks.push({
+        //             id: 'keyword-density',
+        //             name: 'Keyword Density',
+        //             status: 'warning',
+        //             description: 'Keyword appears too frequently',
+        //             evidence: `Keyword density: ${keywordStats.density.toFixed(1)}% (${keywordStats.count} times)`,
+        //             importance: 'medium',
+        //             category: 'content',
+        //             suggestions: ['Reduce keyword repetition', 'Use synonyms and related terms']
+        //         })
+        //     } else if (keywordStats.count === 0) {
+        //         checks.push({
+        //             id: 'keyword-presence',
+        //             name: 'Keyword Usage',
+        //             status: 'warning',
+        //             description: 'Focus keyword not found in content',
+        //             evidence: `Keyword "${keyword}" not found in main content`,
+        //             importance: 'high',
+        //             category: 'content',
+        //             suggestions: ['Include your focus keyword in the content', 'Use it naturally in paragraphs']
+        //         })
+        //     } else {
+        //         checks.push({
+        //             id: 'keyword-usage',
+        //             name: 'Keyword Usage',
+        //             status: 'pass',
+        //             description: 'Keyword usage is good',
+        //             evidence: `Keyword density: ${keywordStats.density.toFixed(1)}% (${keywordStats.count} times)`,
+        //             importance: 'high',
+        //             category: 'content'
+        //         })
+        //     }
 
-            if (!keywordStats.positions.firstParagraph) {
-                checks.push({
-                    id: 'keyword-first-paragraph',
-                    name: 'Keyword in Introduction',
-                    status: 'warning',
-                    description: 'Focus keyword not found in first paragraph',
-                    evidence: `First paragraph: "${data.firstParagraph}"`,
-                    importance: 'medium',
-                    category: 'content',
-                    suggestions: ['Include your focus keyword early in the content', 'Add it naturally to the introduction']
-                })
-            }
-        }
+        //     if (!keywordStats.positions.firstParagraph) {
+        //         checks.push({
+        //             id: 'keyword-first-paragraph',
+        //             name: 'Keyword in Introduction',
+        //             status: 'warning',
+        //             description: 'Focus keyword not found in first paragraph',
+        //             evidence: `First paragraph: "${data.firstParagraph}"`,
+        //             importance: 'medium',
+        //             category: 'content',
+        //             suggestions: ['Include your focus keyword early in the content', 'Add it naturally to the introduction']
+        //         })
+        //     }
+        // }
 
         return checks
     }

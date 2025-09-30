@@ -1,95 +1,64 @@
+@import "../../App.css";
+
 .seo-analysis {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100vh; /* Use viewport height instead of % */
+    overflow: hidden; /* Prevent overall scroll */
 }
 
-.header {
+/* Analysis Header */
+.analysis-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-    border-bottom: 1px solid #333;
-    min-height: 80px;
+    flex-direction: column;
+    padding: 24px 24px;
+    gap: 4px;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .back-button {
-    background: none;
-    border: none;
-    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     cursor: pointer;
-    font-size: 14px;
-    padding: 4px 8px;
 }
 
-.back-button:hover {
-    color: #ffffff;
-}
-
-.page-info {
-    flex: 1;
-    margin: 0 20px;
-}
-
-.page-info h1 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #ffffff;
+.analysis-page-name {
+    color: var(--color-text-primary);
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: var(--font-weight-regular);
+    cursor: pointer;
 }
 
 .page-url {
-    font-size: 12px;
-    color: #888;
-    margin-top: 4px;
+    font-size: 14px;
+    color: var(--color-text-tertiary);
 }
 
-.score-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: conic-gradient(#ef4444 0deg 111.6deg, #333 111.6deg 360deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-.score-circle::before {
-    content: '';
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    background-color: #1a1a1a;
-    border-radius: 50%;
-}
-
-.score {
-    font-size: 16px;
-    font-weight: 600;
-    color: #ffffff;
-    position: relative;
-    z-index: 1;
-}
-
+/* Analysis Content */
 .analysis-content {
     display: flex;
     flex: 1;
     overflow: hidden;
+    height: calc(100vh - 89px); /* Viewport height minus header height */
 }
 
 .left-panel {
-    width: 500px;
-    border-right: 1px solid #333;
-    overflow-y: auto;
-    padding: 32px 0;
+    width: 240px;
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    flex-shrink: 0; /* Prevent panel from shrinking */
+    overflow-y: hidden; /* Remove scroll */
 }
 
 .right-panel {
-    width: 800px;
-    padding: 32px;
-    overflow-y: auto;
-    background-color: #1a1a1a;
+    flex: 1;
+    overflow-y: auto; /* Only this panel scrolls */
+    background-color: var(--color-bg);
+    padding: 24px;
 }
 
 .checks-list {
@@ -99,26 +68,32 @@
 .check-item {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 24px 32px;
-    border-bottom: 1px solid #333;
+    gap: 4px;
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+    border-left: 2px solid var(--color-surface);
     cursor: pointer;
     transition: background-color 0.2s;
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-text-secondary);
 }
 
 .check-item:hover {
-    background-color: #2a2a2a;
+    background-color: var(--color-border);
+    border-left: 2px solid var(--color-accent);
+    color: var(--color-accent);
 }
 
 .check-item.selected {
-    background-color: #3b82f6;
-    border-left: 4px solid #1d4ed8;
+    background-color: var(--color-border);
+    border-left: 2px solid var(--color-accent);
+    color: var(--color-accent);
+    font-weight: var(--font-weight-semibold);
 }
 
 .check-item.selected:hover {
-    background-color: #2563eb;
+    background-color: var(--color-border);
 }
 
 .check-label {
