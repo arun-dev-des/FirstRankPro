@@ -9,8 +9,7 @@ import { LoadingSpinner } from './components/common/LoadingSpinner'
 import './App.css'
 
 import { Navbar } from './components/Navbar/Navbar'
-
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import { SearchIcon } from './assets/icons/index.tsx'
 
 // Configure Framer plugin UI
 framer.showUI({
@@ -74,7 +73,7 @@ export function App() {
                                 />
                                 <div className="pages-content">
                                     <div className="search-container">
-                                        <SearchRoundedIcon sx={{ fontSize: 20 }} className="search-icon" />
+                                        <SearchIcon />
                                         <input
                                             type="text"
                                             placeholder="Search Pages"

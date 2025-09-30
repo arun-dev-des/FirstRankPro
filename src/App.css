@@ -142,6 +142,7 @@ body {
     background: none;
     border: none;
     color: var(--color-text-primary);
+    margin-left: 8px;
 }
 
 .search-input::placeholder {
