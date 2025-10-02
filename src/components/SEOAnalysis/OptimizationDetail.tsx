@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { SEOCheck, ExtractedSEOData } from '../../types/seo'
+import { OptimizedIcon, UnoptimizedIcon, WarningIcon, MagicWandIcon } from '../../assets/icons'
+import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
+import { ChevronDownIcon, ChevronUpIcon } from '../../assets/icons'
 import './styles.css'
 
 interface OptimizationDetailProps {
@@ -24,6 +27,20 @@ interface OptimizationDetailProps {
     onUpdateContent: (newTitle?: string, newMetaDescription?: string, newH1?: string) => Promise<void>
 }
 
+const getStatusIcon = (status: string) => {
+    switch (status) {
+        case 'pass':
+            return <OptimizedIcon />;
+        case 'fail':
+            return <UnoptimizedIcon />;
+        case 'warning':
+            return <WarningIcon />;
+        default:
+            return null;
+    }
+};
+
+
 export function OptimizationDetail({
     check,
     focusKeyword,
@@ -40,62 +57,58 @@ export function OptimizationDetail({
         return h1 ? h1.text : ''
     })
     const [localKeyword, setLocalKeyword] = useState(focusKeyword)
-    const [isSaving, setIsSaving] = useState(false)
-    const [titleAiSuggestion, setTitleAiSuggestion] = useState('')
+    // const [isSaving, setIsSaving] = useState(false)
     const [metaAiSuggestion, setMetaAiSuggestion] = useState('')
     const [h1AiSuggestion, setH1AiSuggestion] = useState('')
+    const [isWhyMattersOpen, setIsWhyMattersOpen] = useState(false)
 
-    const handleKeywordUpdate = () => {
-        onFocusKeywordChange(localKeyword)
-    }
+    // const handleSaveChanges = async () => {
+    //     try {
+    //         setIsSaving(true)
+            
+    //         // Check what has changed
+    //         const newTitle = editedTitle !== extractedData.title ? editedTitle : undefined
+    //         const newMeta = editedMeta !== extractedData.metaDescription ? editedMeta : undefined
+    //         const currentH1 = extractedData.headings.find(h => h.level === 'h1')?.text || ''
+    //         const newH1 = editedH1 !== currentH1 ? editedH1 : undefined
+            
+    //         // Only save if there are actual changes
+    //         if (newTitle || newMeta || newH1) {
+    //             await onUpdateContent(newTitle, newMeta, newH1)
+    //             console.log('✅ Changes saved successfully!')
+    //         } else {
+    //             console.log('ℹ️ No changes to save')
+    //         }
+            
+    //     } catch (error) {
+    //         console.error('❌ Failed to save changes:', error)
+    //     } finally {
+    //         setIsSaving(false)
+    //     }
+    // }
 
-    const handleSaveChanges = async () => {
-        try {
-            setIsSaving(true)
-            
-            // Check what has changed
-            const newTitle = editedTitle !== extractedData.title ? editedTitle : undefined
-            const newMeta = editedMeta !== extractedData.metaDescription ? editedMeta : undefined
-            const currentH1 = extractedData.headings.find(h => h.level === 'h1')?.text || ''
-            const newH1 = editedH1 !== currentH1 ? editedH1 : undefined
-            
-            // Only save if there are actual changes
-            if (newTitle || newMeta || newH1) {
-                await onUpdateContent(newTitle, newMeta, newH1)
-                console.log('✅ Changes saved successfully!')
-            } else {
-                console.log('ℹ️ No changes to save')
-            }
-            
-        } catch (error) {
-            console.error('❌ Failed to save changes:', error)
-        } finally {
-            setIsSaving(false)
-        }
-    }
-
-    const generateAISuggestion = () => {
-        console.log('Generating AI suggestion for:', check.category, check.id)
-        if (check.category === 'meta' && check.id.includes('title')) {
-            if (focusKeyword) {
-                setTitleAiSuggestion(`${focusKeyword} - Professional Services | ${extractedData.url.split('/')[2] || 'Brand'}`)
-            } else {
-                setTitleAiSuggestion(`${extractedData.title.split(' ')[0]} - Professional Services | Brand`)
-            }
-        } else if (check.category === 'meta' && check.id.includes('meta')) {
-            if (focusKeyword) {
-                setMetaAiSuggestion(`Discover our professional ${focusKeyword} services. Get expert solutions and top-quality results. Contact us today for a consultation.`)
-            } else {
-                setMetaAiSuggestion(`Discover our professional services. Get expert solutions and top-quality results tailored to your needs.`)
-            }
-        } else if (check.category === 'headings' && check.id.includes('h1')) {
-            if (focusKeyword) {
-                setH1AiSuggestion(`Professional ${focusKeyword} Services`)
-            } else {
-                setH1AiSuggestion(`Professional Services - Expert Solutions`)
-            }
-        }
-    }
+    // const generateAISuggestion = () => {
+    //     console.log('Generating AI suggestion for:', check.category, check.id)
+    //     if (check.category === 'meta' && check.id.includes('title')) {
+    //         if (focusKeyword) {
+    //             setTitleAiSuggestion(`${focusKeyword} - Professional Services | ${extractedData.url.split('/')[2] || 'Brand'}`)
+    //         } else {
+    //             setTitleAiSuggestion(`${extractedData.title.split(' ')[0]} - Professional Services | Brand`)
+    //         }
+    //     } else if (check.category === 'meta' && check.id.includes('meta')) {
+    //         if (focusKeyword) {
+    //             setMetaAiSuggestion(`Discover our professional ${focusKeyword} services. Get expert solutions and top-quality results. Contact us today for a consultation.`)
+    //         } else {
+    //             setMetaAiSuggestion(`Discover our professional services. Get expert solutions and top-quality results tailored to your needs.`)
+    //         }
+    //     } else if (check.category === 'headings' && check.id.includes('h1')) {
+    //         if (focusKeyword) {
+    //             setH1AiSuggestion(`Professional ${focusKeyword} Services`)
+    //         } else {
+    //             setH1AiSuggestion(`Professional Services - Expert Solutions`)
+    //         }
+    //     }
+    // }
 
     const renderFocusKeywordSection = () => (
         <div className="optimization-section">
@@ -110,7 +123,7 @@ export function OptimizationDetail({
                 />
                 <button 
                     className="apply-button"
-                    onClick={handleKeywordUpdate}
+                    // onClick={handleKeywordUpdate}
                 >
                     Apply Keyword
                 </button>
@@ -143,53 +156,99 @@ export function OptimizationDetail({
 
     const renderTitleSection = () => (
         <div className="optimization-section">
-            {/* <h3>Page Title Optimization</h3> */}
+
             <div className={`status-badge ${check.status}`}>
-                <span className={`status-icon ${check.status}`}>
-                    {check.status === 'pass' ? '✓' : check.status === 'fail' ? '✗' : '⚠'}
+                <span className={`status-icon`}>
+                    {getStatusIcon(check.status)}
                 </span>
                 <span className="status-text">
-                    {check.status === 'pass' ? 'Passing' : check.status === 'fail' ? 'Needs Fix' : 'Warning'}
+                    {check.description}
                 </span>
             </div>
-            <p>{check.description}</p>
             
             <div className="field-group">
-                <label>Current Page Title</label>
+                <div className="field-label-group">
+                    <label className="field-label">Page Title</label>
+                    <div className="field-char-count">
+                        {
+                            editedTitle.length > 90 ? <span className="warning"> {editedTitle.length}/90 (too long - max 90 chars)</span> :
+                            editedTitle.length < 30 ? <span className="warning"> {editedTitle.length}/90 (too short - min 30 chars)</span> :
+                            <span>{editedTitle.length}/90 chars</span>
+                        }
+                    </div>
+                </div>
+
                 <textarea
                     value={editedTitle}
                     readOnly
                     placeholder="Enter page title..."
                     className="field-input"
-                    rows={3}
+                    disabled={true}
+                    rows={2}
                 />
-                <div className="char-count">
-                    {editedTitle.length}/90 characters
-                    {editedTitle.length > 90 && <span className="warning"> (too long)</span>}
-                    {editedTitle.length < 8 && <span className="warning"> (too short)</span>}
-                </div>
             </div>
 
             <div className="ai-section">
-                <label>Generate Page Title using AI</label>
-                {/* create a readOnly textarea whicg gets updated when the button is clicked */}
-                <textarea
-                    value={titleAiSuggestion}
-                    readOnly
-                    placeholder="AI suggestion will appear here..."
-                    className="field-input"
-                    rows={3}
-                />
-                {/* create a button which updates the textarea when clicked   */}
                 <button 
-                    onClick={generateAISuggestion}
-                    className="generate-button"
+                    // onClick={generateAISuggestion}
+                    className="ai-generate-button"
                 >
-                    Generate
+                    <MagicWandIcon />
+                    Generate new Title
                 </button>
             </div>
 
-            {duplicatePages?.title.length ? (
+            {/* <div className="why-matters">
+                <div className="card-header">
+                    <HelpRoundedIcon sx={{ fontSize: 20, color: 'var(--color-text-secondary)' }} />
+                    <span>Why <strong>Page Title</strong> matters?</span>
+                </div>
+                <div className="card-content">
+                    <ul>
+                        <li>
+                            First thing users see in search results
+                        </li>
+                        <li>
+                            Clear, relevant titles boost clicks and traffic
+                        </li>
+                        <li>
+                            Well-written titles with keywords rank higher in search
+                        </li>
+                    </ul>
+                </div>
+            </div> */}
+
+            {/* Replace the existing why-matters div with this: */}
+            <div className="why-matters">
+                <button 
+                    className="card-header"
+                    onClick={() => setIsWhyMattersOpen(!isWhyMattersOpen)}
+                    aria-expanded={isWhyMattersOpen}
+                >
+                    <HelpRoundedIcon sx={{ fontSize: 20, color: 'var(--color-text-secondary)' }} />
+                    <span>Why <strong>Page Title</strong> matters?</span>
+                    <span className="accordion-chevron">
+                        {isWhyMattersOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+                    </span>
+                </button>
+                
+                <div className={`card-content ${isWhyMattersOpen ? 'open' : ''}`}>
+                    <ul>
+                        <li>
+                            First thing users see in search results
+                        </li>
+                        <li>
+                            Clear, relevant titles boost clicks and traffic
+                        </li>
+                        <li>
+                            Well-written titles with keywords rank higher in search
+                        </li>
+                    </ul>
+                </div>
+                
+            </div>
+
+            {/* {duplicatePages?.title.length ? (
                 <div className="warning-box">
                     <h4>⚠️ Duplicate Titles Found</h4>
                     <p>The following pages use the same title:</p>
@@ -199,9 +258,9 @@ export function OptimizationDetail({
                         ))}
                     </ul>
                 </div>
-            ) : null}
+            ) : null} */}
 
-            <div className="tips">
+            {/* <div className="tips">
                 <h4>Optimization Tips:</h4>
                 <ul>
                     <li>Keep titles between 30-60 characters</li>
@@ -209,7 +268,7 @@ export function OptimizationDetail({
                     <li>Make it compelling and descriptive</li>
                     <li>Place important keywords at the beginning</li>
                 </ul>
-            </div>
+            </div> */}
         </div>
     )
 
@@ -232,6 +291,7 @@ export function OptimizationDetail({
                     readOnly
                     placeholder="Enter meta description..."
                     className="field-input"
+                    
                     rows={4}
                 />
                 <div className="char-count">
@@ -251,7 +311,7 @@ export function OptimizationDetail({
                     rows={4}
                 />
                 <button 
-                    onClick={generateAISuggestion}
+                    // onClick={generateAISuggestion}
                     className="generate-button"
                 >
                     Generate
@@ -321,7 +381,7 @@ export function OptimizationDetail({
                             rows={2}
                         />
                         <button 
-                            onClick={generateAISuggestion}
+                            // onClick={generateAISuggestion}
                             className="generate-button"
                         >
                             Generate
@@ -494,7 +554,7 @@ export function OptimizationDetail({
             {renderSection()}
             
             {/* Search Result Preview */}
-            <div className="search-preview">
+            {/* <div className="search-preview">
                 <h3>Search Result Preview</h3>
                 <div className="serp-preview">
                     <div className="serp-title">{editedTitle || extractedData.title}</div>
@@ -503,15 +563,8 @@ export function OptimizationDetail({
                         {editedMeta || extractedData.metaDescription || 'Meta description will appear here...'}
                     </div>
                 </div>
-            </div>
+            </div> */}
 
-            <button 
-                className={`save-changes-button ${hasChanges() ? 'has-changes' : ''}`}
-                onClick={handleSaveChanges}
-                disabled={!hasChanges() || isSaving}
-            >
-                {isSaving ? '⏳ Saving...' : hasChanges() ? '💾 Save Changes to Page' : '✅ No Changes to Save'}
-            </button>
         </div>
     )
 }

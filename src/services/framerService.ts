@@ -23,12 +23,13 @@ export class FramerService {
                     const pagePath = node.path || `page-${node.id}`
                     const pageName = pagePath.replace(/^\//, '').replace(/-/g, ' ') || 'Home'
                     const displayName = pageName.charAt(0).toUpperCase() + pageName.slice(1)
-                    
+                    const status = node.status === 'published' ? 'published' : 'draft'
                     return {
                         id: node.id,
                         name: displayName,
                         category: 'Static',
-                        url: this.constructPageUrl(pagePath, pubInfo)
+                        url: this.constructPageUrl(pagePath, pubInfo),
+                        status: status
                     }
                 })
             )
@@ -38,7 +39,8 @@ export class FramerService {
                     id: 'home',
                     name: 'Home',
                     category: 'Static',
-                    url: pubInfo.production.url
+                    url: pubInfo.production.url,
+                    status: 'published'
                 })
             }
 
