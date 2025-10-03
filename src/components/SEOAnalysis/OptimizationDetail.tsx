@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { SEOCheck, ExtractedSEOData } from '../../types/seo'
 import { OptimizedIcon, UnoptimizedIcon, WarningIcon, MagicWandIcon } from '../../assets/icons'
-import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
-import { ChevronDownIcon, ChevronUpIcon } from '../../assets/icons'
+import { HelpIcon, ChevronDownIcon, ChevronUpIcon } from '../../assets/icons'
 import './styles.css'
 
 interface OptimizationDetailProps {
@@ -198,41 +197,24 @@ export function OptimizationDetail({
                 </button>
             </div>
 
-            {/* <div className="why-matters">
-                <div className="card-header">
-                    <HelpRoundedIcon sx={{ fontSize: 20, color: 'var(--color-text-secondary)' }} />
-                    <span>Why <strong>Page Title</strong> matters?</span>
-                </div>
-                <div className="card-content">
-                    <ul>
-                        <li>
-                            First thing users see in search results
-                        </li>
-                        <li>
-                            Clear, relevant titles boost clicks and traffic
-                        </li>
-                        <li>
-                            Well-written titles with keywords rank higher in search
-                        </li>
-                    </ul>
-                </div>
-            </div> */}
-
-            {/* Replace the existing why-matters div with this: */}
             <div className="why-matters">
                 <button 
                     className="card-header"
                     onClick={() => setIsWhyMattersOpen(!isWhyMattersOpen)}
                     aria-expanded={isWhyMattersOpen}
                 >
-                    <HelpRoundedIcon sx={{ fontSize: 20, color: 'var(--color-text-secondary)' }} />
-                    <span>Why <strong>Page Title</strong> matters?</span>
-                    <span className="accordion-chevron">
-                        {isWhyMattersOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                    </span>
+                    <div className="card-header-content">
+                        <HelpIcon className='help-icon'/>
+                        <span>Why <strong>Page Title</strong> matters?</span>
+                    </div>
+
+                    {isWhyMattersOpen ? 
+                        <ChevronUpIcon /> : 
+                        <ChevronDownIcon />
+                    }
                 </button>
                 
-                <div className={`card-content ${isWhyMattersOpen ? 'open' : ''}`}>
+                <div className={`card-actual-content ${isWhyMattersOpen ? 'open' : ''}`}>
                     <ul>
                         <li>
                             First thing users see in search results
@@ -245,7 +227,6 @@ export function OptimizationDetail({
                         </li>
                     </ul>
                 </div>
-                
             </div>
 
             {/* {duplicatePages?.title.length ? (
