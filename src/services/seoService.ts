@@ -9,7 +9,7 @@ export class SEOService {
     // private static readonly META_MAX_LENGTH = 160
 
     // Content length check - guideline, not a rule
-    private static readonly MIN_WORD_COUNT_GUIDELINE = 200;
+    private static readonly MIN_WORD_COUNT_GUIDELINE = 300;
 
     static async fetchPageHTML(url: string): Promise<string> {
         console.log(`🔍 Fetching HTML for: ${url}`)
@@ -379,7 +379,7 @@ export class SEOService {
                 id: 'h1-missing',
                 name: 'H1 Heading',
                 status: 'fail',
-                description: 'Page is missing a main heading',
+                description: 'H1 Heading is missing',
                 evidence: 'No H1 tag found',
                 importance: 'high',
                 category: 'headings',
@@ -505,7 +505,7 @@ export class SEOService {
                 id: 'content-length',
                 name: 'Content Length',
                 status: 'warning',
-                description: `Page has ${data.wordCount} words, which may not provide enough depth`,
+                description: `Thin Content: only ${data.wordCount} words. May not provide enough depth`,
                 evidence: `Found ${data.wordCount} words. Suggested minimum for comprehensive coverage is ~${this.MIN_WORD_COUNT_GUIDELINE}+ words (depends on topic).`,
                 importance: 'medium',
                 category: 'content',
@@ -519,7 +519,7 @@ export class SEOService {
                 id: 'content-length',
                 name: 'Content Length',
                 status: 'pass',
-                description: `Page has ${data.wordCount} words — likely enough to cover the topic`,
+                description: `Good Content Length: ${data.wordCount} words`,
                 evidence: `Content length meets the suggested guideline of ~${this.MIN_WORD_COUNT_GUIDELINE}+ words.`,
                 importance: 'medium',
                 category: 'content'
@@ -608,6 +608,7 @@ export class SEOService {
 
             // Fetch HTML content
             const html = await this.fetchPageHTML(url)
+            // console.log('🔍 HTML:', html)
             
             // Analyze content
             const extractedData = this.extractSEOData(html, url)

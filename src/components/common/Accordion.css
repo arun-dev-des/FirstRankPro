@@ -52,7 +52,7 @@
 }
 
 .accordion-content.open {
-    max-height: 300px;
+    max-height: 360px;
     opacity: 1;
     margin-top: 8px;
 }

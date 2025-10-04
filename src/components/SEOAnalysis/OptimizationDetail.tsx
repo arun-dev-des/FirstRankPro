@@ -438,7 +438,57 @@ export function OptimizationDetail({
                     Generate new H1 Heading
                 </button>
             </div>
-            
+
+            <label className="field-label">Learn</label>
+
+            <Accordion 
+                title="Why H1 Heading matters?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>Strong H1 improves SEO relevance & accessibility</li>
+                    <li>Tells both users & search engines the main topic of the page</li>
+                    <li>Clear headings improve user readability & engagement</li>
+                </ul>
+            </Accordion>
+
+            <Accordion 
+                title="Good vs Bad H1 Heading"
+                icon={<GoodVsBadIcon className="good-vs-bad-icon" />}
+            >
+                <div className="good-pill-group">
+                    <div className="good-pill">Good</div>
+                    <div className="good-pill-example">
+                        AI Chatbot for Customer Support Teams
+                    </div>
+                </div>
+                <ul>
+                    <li>Main keyword / phrase included</li>
+                    <li>Only one H1 per page - represents the page main topic</li>
+                    <li>Clear & user-friendly</li>
+                </ul>
+
+                <div className="bad-pill-group">
+                    <div className="bad-pill">Bad</div>
+                    <div className="bad-pill-example">Welcome to our website</div>
+                </div>
+                <ul>
+                    <li>Too generic, no keyword</li>
+                </ul>
+            </Accordion>
+
+            <Accordion 
+                title="How to set H1 Heading?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>Select the text layer you want to use as your H1</li>
+                    <li>In the right-hand panel, open Text Settings → Styles</li>
+                    <li>Choose an existing style defined as Heading 1, or create a new style and label it Heading 1.</li>
+                    <li>Update the text content to include your main keyword naturally (avoid forcing or stuffing).</li>
+                </ul>
+            </Accordion>
+
             <div className="headings-list">
                 <h4>Current Page Structure</h4>
                 {extractedData.headings.length > 0 ? (
@@ -454,80 +504,62 @@ export function OptimizationDetail({
                     <p>No headings found on this page.</p>
                 )}
             </div>
-
-            <div className="tips">
-                <h4>Heading Best Practices:</h4>
-                <ul>
-                    <li>Use only one H1 per page</li>
-                    <li>Maintain proper hierarchy (H1 → H2 → H3)</li>
-                    <li>Include keywords in headings naturally</li>
-                    <li>Make headings descriptive and meaningful</li>
-                </ul>
-            </div>
         </div>
     )
 
     const renderContentSection = () => (
         <div className="optimization-section">
-            <h3>Content Analysis</h3>
             <div className={`status-badge ${check.status}`}>
-                <span className={`status-icon ${check.status}`}>
-                    {check.status === 'pass' ? '✓' : check.status === 'fail' ? '✗' : '⚠'}
+                <span className={`status-icon`}>
+                    {getStatusIcon(check.status)}
                 </span>
                 <span className="status-text">
-                    {check.status === 'pass' ? 'Passing' : check.status === 'fail' ? 'Needs Fix' : 'Warning'}
+                    {check.description}
                 </span>
             </div>
-            <p>{check.description}</p>
 
-            <div className="content-stats">
-                <div className="stat">
-                    <label>Word Count</label>
-                    <span className={extractedData.wordCount >= 300 ? 'good' : 'warning'}>
-                        {extractedData.wordCount}
-                    </span>
-                </div>
-                <div className="stat">
-                    <label>Images</label>
-                    <span>{extractedData.images.length}</span>
-                </div>
-                <div className="stat">
-                    <label>Links</label>
-                    <span>{extractedData.links.length}</span>
-                </div>
-            </div>
+            <label className="field-label">Learn</label>
+            <Accordion 
+                title="Why Content Length matters?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>Too little content makes it hard to rank in search</li>
+                    <li>Longer, in-depth content builds authority & trust</li>
+                    <li>Clear, well-structured text keeps users engaged</li>
+                </ul>
+            </Accordion>
 
-            {keywordStats && (
-                <div className="keyword-positions">
-                    <h4>Keyword Positions</h4>
-                    <div className="position-grid">
-                        <div className={`position-item ${keywordStats.positions.title ? 'found' : 'missing'}`}>
-                            <span className="position-label">Title</span>
-                            <span className="position-status">
-                                {keywordStats.positions.title ? '✓' : '✗'}
-                            </span>
-                        </div>
-                        <div className={`position-item ${keywordStats.positions.metaDescription ? 'found' : 'missing'}`}>
-                            <span className="position-label">Meta Description</span>
-                            <span className="position-status">
-                                {keywordStats.positions.metaDescription ? '✓' : '✗'}
-                            </span>
-                        </div>
-                        <div className={`position-item ${keywordStats.positions.firstParagraph ? 'found' : 'missing'}`}>
-                            <span className="position-label">First Paragraph</span>
-                            <span className="position-status">
-                                {keywordStats.positions.firstParagraph ? '✓' : '✗'}
-                            </span>
-                        </div>
-                        <div className={`position-item ${keywordStats.positions.headings.length > 0 ? 'found' : 'missing'}`}>
-                            <span className="position-label">Headings</span>
-                            <span className="position-status">
-                                {keywordStats.positions.headings.length} found
-                            </span>
-                        </div>
+            <Accordion 
+                title="Good vs Bad Content Length"
+                icon={<GoodVsBadIcon className="good-vs-bad-icon" />}
+            >
+                <div className="good-pill-group">
+                    <div className="good-pill">Good</div>
+                    <div className="good-pill-example">
+                        1,200 words with clear sections, headings, and examples.
                     </div>
                 </div>
-            )}
+                <ul>
+                    <li>Explains the page topic in depth</li>
+                    <li>Naturally uses keywords while keeping readers engaged</li>
+                    <li>Meets recommended length by page type:</li>
+                    <ul>
+                        <li>Landing page: 1000-1200 words</li>
+                        <li>Blog post: 500-1000 words</li>
+                        <li>Product page: 200-500 words</li>
+                    </ul>
+                </ul>
+                <div className="bad-pill-group">
+                    <div className="bad-pill">Bad</div>
+                    <div className="bad-pill-example">100 words of vague, generic content</div>
+                </div>
+                <ul>
+                    <li>Too thin to rank well</li>
+                    <li>No real value for readers</li>
+                    <li>Misses keyword opportunities</li>
+                </ul>
+            </Accordion>
         </div>
     )
 
