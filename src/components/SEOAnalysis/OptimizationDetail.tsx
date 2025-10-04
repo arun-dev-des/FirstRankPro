@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SEOCheck, ExtractedSEOData } from '../../types/seo'
 import { OptimizedIcon, UnoptimizedIcon, WarningIcon, MagicWandIcon } from '../../assets/icons'
-import { HelpIcon, ChevronDownIcon, ChevronUpIcon } from '../../assets/icons'
+import { HelpIcon, GoodVsBadIcon, ChevronDownIcon, ChevronUpIcon } from '../../assets/icons'
 import './styles.css'
 
 interface OptimizationDetailProps {
@@ -49,17 +49,28 @@ export function OptimizationDetail({
     keywordStats,
     onUpdateContent
 }: OptimizationDetailProps) {
+
+    function getPageName(url: string): string {
+        const { pathname } = new URL(url);
+        return pathname === "/" ? "home" : pathname.slice(1);
+    }
+
+    const [pageName, setPageName] = useState(getPageName(extractedData.url))
     const [editedTitle, setEditedTitle] = useState(extractedData.title)
     const [editedMeta, setEditedMeta] = useState(extractedData.metaDescription)
     const [editedH1, setEditedH1] = useState(() => {
         const h1 = extractedData.headings.find(h => h.level === 'h1')
         return h1 ? h1.text : ''
     })
+    
     const [localKeyword, setLocalKeyword] = useState(focusKeyword)
     // const [isSaving, setIsSaving] = useState(false)
     const [metaAiSuggestion, setMetaAiSuggestion] = useState('')
     const [h1AiSuggestion, setH1AiSuggestion] = useState('')
     const [isWhyMattersOpen, setIsWhyMattersOpen] = useState(false)
+    const [isGoodVsBadOpen, setIsGoodVsBadOpen] = useState(false)
+    const [isHowToSetOpen, setIsHowToSetOpen] = useState(false)
+
 
     // const handleSaveChanges = async () => {
     //     try {
@@ -164,28 +175,31 @@ export function OptimizationDetail({
                     {check.description}
                 </span>
             </div>
-            
-            <div className="field-group">
-                <div className="field-label-group">
-                    <label className="field-label">Page Title</label>
-                    <div className="field-char-count">
-                        {
-                            editedTitle.length > 90 ? <span className="warning"> {editedTitle.length}/90 (too long - max 90 chars)</span> :
-                            editedTitle.length < 30 ? <span className="warning"> {editedTitle.length}/90 (too short - min 30 chars)</span> :
-                            <span>{editedTitle.length}/90 chars</span>
-                        }
-                    </div>
-                </div>
 
-                <textarea
-                    value={editedTitle}
-                    readOnly
-                    placeholder="Enter page title..."
-                    className="field-input"
-                    disabled={true}
-                    rows={2}
-                />
-            </div>
+            {/* only show field group if status is pass or warning */}
+            {(check.status === 'pass' || check.status === 'warning') && (
+                <div className="field-group">
+                    <div className="field-label-group">
+                        <label className="field-label">Page Title</label>
+                        <div className="field-char-count">
+                            {
+                                editedTitle.length > 90 ? <span className="warning"> {editedTitle.length}/90 (too long - max 90 chars)</span> :
+                                editedTitle.length < 30 ? <span className="warning"> {editedTitle.length}/90 (too short - min 30 chars)</span> :
+                                <span>{editedTitle.length}/90 chars</span>
+                            }
+                        </div>
+                    </div>
+
+                    <textarea
+                        value={editedTitle}
+                        readOnly
+                        placeholder="Enter page title..."
+                        className="field-input"
+                        disabled={true}
+                        rows={2}
+                    />
+                </div>
+            )}
 
             <div className="ai-section">
                 <button 
@@ -229,27 +243,112 @@ export function OptimizationDetail({
                 </div>
             </div>
 
-            {/* {duplicatePages?.title.length ? (
-                <div className="warning-box">
-                    <h4>⚠️ Duplicate Titles Found</h4>
-                    <p>The following pages use the same title:</p>
+            <div className="good-vs-bad">
+                <button 
+                    className="card-header"
+                    onClick={() => setIsGoodVsBadOpen(!isGoodVsBadOpen)}
+                    aria-expanded={isWhyMattersOpen}
+                >
+                    <div className="card-header-content">
+                        <GoodVsBadIcon className='good-vs-bad-icon'/>
+                        <span>Good vs Bad <strong>Page Title</strong></span>
+                    </div>
+
+                    {isGoodVsBadOpen ? 
+                        <ChevronUpIcon /> : 
+                        <ChevronDownIcon />
+                    }
+                </button>
+                
+                <div className={`card-actual-content ${isGoodVsBadOpen ? 'open' : ''}`}>
+                   <div className="good-pill-group">
+                        <div className="good-pill">
+                            Good
+                        </div>
+                        <div className="good-pill-example">
+                            AI Chatbot for Customer Support Teams | ChatSphere
+                        </div>
+                   </div>
                     <ul>
-                        {duplicatePages.title.slice(0, 3).map(url => (
-                            <li key={url}>{url}</li>
-                        ))}
+                        <li>
+                            Main keyword / phrase included
+                        </li>
+                        <li>
+                            Page topic obvious to users
+                        </li>
+                        <li>
+                            Relevant length between 30-90 characters
+                        </li>
+                    </ul>
+
+                    <div className="bad-pill-group">
+                        <div className="bad-pill">
+                            Bad
+                        </div>
+                        <div className="bad-pill-example">
+                            Welcome | ChatSphere
+                        </div>
+                   </div>
+                    <ul>
+                        <li>
+                            Too generic, no keyword, unclear
+                        </li>
                     </ul>
                 </div>
-            ) : null} */}
+            </div>
 
-            {/* <div className="tips">
-                <h4>Optimization Tips:</h4>
-                <ul>
-                    <li>Keep titles between 30-60 characters</li>
-                    <li>Include your focus keyword naturally</li>
-                    <li>Make it compelling and descriptive</li>
-                    <li>Place important keywords at the beginning</li>
-                </ul>
-            </div> */}
+            <div className="how-to-set">
+                <button 
+                    className="card-header"
+                    onClick={() => setIsHowToSetOpen(!isHowToSetOpen)}
+                    aria-expanded={isHowToSetOpen}
+                >
+                    <div className="card-header-content">
+                        <HelpIcon className='help-icon'/>
+                        <span>How to set <strong>Page Title</strong>?</span>
+                    </div>
+
+                    {isHowToSetOpen ? 
+                        <ChevronUpIcon /> : 
+                        <ChevronDownIcon />
+                    }
+                </button>
+                
+                <div className={`card-actual-content how-to ${isHowToSetOpen ? 'open' : ''}`}>
+                    <ul>
+                        <li>
+                            In Framer Left Panel, click the [⋮] menu next to page name
+                        </li>
+                        <li>
+                            Select Settings
+                        </li>
+                        <li>
+                            Enter a new Title in the input box
+                        </li>
+                        <li>
+                            Click Save
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            {/* Search Result Preview */}
+            <div className="search-preview">
+                <label className="field-label">Preview - Search Result</label>
+                <div className="serp-preview">
+                    <div className="serp-url">{`your-website.com/${pageName}` || 'example.com/page'}</div>
+                    <div className={`serp-title ${editedTitle.toLowerCase() === pageName.toLowerCase() || !editedTitle ? 'fail' : ''}`}>
+                        {editedTitle.toLowerCase() === pageName.toLowerCase() && <UnoptimizedIcon />}
+                        {!editedTitle && <UnoptimizedIcon />}
+                        {editedTitle? `${editedTitle.charAt(0).toUpperCase() + editedTitle.slice(1)}` : 'Page Title'}
+                    </div>
+                    <div className={`serp-description ${!editedMeta? 'fail' : ''}`}>
+                        {!editedMeta && <UnoptimizedIcon />}
+                        {editedMeta || extractedData.metaDescription || 'Page Description'}
+                    </div>
+                </div>
+            </div>
+
         </div>
     )
 
@@ -497,6 +596,11 @@ export function OptimizationDetail({
     )
 
     const renderSection = () => {
+        // Add safety check for undefined check
+        if (!check) {
+            return <div>No check data available</div>
+        }
+        
         if (check.id.includes('keyword') && !check.id.includes('title') && !check.id.includes('meta')) {
             return renderFocusKeywordSection()
         }
@@ -533,19 +637,6 @@ export function OptimizationDetail({
     return (
         <div className="optimization-detail">
             {renderSection()}
-            
-            {/* Search Result Preview */}
-            {/* <div className="search-preview">
-                <h3>Search Result Preview</h3>
-                <div className="serp-preview">
-                    <div className="serp-title">{editedTitle || extractedData.title}</div>
-                    <div className="serp-url">{extractedData.url || 'example.com/page'}</div>
-                    <div className="serp-description">
-                        {editedMeta || extractedData.metaDescription || 'Meta description will appear here...'}
-                    </div>
-                </div>
-            </div> */}
-
         </div>
     )
 }

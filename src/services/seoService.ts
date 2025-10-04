@@ -252,10 +252,23 @@ export class SEOService {
         }
     }
 
-    private static performChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
+    private static performChecks(data: ExtractedSEOData, keyword: string, url: string): SEOCheck[] {
+        console.log('🚀 performChecks method called!', { data, keyword, url })
+        
         const checks: SEOCheck[] = []
         const keywordStats = this.analyzeKeywordUsage(data, keyword)
-        
+
+        // const pageName = url.split('/').pop() || 'home'
+        // let pageName = url.split('/').slice(-1)[0]
+        // pageName = pageName === (url ) ? 'home' : pageName
+
+        function getPageName(url: string): string {
+            const { pathname } = new URL(url);
+            return pathname === "/" ? "home" : pathname.slice(1);
+        }
+
+        const pageName = getPageName(url)
+
         // focus keyword checks
         // if (!keyword) {
         //     checks.push({
@@ -287,13 +300,25 @@ export class SEOService {
                 id: 'title-missing',
                 name: 'Page Title',
                 status: 'fail',
-                description: 'Page is missing a title tag',
+                description: 'Page Title is missing',
                 evidence: 'No title tag found',
                 importance: 'high',
                 category: 'meta',
                 suggestions: ['Add a descriptive title tag', 'Include your focus keyword in the title']
             });
-        } else {
+        } else if (data.title.toLowerCase() === pageName.toLowerCase()) {
+            checks.push({
+                id: 'title-check',
+                name: 'Page Title',
+                status: 'fail',
+                description: 'Page Title is the same as the Page Name',
+                evidence: data.title,
+                importance: 'high',
+                category: 'meta',
+                suggestions: ['Change the Page Title to a more descriptive title']
+            });
+        }
+        else {
             const titleCheck: SEOCheck = {
                 id: 'title-check',
                 name: 'Page Title',
@@ -307,7 +332,7 @@ export class SEOService {
                 ]
             };
 
-            if (data.title.length < 8) {
+            if (data.title.length < 30) {
                 titleCheck.suggestions?.push('May be too short to be descriptive');
             }
             if (data.title.length > 90) {
@@ -584,13 +609,13 @@ export class SEOService {
     ): Promise<SEOAnalysis> {
         try {
             console.log('🔍 Starting SEO analysis with deployment times:', deploymentTimes)
-            
+
             // Fetch HTML content
             const html = await this.fetchPageHTML(url)
             
             // Analyze content
             const extractedData = this.extractSEOData(html, url)
-            const checks = this.performChecks(extractedData, focusKeyword)
+            const checks = this.performChecks(extractedData, focusKeyword, url)
             const score = this.calculateScore(checks)
             const keywordStats = this.analyzeKeywordUsage(extractedData, focusKeyword)
             

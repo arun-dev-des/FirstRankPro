@@ -128,11 +128,11 @@
 }
 
 .status-badge.fail {
-    color: #ef4444;
+    color: #FFD9D9;
 }
 
 .status-badge.warning {
-    color: #eab308;
+    color: #FFF6E0;
 }
 
 /* field group */
@@ -210,51 +210,8 @@
     fill: var(--color-bg);
 }
 
-/* card */
-
-/* .why-matters {
-    background-color: var(--color-surface);
-    border-radius: 4px;
-    padding: 12px;
-    border: 1px solid var(--color-border);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.card-header span {
-    font-size: 14px;
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-secondary);
-    opacity: 0.8;
-}
-
-.card-content {
-    font-size: 14px;
-    font-weight: var(--font-weight-regular);
-    color: var(--color-text-secondary);
-    opacity: 0.8;
-}
-
-.card-content ul {
-    list-style-type: disc;
-    padding-left: 20px;
-    margin-top: 8px;
-}
-
-.card-content li {
-    margin: 4px 0;
-    color: var(--color-text-secondary);
-    line-height: 1.5;
-} */
-
 /* card accordion */
-
-.why-matters {
+.why-matters, .good-vs-bad, .how-to-set {
     background-color: var(--color-surface);
     border-radius: 4px;
     padding: 12px 16px 12px 12px;
@@ -262,15 +219,11 @@
     margin-bottom: 16px;
 }
 
-.why-matters:hover {
-    background-color: var(--color-border);
-}
-
-.why-matters:hover .card-header span {
+.why-matters:hover .card-header span, .good-vs-bad:hover .card-header span, .how-to-set:hover .card-header span{
     color: var(--color-text-primary);
 }
 
-.why-matters:hover .card-content li {
+.why-matters:hover .card-content li, .good-vs-bad:hover .card-content li {
     color: var(--color-text-primary);
 }
 
@@ -327,6 +280,11 @@
     padding-left: 20px;
 }
 
+.card-actual-content.how-to ul{
+    list-style-type: decimal;
+    padding-left: 20px;
+}
+
 .card-actual-content li {
     font-size: 14px;
     font-weight: var(--font-weight-regular);
@@ -336,6 +294,98 @@
     opacity: 0.8;
 }
 
+/* good vs bad */
+
+.good-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.good-pill, .bad-pill {
+    font-size: 14px;
+    font-weight: var(--font-weight-semibold);
+    background-color: #027E00;
+    color: #E4FFEE;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.good-pill-example, .bad-pill-example {
+    font-size: 14px;
+    font-weight: var(--font-weight-semibold);
+    background-color: #141824;
+    color: #E4FFEE;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.bad-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    margin-top: 12px;
+}
+
+.bad-pill {
+    background-color: #FFD9D9;
+    color: #980000;
+}
+
+.bad-pill-example {
+    background-color: #141824;
+    color: #FFD9D9;
+}
+
+/* Search Result Preview */
+
+.serp-preview {
+    background-color: var(--color-surface);
+    border-radius: 4px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    margin-bottom: 16px;
+}
+
+.serp-url {
+    color: #BFBFBF;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: var(--font-weight-regular);
+    margin-bottom: 8px;
+}
+
+.serp-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #9AC3FF;
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 2px;
+    cursor: pointer;
+}
+
+.serp-title.fail {
+    color: #FFD9D9;
+}
+
+.serp-description {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #BFBFBF;
+    font-size: 14px;
+    line-height: 16px;
+}
+
+.serp-description.fail {
+    color: #FFD9D9;
+}
 
 /* others */
 
@@ -500,45 +550,6 @@
 
 .save-to-page-button:hover {
     background-color: #16a34a;
-}
-
-.search-preview {
-    margin-top: 16px;
-}
-
-.search-preview h4 {
-    margin: 0 0 12px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
-}
-
-.serp-preview {
-    background-color: #2a2a2a;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 12px;
-}
-
-.serp-title {
-    color: #3b82f6;
-    font-size: 18px;
-    font-weight: 500;
-    margin-bottom: 4px;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.serp-url {
-    color: #22c55e;
-    font-size: 14px;
-    margin-bottom: 8px;
-}
-
-.serp-description {
-    color: #ccc;
-    font-size: 14px;
-    line-height: 1.4;
 }
 
 /* No Selection State */
