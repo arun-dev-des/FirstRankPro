@@ -258,10 +258,6 @@ export class SEOService {
         const checks: SEOCheck[] = []
         const keywordStats = this.analyzeKeywordUsage(data, keyword)
 
-        // const pageName = url.split('/').pop() || 'home'
-        // let pageName = url.split('/').slice(-1)[0]
-        // pageName = pageName === (url ) ? 'home' : pageName
-
         function getPageName(url: string): string {
             const { pathname } = new URL(url);
             return pathname === "/" ? "home" : pathname.slice(1);
@@ -348,7 +344,7 @@ export class SEOService {
                 id: 'meta-desc-missing',
                 name: 'Page Description',
                 status: 'fail',
-                description: 'Page is missing a meta description',
+                description: 'Page Description is missing',
                 evidence: 'No meta description found',
                 importance: 'high',
                 category: 'meta',
@@ -359,7 +355,7 @@ export class SEOService {
                 id: 'meta-desc-check',
                 name: 'Page Description',
                 status: 'pass',
-                description: 'Meta description is present',
+                description: 'Page Description is present',
                 evidence: data.metaDescription,
                 importance: 'high',
                 category: 'meta',
@@ -394,7 +390,7 @@ export class SEOService {
                 id: 'h1-check',
                 name: 'H1 Heading',
                 status: 'pass',
-                description: h1s.length === 1 ? 'Page has a main heading' : `Page has ${h1s.length} main headings`,
+                description: h1s.length === 1 ? 'Page has H1 heading' : `Page has ${h1s.length} main headings`,
                 evidence: h1s.map(h => h.text).join(', '),
                 importance: 'high',
                 category: 'headings',

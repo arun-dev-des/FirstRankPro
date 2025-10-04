@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { SEOCheck, ExtractedSEOData } from '../../types/seo'
 import { OptimizedIcon, UnoptimizedIcon, WarningIcon, MagicWandIcon } from '../../assets/icons'
-import { HelpIcon, GoodVsBadIcon, ChevronDownIcon, ChevronUpIcon } from '../../assets/icons'
+import { HelpIcon, GoodVsBadIcon } from '../../assets/icons'
+import { Accordion } from '../common/Accordion'
 import './styles.css'
 
 interface OptimizationDetailProps {
@@ -67,9 +68,6 @@ export function OptimizationDetail({
     // const [isSaving, setIsSaving] = useState(false)
     const [metaAiSuggestion, setMetaAiSuggestion] = useState('')
     const [h1AiSuggestion, setH1AiSuggestion] = useState('')
-    const [isWhyMattersOpen, setIsWhyMattersOpen] = useState(false)
-    const [isGoodVsBadOpen, setIsGoodVsBadOpen] = useState(false)
-    const [isHowToSetOpen, setIsHowToSetOpen] = useState(false)
 
 
     // const handleSaveChanges = async () => {
@@ -211,128 +209,56 @@ export function OptimizationDetail({
                 </button>
             </div>
 
-            <div className="why-matters">
-                <button 
-                    className="card-header"
-                    onClick={() => setIsWhyMattersOpen(!isWhyMattersOpen)}
-                    aria-expanded={isWhyMattersOpen}
-                >
-                    <div className="card-header-content">
-                        <HelpIcon className='help-icon'/>
-                        <span>Why <strong>Page Title</strong> matters?</span>
+            <label className="field-label">Learn</label>
+            <Accordion 
+                title="Why Page Title matters?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>First thing users see in search results</li>
+                    <li>Clear, relevant titles boost clicks and traffic</li>
+                    <li>Well-written titles with keywords rank higher in search</li>
+                </ul>
+            </Accordion>
+
+            <Accordion 
+                title="Good vs Bad Page Title"
+                icon={<GoodVsBadIcon className="good-vs-bad-icon" />}
+            >
+                <div className="good-pill-group">
+                    <div className="good-pill">Good</div>
+                    <div className="good-pill-example">
+                        AI Chatbot for Customer Support Teams | ChatSphere
                     </div>
-
-                    {isWhyMattersOpen ? 
-                        <ChevronUpIcon /> : 
-                        <ChevronDownIcon />
-                    }
-                </button>
-                
-                <div className={`card-actual-content ${isWhyMattersOpen ? 'open' : ''}`}>
-                    <ul>
-                        <li>
-                            First thing users see in search results
-                        </li>
-                        <li>
-                            Clear, relevant titles boost clicks and traffic
-                        </li>
-                        <li>
-                            Well-written titles with keywords rank higher in search
-                        </li>
-                    </ul>
                 </div>
-            </div>
-
-            <div className="good-vs-bad">
-                <button 
-                    className="card-header"
-                    onClick={() => setIsGoodVsBadOpen(!isGoodVsBadOpen)}
-                    aria-expanded={isWhyMattersOpen}
-                >
-                    <div className="card-header-content">
-                        <GoodVsBadIcon className='good-vs-bad-icon'/>
-                        <span>Good vs Bad <strong>Page Title</strong></span>
-                    </div>
-
-                    {isGoodVsBadOpen ? 
-                        <ChevronUpIcon /> : 
-                        <ChevronDownIcon />
-                    }
-                </button>
+                <ul>
+                    <li>Main keyword / phrase included</li>
+                    <li>Page topic obvious to users</li>
+                    <li>Relevant length between 30-90 characters</li>
+                </ul>
                 
-                <div className={`card-actual-content ${isGoodVsBadOpen ? 'open' : ''}`}>
-                   <div className="good-pill-group">
-                        <div className="good-pill">
-                            Good
-                        </div>
-                        <div className="good-pill-example">
-                            AI Chatbot for Customer Support Teams | ChatSphere
-                        </div>
-                   </div>
-                    <ul>
-                        <li>
-                            Main keyword / phrase included
-                        </li>
-                        <li>
-                            Page topic obvious to users
-                        </li>
-                        <li>
-                            Relevant length between 30-90 characters
-                        </li>
-                    </ul>
-
-                    <div className="bad-pill-group">
-                        <div className="bad-pill">
-                            Bad
-                        </div>
-                        <div className="bad-pill-example">
-                            Welcome | ChatSphere
-                        </div>
-                   </div>
-                    <ul>
-                        <li>
-                            Too generic, no keyword, unclear
-                        </li>
-                    </ul>
+                <div className="bad-pill-group">
+                    <div className="bad-pill">Bad</div>
+                    <div className="bad-pill-example">Welcome | ChatSphere</div>
                 </div>
-            </div>
+                <ul>
+                    <li>Too generic, no keyword, unclear</li>
+                </ul>
+            </Accordion>
 
-            <div className="how-to-set">
-                <button 
-                    className="card-header"
-                    onClick={() => setIsHowToSetOpen(!isHowToSetOpen)}
-                    aria-expanded={isHowToSetOpen}
-                >
-                    <div className="card-header-content">
-                        <HelpIcon className='help-icon'/>
-                        <span>How to set <strong>Page Title</strong>?</span>
-                    </div>
+            <Accordion 
+                title="How to set Page Title?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>In Framer Left Panel, click the [⋮] menu next to page name</li>
+                    <li>Select Settings</li>
+                    <li>Enter a new Title in the input box</li>
+                    <li>Click Save</li>
+                </ul>
+            </Accordion>
 
-                    {isHowToSetOpen ? 
-                        <ChevronUpIcon /> : 
-                        <ChevronDownIcon />
-                    }
-                </button>
-                
-                <div className={`card-actual-content how-to ${isHowToSetOpen ? 'open' : ''}`}>
-                    <ul>
-                        <li>
-                            In Framer Left Panel, click the [⋮] menu next to page name
-                        </li>
-                        <li>
-                            Select Settings
-                        </li>
-                        <li>
-                            Enter a new Title in the input box
-                        </li>
-                        <li>
-                            Click Save
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            {/* Search Result Preview */}
+            {/* Preview - Search Result*/}
             <div className="search-preview">
                 <label className="field-label">Preview - Search Result</label>
                 <div className="serp-preview">
@@ -355,120 +281,163 @@ export function OptimizationDetail({
     const renderMetaDescriptionSection = () => (
         <div className="optimization-section">
             <div className={`status-badge ${check.status}`}>
-                <span className={`status-icon ${check.status}`}>
-                    {check.status === 'pass' ? '✓' : check.status === 'fail' ? '✗' : '⚠'}
+                <span className={`status-icon`}>
+                    {getStatusIcon(check.status)}
                 </span>
                 <span className="status-text">
-                    {check.status === 'pass' ? 'Passing' : check.status === 'fail' ? 'Needs Fix' : 'Warning'}
+                    {check.description}
                 </span>
             </div>
-            <p>{check.description}</p>
 
-            <div className="field-group">
-                <label>Current Meta Description</label>
-                <textarea
-                    value={editedMeta}
-                    readOnly
-                    placeholder="Enter meta description..."
-                    className="field-input"
-                    
-                    rows={4}
-                />
-                <div className="char-count">
-                    {editedMeta.length}/160 characters
-                    {editedMeta.length > 200 && <span className="warning"> (too long)</span>}
-                    {editedMeta.length < 40 && <span className="warning"> (too short)</span>}
+            {/* only show field group if status is pass or warning */}
+            {(check.status === 'pass' || check.status === 'warning') && (
+                <div className="field-group">
+                    <div className="field-label-group">
+                        <label className="field-label">Page Description</label>
+                        <div className="field-char-count">
+                            {
+                                editedMeta.length > 200 ? <span className="warning"> {editedMeta.length}/200 (too long - max 200 chars)</span> :
+                                editedMeta.length < 40 ? <span className="warning"> {editedMeta.length}/200 (too short - min 40 chars)</span> :
+                                <span>{editedMeta.length}/200 chars</span>
+                            }
+                        </div>
+                    </div>
+
+                    <textarea
+                        value={editedMeta}
+                        readOnly
+                        placeholder="Enter page description..."
+                        className="field-input"
+                        disabled={true}
+                        rows={3}
+                    />
                 </div>
-            </div>
+            )}
 
             <div className="ai-section">
-                <label>Generate Meta Description using AI</label>
-                <textarea
-                    value={metaAiSuggestion}
-                    readOnly
-                    placeholder="AI suggestion will appear here..."
-                    className="field-input"
-                    rows={4}
-                />
                 <button 
                     // onClick={generateAISuggestion}
-                    className="generate-button"
+                    className="ai-generate-button"
                 >
-                    Generate
+                    <MagicWandIcon />
+                    Generate new Title
                 </button>
             </div>
 
-            {duplicatePages?.metaDescription.length ? (
-                <div className="warning-box">
-                    <h4>⚠️ Duplicate Meta Descriptions Found</h4>
-                    <p>The following pages use the same meta description:</p>
-                    <ul>
-                        {duplicatePages.metaDescription.slice(0, 3).map(url => (
-                            <li key={url}>{url}</li>
-                        ))}
-                    </ul>
-                </div>
-            ) : null}
+            <label className="field-label">Learn</label>
 
-            <div className="tips">
-                <h4>Optimization Tips:</h4>
+            <Accordion 
+                title="Why Page Description matters?"
+                icon={<HelpIcon className="help-icon" />}
+            >
                 <ul>
-                    <li>Keep between 40-200 characters</li>
-                    <li>Include your focus keyword naturally</li>
-                    <li>Write compelling copy that encourages clicks</li>
-                    <li>Accurately describe the page content</li>
+                    <li>Clear, keyword-rich descriptions boost clicks & engagement</li>
+                    <li>Doesn’t affect rankings but influences user decisions</li>
+                    <li>Acts like an elevator pitch (1–2 sentences)</li>
                 </ul>
+            </Accordion>
+
+            <Accordion 
+                title="Good vs Bad Page Description"
+                icon={<GoodVsBadIcon className="good-vs-bad-icon" />}
+            >
+                <div className="good-pill-group">
+                    <div className="good-pill">Good</div>
+                    <div className="good-pill-example">
+                        Resolve customer queries instantly with ChatSphere – an AI-powered chatbot built to support teams and improve response times.
+                    </div>
+                </div>
+                <ul>
+                    <li>Includes focus keyword naturally</li>
+                    <li>Explains page content in 1–2 sentences</li>
+                    <li>Relevant length between 40-200 characters</li>
+                </ul>
+                
+                <div className="bad-pill-group">
+                    <div className="bad-pill">Bad</div>
+                    <div className="bad-pill-example">Welcome to our homepage. Click to learn more about what we do.</div>
+                </div>
+                <ul>
+                    <li>Generic, no keyword, doesn’t explain page content</li>
+                </ul>
+            </Accordion>
+
+            <Accordion 
+                title="How to set Page Description?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>In Framer Left Panel, click the [⋮] menu next to page name</li>
+                    <li>Select Settings</li>
+                    <li>Enter a new Description in the input box</li>
+                    <li>Click Save to apply</li>
+                </ul>
+            </Accordion>
+
+            {/* Preview - Search Result*/}
+            <div className="search-preview">
+                <label className="field-label">Preview - Search Result</label>
+                <div className="serp-preview">
+                    <div className="serp-url">{`your-website.com/${pageName}` || 'example.com/page'}</div>
+                    <div className={`serp-title ${editedTitle.toLowerCase() === pageName.toLowerCase() || !editedTitle ? 'fail' : ''}`}>
+                        {editedTitle.toLowerCase() === pageName.toLowerCase() && <UnoptimizedIcon />}
+                        {!editedTitle && <UnoptimizedIcon />}
+                        {editedTitle? `${editedTitle.charAt(0).toUpperCase() + editedTitle.slice(1)}` : 'Page Title'}
+                    </div>
+                    <div className={`serp-description ${!editedMeta? 'fail' : ''}`}>
+                        {!editedMeta && <UnoptimizedIcon />}
+                        {editedMeta || extractedData.metaDescription || 'Page Description'}
+                    </div>
+                </div>
             </div>
         </div>
     )
 
     const renderHeadingSection = () => (
         <div className="optimization-section">
-            <h3>Heading Structure</h3>
             <div className={`status-badge ${check.status}`}>
-                <span className={`status-icon ${check.status}`}>
-                    {check.status === 'pass' ? '✓' : check.status === 'fail' ? '✗' : '⚠'}
+                <span className={`status-icon`}>
+                    {getStatusIcon(check.status)}
                 </span>
                 <span className="status-text">
-                    {check.status === 'pass' ? 'Good' : check.status === 'fail' ? 'Issues Found' : 'Needs Attention'}
+                    {check.description}
                 </span>
             </div>
-            <p>{check.description}</p>
 
-            {check.id.includes('h1') && (
-                <>
-                    <div className="field-group">
-                        <label>Current H1 Heading</label>
-                        <textarea
-                            value={editedH1}
-                            readOnly
-                            placeholder="Enter H1 heading..."
-                            className="field-input"
-                            rows={2}
-                        />
-                        <div className="char-count">
-                            {editedH1.length} characters
+            {/* only show field group if status is pass or warning */}
+            {(check.status === 'pass' || check.status === 'warning') && (
+                <div className="field-group">
+                    <div className="field-label-group">
+                        <label className="field-label">H1 Heading</label>
+                        <div className="field-char-count">
+                            {
+                                editedH1.length > 200 ? <span className="warning"> {editedH1.length}/200 (too long - max 200 chars)</span> :
+                                editedH1.length < 40 ? <span className="warning"> {editedH1.length}/200 (too short - min 40 chars)</span> :
+                                <span>{editedH1.length}/200 chars</span>
+                            }
                         </div>
                     </div>
 
-                    <div className="ai-section">
-                        <label>Generate H1 Heading using AI</label>
-                        <textarea
-                            value={h1AiSuggestion}
-                            readOnly
-                            placeholder="AI suggestion will appear here..."
-                            className="field-input"
-                            rows={2}
-                        />
-                        <button 
-                            // onClick={generateAISuggestion}
-                            className="generate-button"
-                        >
-                            Generate
-                        </button>
-                    </div>
-                </>
+                    <textarea
+                        value={editedH1}
+                        readOnly
+                        placeholder="Enter H1 heading..."
+                        className="field-input"
+                        disabled={true}
+                        rows={2}
+                    />
+                </div>
             )}
+
+            <div className="ai-section">
+                <button 
+                    // onClick={generateAISuggestion}
+                    className="ai-generate-button"
+                >
+                    <MagicWandIcon />
+                    Generate new H1 Heading
+                </button>
+            </div>
             
             <div className="headings-list">
                 <h4>Current Page Structure</h4>

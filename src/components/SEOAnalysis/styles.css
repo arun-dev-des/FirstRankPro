@@ -190,7 +190,7 @@
     gap: 8px;
     width: 100%;
     padding: 8px 16px;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
     background-color: rgba(115, 213, 255, 0.07);
     border: none;
     border-radius: 4px;
@@ -298,7 +298,7 @@
 
 .good-pill-group {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     margin: 8px 0;
 }
@@ -324,7 +324,7 @@
 
 .bad-pill-group {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     margin: 8px 0;
     margin-top: 12px;
@@ -341,6 +341,10 @@
 }
 
 /* Search Result Preview */
+
+.search-preview {
+    margin-top: 24px;
+}
 
 .serp-preview {
     background-color: var(--color-surface);
