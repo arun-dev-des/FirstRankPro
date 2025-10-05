@@ -406,32 +406,57 @@ export function OptimizationDetail({
                 </span>
             </div>
 
-            {/* only show field group if status is pass or warning */}
-            {(check.status === 'pass' || check.status === 'warning') && (
-                <div className="field-group">
-                    <div className="field-label-group">
-                        <label className="field-label">H1 Heading</label>
-                        <div className="field-char-count">
-                            {
-                                editedH1.length > 200 ? <span className="warning"> {editedH1.length}/200 (too long - max 200 chars)</span> :
-                                editedH1.length < 40 ? <span className="warning"> {editedH1.length}/200 (too short - min 40 chars)</span> :
-                                <span>{editedH1.length}/200 chars</span>
-                            }
-                        </div>
+            <>
+                {/* 1. Always show HeadingCounts at the top */}
+                <HeadingCounts headings={extractedData.headings} />
+
+                {/* 2. Show H1 input field for pass/warning states */}
+                {(check.status === 'pass' || check.status === 'warning') && (
+                    <div className="field-group">
+                        {/* For warning state, show all H1s */}
+                        {check.status === 'warning' ? (
+                            <div className="h1-list">
+                                {extractedData.headings
+                                    .filter(h => h.level === 'h1' && h.visible && !h.duplicateOf)
+                                    .map((h1, index, array) => (
+                                        <div key={index} className="h1-item">
+                                            <div className="field-label-group">
+                                                <span className="field-label">H1 #{index + 1} of {array.length}</span>
+                                            </div>
+                                            <textarea
+                                                value={h1.text}
+                                                readOnly
+                                                disabled={true}
+                                                className="field-input"
+                                                rows={2}
+                                            />
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        ) : (
+                            /* For pass state, show single H1 */
+                            <>
+                                <div className="field-label-group">
+                                    <label className="field-label">H1 Heading</label>
+                                    <div className="field-char-count">
+                                        {editedH1.length > 200 ? <span className="warning">{editedH1.length}/200 (too long)</span> :
+                                        editedH1.length < 40 ? <span className="warning">{editedH1.length}/200 (too short)</span> :
+                                        <span>{editedH1.length}/200</span>}
+                                    </div>
+                                </div>
+                                <textarea
+                                    value={editedH1}
+                                    readOnly
+                                    disabled={true}
+                                    className="field-input"
+                                    rows={2}
+                                />
+                            </>
+                        )}
                     </div>
-
-                    <textarea
-                        value={editedH1}
-                        readOnly
-                        placeholder="Enter H1 heading..."
-                        className="field-input"
-                        disabled={true}
-                        rows={2}
-                    />
-                </div>
-            )}
-
-            <HeadingCounts headings={extractedData.headings} />
+                )}
+            </>
 
             <div className="ai-section">
                 <button 

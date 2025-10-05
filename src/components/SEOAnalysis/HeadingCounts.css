@@ -21,11 +21,6 @@
     gap: 0px;
 }
 
-.heading-count-container.fail {
-    background-color: #980000;
-    color: #fff;
-}
-
 .heading-count-container .heading-level-badge-container {
     font-size: 14px;
     font-weight: var(--font-weight-semibold);
@@ -35,10 +30,40 @@
     text-align: center;
 }
 
+.h1-supporting-text {
+    font-size: 14px;
+    color: #FFD9D9;
+}
+
+
 .heading-count-container .heading-count-number-container {
     font-size: 14px;
     font-weight: var(--font-weight-regular);
     color: var(--color-text-primary);
     min-width: 24px;
     text-align: center;
+}
+
+.heading-count-container.fail{
+    background-color: #980000;
+}
+
+.heading-count-container.fail .heading-level-badge-container {
+    color: #fff;
+}
+
+.heading-count-container.fail .heading-count-number-container {
+    color: #fff;
+}
+
+.heading-count-container.warning{
+    background-color: #D09500;
+}
+
+.heading-count-container.warning .heading-level-badge-container {
+    color: #fff;
+}
+
+.heading-count-container.warning .heading-count-number-container {
+    color: #fff;
 }

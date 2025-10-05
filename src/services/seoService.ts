@@ -466,6 +466,17 @@ export class SEOService {
                 category: 'headings',
                 suggestions: ['Add a clear main heading that describes the page content']
             });
+        } else if (h1s.length > 1) {
+            checks.push({
+                id: 'h1-check',
+                name: 'H1 Heading',
+                status: 'warning',
+                description: 'More than one H1 Heading is present',
+                evidence: h1s.map(h => h.text).join(', '),
+                importance: 'high',
+                category: 'headings',
+                suggestions: ['Keep one primary H1 that describes the page\'s topic', 'Use H2s/H3s for subsections to maintain logical structure']
+            });
         } else {
             const headingCheck: SEOCheck = {
                 id: 'h1-check',
@@ -477,14 +488,6 @@ export class SEOService {
                 category: 'headings',
                 suggestions: []
             };
-
-            if (h1s.length > 1) {
-                headingCheck.suggestions?.push(
-                    'Keep one primary H1 that describes the page\'s topic',
-                    'Use H2s/H3s for subsections to maintain logical structure'
-                );
-            }
-
             checks.push(headingCheck);
         }
 
@@ -494,7 +497,7 @@ export class SEOService {
                 id: 'heading-hierarchy',
                 name: 'H1 - H6 Hierarchy',
                 status: 'pass',
-                description: 'H1 to H6 - Heading structure is logical',
+                description: 'H1 - H6 Heading structure is logical',
                 evidence: data.headings.map(h => `${h.level}: ${h.text}`).join('\n'),
                 importance: 'medium',
                 category: 'headings',
