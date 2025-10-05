@@ -81,20 +81,101 @@ export class SEOService {
     }
 
     private static extractHeadings(doc: Document): SEOHeading[] {
-        const headings: SEOHeading[] = []
-        const headingElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6')
-        
-        headingElements.forEach((heading, index) => {
-            headings.push({
-                level: heading.tagName.toLowerCase() as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6',
-                text: heading.textContent?.trim() || '',
-                index
-            })
+        const nodes = Array.from(doc.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
+        const results: SEOHeading[] = []
+        // Parent-scoped dedupe: key = h{lvl}::parent={norm(parent)}::text={norm(text)}
+        const seenInParent = new Map<string, number>()
+
+        // Outline stack to determine nearest higher-level parent heading
+        const stack: { level: number; text: string; index: number }[] = []
+
+        nodes.forEach((el, index) => {
+            const visible = !this.isElementHidden(el)
+            if (!visible) return // includeHidden=false by default
+
+            const levelTag = el.tagName.toLowerCase() as SEOHeading['level']
+            const levelNum = Number(levelTag[1]) || 6
+            const rawText = (el.textContent || '').trim()
+            if (!rawText) return
+
+            // Maintain outline stack: pop until parent is strictly shallower
+            while (stack.length && stack[stack.length - 1].level >= levelNum) stack.pop()
+            stack.push({ level: levelNum, text: rawText, index })
+
+            // Determine parent text (nearest higher level)
+            let parentText = ''
+            if (stack.length >= 2) parentText = stack[stack.length - 2].text
+
+            const parentKey = this.normalizeText(parentText)
+            const textKey = this.normalizeText(rawText)
+            const key = `h${levelNum}::parent=${parentKey}::text=${textKey}`
+
+            const item: SEOHeading = {
+                level: levelTag,
+                text: rawText,
+                index,
+                visible,
+                id: el.id || undefined,
+                parent: parentText || undefined
+            }
+
+            if (seenInParent.has(key)) {
+                item.duplicateOf = seenInParent.get(key)!
+            } else {
+                seenInParent.set(key, index)
+            }
+
+            // Keep duplicates but annotate duplicateOf (HeadingsMap-like)
+            results.push(item)
         })
-        
-        return headings
+
+        return results
     }
 
+    private static isElementHidden(el: HTMLElement): boolean {
+        // 1) Attributes
+        if (el.hidden) return true
+        if (el.getAttribute('aria-hidden') === 'true') return true
+        if (el.hasAttribute('inert')) return true
+
+        // 2) Inline styles (string check, works without layout)
+        const styleAttr = (el.getAttribute('style') || '').toLowerCase()
+        if (styleAttr.includes('display:none')) return true
+        if (styleAttr.includes('visibility:hidden')) return true
+        if (styleAttr.includes('content-visibility:hidden')) return true
+
+        // 3) Computed styles (if available). Do NOT treat opacity:0 as hidden
+        try {
+            const cs = window.getComputedStyle(el)
+            if (cs.display === 'none') return true
+            if (cs.visibility === 'hidden' || cs.visibility === 'collapse') return true
+            // @ts-ignore contentVisibility may be missing on older TS libs
+            if ((cs as any).contentVisibility === 'hidden') return true
+        } catch {
+            // SSR/JSDOM without layout
+        }
+
+        // 4) Hidden ancestors
+        let p: HTMLElement | null = el.parentElement
+        while (p) {
+            if (p.hidden || p.getAttribute('aria-hidden') === 'true' || p.hasAttribute('inert')) return true
+            const ps = (p.getAttribute('style') || '').toLowerCase()
+            if (ps.includes('display:none') || ps.includes('visibility:hidden') || ps.includes('content-visibility:hidden')) {
+                return true
+            }
+            try {
+                const pcs = window.getComputedStyle(p)
+                if (pcs.display === 'none' || pcs.visibility === 'hidden' || (pcs as any).contentVisibility === 'hidden') {
+                    return true
+                }
+            } catch {
+                // ignore
+            }
+            p = p.parentElement
+        }
+        return false
+    }
+    
     private static extractImages(doc: Document): SEOImage[] {
         const images: SEOImage[] = []
         const imageElements = doc.querySelectorAll('img')
@@ -390,7 +471,7 @@ export class SEOService {
                 id: 'h1-check',
                 name: 'H1 Heading',
                 status: 'pass',
-                description: h1s.length === 1 ? 'Page has H1 heading' : `Page has ${h1s.length} main headings`,
+                description: h1s.length === 1 ? 'H1 heading is present' : `Page has ${h1s.length} main headings`,
                 evidence: h1s.map(h => h.text).join(', '),
                 importance: 'high',
                 category: 'headings',

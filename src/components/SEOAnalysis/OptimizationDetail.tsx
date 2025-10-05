@@ -3,6 +3,7 @@ import { SEOCheck, ExtractedSEOData } from '../../types/seo'
 import { OptimizedIcon, UnoptimizedIcon, WarningIcon, MagicWandIcon } from '../../assets/icons'
 import { HelpIcon, GoodVsBadIcon } from '../../assets/icons'
 import { Accordion } from '../common/Accordion'
+import { HeadingTree } from './HeadingTree'
 import './styles.css'
 
 interface OptimizationDetailProps {
@@ -492,14 +493,7 @@ export function OptimizationDetail({
             <div className="headings-list">
                 <h4>Current Page Structure</h4>
                 {extractedData.headings.length > 0 ? (
-                    <div className="headings-hierarchy">
-                        {extractedData.headings.map((heading, index) => (
-                            <div key={index} className={`heading-item ${heading.level}`}>
-                                <span className="heading-level">{heading.level.toUpperCase()}</span>
-                                <span className="heading-text">{heading.text}</span>
-                            </div>
-                        ))}
-                    </div>
+                    <HeadingTree headings={extractedData.headings} />
                 ) : (
                     <p>No headings found on this page.</p>
                 )}
