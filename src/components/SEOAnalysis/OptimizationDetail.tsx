@@ -5,6 +5,7 @@ import { HelpIcon, GoodVsBadIcon } from '../../assets/icons'
 import { Accordion } from '../common/Accordion'
 import { HeadingTree } from './HeadingTree'
 import './styles.css'
+import { HeadingCounts } from './HeadingCounts'
 
 interface OptimizationDetailProps {
     check: SEOCheck
@@ -394,7 +395,7 @@ export function OptimizationDetail({
         </div>
     )
 
-    const renderHeadingSection = () => (
+    const renderH1Section = () => (
         <div className="optimization-section">
             <div className={`status-badge ${check.status}`}>
                 <span className={`status-icon`}>
@@ -429,6 +430,8 @@ export function OptimizationDetail({
                     />
                 </div>
             )}
+
+            <HeadingCounts headings={extractedData.headings} />
 
             <div className="ai-section">
                 <button 
@@ -490,14 +493,54 @@ export function OptimizationDetail({
                 </ul>
             </Accordion>
 
+        </div>
+    )
+
+    const renderHeadingHierarchySection = () => (
+        <div className="optimization-section">
+            <div className={`status-badge ${check.status}`}>
+                <span className={`status-icon`}>
+                    {getStatusIcon(check.status)}
+                </span>
+                <span className="status-text">
+                    {check.description}
+                </span>
+            </div>
+
+            <HeadingCounts headings={extractedData.headings} />
+
             <div className="headings-list">
-                <h4>Current Page Structure</h4>
+                <label className="field-label">H1-H6 Heading Hierarchy</label>
                 {extractedData.headings.length > 0 ? (
                     <HeadingTree headings={extractedData.headings} />
                 ) : (
                     <p>No headings found on this page.</p>
                 )}
             </div>
+
+            <label className="field-label">Learn</label>
+            <Accordion 
+                title="Why H1-H6 Heading Hierarchy matters?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>Organizes content so users can scan easily</li>
+                    <li>Search engines use headings to understand topic flow</li>
+                    <li>Screen readers rely on proper heading order</li>
+                </ul>
+            </Accordion>
+            
+            <Accordion 
+                title="How to set H1-H6 Heading Structure?"
+                icon={<HelpIcon className="help-icon" />}
+            >
+                <ul>
+                    <li>Only one H1 per page - represents the page main topic</li>
+                    <li>Use H2s for main sections - break content into key sections</li>
+                    <li>Use H3–H6 for subsections. Avoid skipping levels (e.g.,H4 without H3)</li>
+                    <li>Include keywords naturally</li> 
+                </ul>
+            </Accordion>
         </div>
     )
 
@@ -610,7 +653,12 @@ export function OptimizationDetail({
         }
         
         if (check.category === 'headings') {
-            return renderHeadingSection()
+            if (check.id === 'h1-check' || check.id === 'h1-missing') {
+                return renderH1Section()
+            }
+            if (check.id === 'heading-hierarchy') {
+                return renderHeadingHierarchySection() 
+            }
         }
         
         if (check.category === 'content') {

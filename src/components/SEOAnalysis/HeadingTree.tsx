@@ -102,7 +102,7 @@ export function HeadingTree({ headings }: HeadingTreeProps) {
 
     return (
         <div className="heading-tree">
-            {duplicateCount > 0 && (
+            {/* {duplicateCount > 0 && (
                 <div className="heading-tree-controls">
                     <label className="heading-tree-toggle-label">
                         <input
@@ -113,7 +113,7 @@ export function HeadingTree({ headings }: HeadingTreeProps) {
                         Hide {duplicateCount} duplicate heading{duplicateCount !== 1 ? 's' : ''}
                     </label>
                 </div>
-            )}
+            )} */}
             {tree.map((node, index) => (
                 <HeadingRow key={node.index || index} node={node} />
             ))}

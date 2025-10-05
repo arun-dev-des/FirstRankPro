@@ -455,7 +455,7 @@ export class SEOService {
 
         // Heading checks
         const h1s = data.headings.filter(h => h.level === 'h1')
-        if (h1s.length === 0) {
+        if (h1s.length === 0) { 
             checks.push({
                 id: 'h1-missing',
                 name: 'H1 Heading',
@@ -471,7 +471,7 @@ export class SEOService {
                 id: 'h1-check',
                 name: 'H1 Heading',
                 status: 'pass',
-                description: h1s.length === 1 ? 'H1 heading is present' : `Page has ${h1s.length} main headings`,
+                description: h1s.length === 1 ? 'H1 Heading is present' : `Page has ${h1s.length} main headings`,
                 evidence: h1s.map(h => h.text).join(', '),
                 importance: 'high',
                 category: 'headings',
@@ -492,9 +492,9 @@ export class SEOService {
         if (data.headings.length > 0) {
             const hierarchyCheck: SEOCheck = {
                 id: 'heading-hierarchy',
-                name: 'H2 - H6 Hierarchy',
+                name: 'H1 - H6 Hierarchy',
                 status: 'pass',
-                description: 'Heading structure is logical',
+                description: 'H1 to H6 - Heading structure is logical',
                 evidence: data.headings.map(h => `${h.level}: ${h.text}`).join('\n'),
                 importance: 'medium',
                 category: 'headings',
