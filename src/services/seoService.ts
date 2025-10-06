@@ -347,29 +347,29 @@ export class SEOService {
         const pageName = getPageName(url)
 
         // focus keyword checks
-        // if (!keyword) {
-        //     checks.push({
-        //         id: 'focus-keyword-missing',
-        //         name: 'Focus Keyword',
-        //         status: 'fail',
-        //         description: 'Focus keyword is missing',
-        //         evidence: 'No focus keyword found',
-        //         importance: 'high',
-        //         category: 'content',
-        //         suggestions: ['Add a focus keyword', 'Use it naturally in the content']
-        //     });
-        // } else {
-        //     checks.push({
-        //         id: 'focus-keyword-present',
-        //         name: 'Focus Keyword',
-        //         status: 'pass',
-        //         description: 'Focus keyword is present',
-        //         evidence: keyword,
-        //         importance: 'high',
-        //         category: 'content',
-        //         suggestions: []
-        //     });
-        // }
+        if (!keyword) {
+            checks.push({
+                id: 'focus-keyword-missing',
+                name: 'Main Keyword',
+                status: 'warning',
+                description: 'Main Keyword is not set',
+                evidence: 'No focus keyword found',
+                importance: 'high',
+                category: 'content',
+                suggestions: ['Add a focus keyword', 'Use it naturally in the content']
+            });
+        } else {
+            checks.push({
+                id: 'focus-keyword-present',
+                name: 'Main Keyword',
+                status: 'pass',
+                description: 'Main keyword is set',
+                evidence: keyword,
+                importance: 'high',
+                category: 'content',
+                suggestions: []
+            });
+        }
 
         // Title checks
         if (!data.title) {

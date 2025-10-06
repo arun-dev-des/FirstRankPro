@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getProjectData, setProjectData } from '../../services/framerStorage'
 import { SEOCheck, ExtractedSEOData } from '../../types/seo'
 import { OptimizedIcon, UnoptimizedIcon, WarningIcon, MagicWandIcon } from '../../assets/icons'
 import { HelpIcon, GoodVsBadIcon } from '../../assets/icons'
@@ -57,112 +58,213 @@ export function OptimizationDetail({
         const { pathname } = new URL(url);
         return pathname === "/" ? "home" : pathname.slice(1);
     }
-
-    const [pageName, setPageName] = useState(getPageName(extractedData.url))
-    const [editedTitle, setEditedTitle] = useState(extractedData.title)
-    const [editedMeta, setEditedMeta] = useState(extractedData.metaDescription)
-    const [editedH1, setEditedH1] = useState(() => {
+    
+    const [editedKeyword, setEditedKeyword] = useState(focusKeyword)
+    const [pageName] = useState(getPageName(extractedData.url))
+    const [editedTitle] = useState(extractedData.title)
+    const [editedMeta] = useState(extractedData.metaDescription)
+    const [editedH1] = useState(() => {
         const h1 = extractedData.headings.find(h => h.level === 'h1')
         return h1 ? h1.text : ''
     })
     
-    const [localKeyword, setLocalKeyword] = useState(focusKeyword)
-    // const [isSaving, setIsSaving] = useState(false)
-    const [metaAiSuggestion, setMetaAiSuggestion] = useState('')
-    const [h1AiSuggestion, setH1AiSuggestion] = useState('')
+    const [isSavingKeyword, setIsSavingKeyword] = useState(false)
 
+    // Load saved keyword when component mounts (project-level, keyed by page URL)
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const key = `seo-keyword:${extractedData.url}`
+                const saved = await getProjectData(key)
+                if (saved) {
+                    const parsed = JSON.parse(saved)
+                    if (parsed?.mainKeyword) {
+                        setEditedKeyword(parsed.mainKeyword)
+                        onFocusKeywordChange(parsed.mainKeyword)
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load keyword:', err)
+            }
+        }
+        load()
+    }, [extractedData.url])
 
-    // const handleSaveChanges = async () => {
-    //     try {
-    //         setIsSaving(true)
-            
-    //         // Check what has changed
-    //         const newTitle = editedTitle !== extractedData.title ? editedTitle : undefined
-    //         const newMeta = editedMeta !== extractedData.metaDescription ? editedMeta : undefined
-    //         const currentH1 = extractedData.headings.find(h => h.level === 'h1')?.text || ''
-    //         const newH1 = editedH1 !== currentH1 ? editedH1 : undefined
-            
-    //         // Only save if there are actual changes
-    //         if (newTitle || newMeta || newH1) {
-    //             await onUpdateContent(newTitle, newMeta, newH1)
-    //             console.log('✅ Changes saved successfully!')
-    //         } else {
-    //             console.log('ℹ️ No changes to save')
-    //         }
-            
-    //     } catch (error) {
-    //         console.error('❌ Failed to save changes:', error)
-    //     } finally {
-    //         setIsSaving(false)
-    //     }
-    // }
+    const handleSaveKeyword = async () => {
+        const value = editedKeyword.trim()
+        if (!value) return
+        setIsSavingKeyword(true)
+        try {
+            const payload = JSON.stringify({ mainKeyword: value, lastUpdated: new Date().toISOString() })
+            const key = `seo-keyword:${extractedData.url}`
+            await setProjectData(key, payload)
+            onFocusKeywordChange(value)
+            console.log('✅ Keyword saved successfully')
+        } catch (err) {
+            console.error('Failed to save keyword:', err)
+        } finally {
+            setIsSavingKeyword(false)
+        }
+    }
 
-    // const generateAISuggestion = () => {
-    //     console.log('Generating AI suggestion for:', check.category, check.id)
-    //     if (check.category === 'meta' && check.id.includes('title')) {
-    //         if (focusKeyword) {
-    //             setTitleAiSuggestion(`${focusKeyword} - Professional Services | ${extractedData.url.split('/')[2] || 'Brand'}`)
-    //         } else {
-    //             setTitleAiSuggestion(`${extractedData.title.split(' ')[0]} - Professional Services | Brand`)
-    //         }
-    //     } else if (check.category === 'meta' && check.id.includes('meta')) {
-    //         if (focusKeyword) {
-    //             setMetaAiSuggestion(`Discover our professional ${focusKeyword} services. Get expert solutions and top-quality results. Contact us today for a consultation.`)
-    //         } else {
-    //             setMetaAiSuggestion(`Discover our professional services. Get expert solutions and top-quality results tailored to your needs.`)
-    //         }
-    //     } else if (check.category === 'headings' && check.id.includes('h1')) {
-    //         if (focusKeyword) {
-    //             setH1AiSuggestion(`Professional ${focusKeyword} Services`)
-    //         } else {
-    //             setH1AiSuggestion(`Professional Services - Expert Solutions`)
-    //         }
-    //     }
-    // }
+    const renderFocusKeywordSection = () => {
+        return (
+            <div className="optimization-section">
+                <div className={`status-badge ${check.status}`}>
+                    <span className={`status-icon`}>
+                        {getStatusIcon(check.status)}
+                    </span>
+                    <span className="status-text">
+                        {check.description}
+                    </span>
+                </div>
 
-    const renderFocusKeywordSection = () => (
-        <div className="optimization-section">
-            <h3>Focus Keyword</h3>
-            <div className="field-group">
-                <input 
-                    type="text"
-                    value={localKeyword}
-                    onChange={(e) => setLocalKeyword(e.target.value)}
-                    placeholder="Enter focus keyword..."
-                    className="field-input"
-                />
-                <button 
-                    className="apply-button"
-                    // onClick={handleKeywordUpdate}
-                >
-                    Apply Keyword
-                </button>
-            </div>
-            {keywordStats && (
-                <div className="keyword-stats">
-                    <div className="stat">
-                        <label>Density</label>
-                        <span className={keywordStats.density > 3 ? 'warning' : 'good'}>
-                            {keywordStats.density.toFixed(1)}%
-                        </span>
+                <div className="field-group">
+                    <div className="field-label-group">
+                        <label className="field-label">Main Keyword</label>
+                        <div className="field-char-count">
+                            {
+                                editedKeyword.length > 60 ? <span>{editedKeyword.length}/60 (too long - max 60 chars)</span> :
+                                editedKeyword.length < 3 ? <span>{editedKeyword.length}/60 (too short - min 3 chars)</span> :
+                                <span>{editedKeyword.length}/60 chars</span>
+                            }
+                        </div>
                     </div>
-                    <div className="stat">
-                        <label>Occurrences</label>
-                        <span>{keywordStats.count}</span>
-                    </div>
-                    <div className="stat">
-                        <label>Score</label>
-                        <span className={keywordStats.count > 0 ? 'good' : 'warning'}>
-                            {keywordStats.count > 0 ? 'Found' : 'Missing'}
-                        </span>
+                    <div className="field-input-group">
+                        <textarea
+                            value={editedKeyword}
+                            placeholder="Enter Main Keyword for the page"
+                            className="field-input"
+                            onChange={(e) => setEditedKeyword(e.target.value)}
+                            rows={2}
+                        />
+                        <button 
+                            className="save-button"
+                            onClick={handleSaveKeyword}
+                            disabled={isSavingKeyword || !editedKeyword.trim()}
+                        >
+                            {isSavingKeyword ? 'Saving...' : 'Save'}
+                        </button>
                     </div>
                 </div>
-            )}
-            <div className="field-description">
-                Set a focus keyword to optimize this page for specific search terms.
+
+                <label className="field-label">Learn</label>
+                <Accordion
+                    title="What is Main Keyword?"
+                    icon={<HelpIcon className="help-icon" />}
+                >
+                    <ul>
+                        <li>The primary search phrase you want this page to rank for in Google</li>
+                        <li>Guides how you write the Title, Meta Description, H1</li>
+                        <li>Chosen by you (designer or site owner), not by Google</li>
+                    </ul>
+                </Accordion>
+
+                <Accordion
+                    title="Good vs Bad Main Keyword"
+                    icon={<GoodVsBadIcon className="good-vs-bad-icon" />}
+                >
+                    <div className="good-pill-group">
+                        <div className="good-pill">Good</div>
+                    </div>
+                    <ul>
+                        <li>
+                            Landing page: 
+                            <span className="good-pill-example">
+                                CRM tool for small businesses
+                            </span>
+                        </li>
+                        <li>
+                            Product page:
+                            <span className="good-pill-example">
+                                Team collaboration platform features
+                            </span>
+                        </li>
+                        <li>Service page:
+                            <span className="good-pill-example">
+                                Cloud migration consulting services
+                            </span>
+                        </li>
+                        <li>
+                            Blog post:
+                            <span className="good-pill-example">
+                                How to improve customer support with AI
+                            </span>
+                        </li>
+                    </ul>
+                    <span>Why is it good?</span>
+                    <ul>
+                        <li>Keyword appears once in each (natural, not stuffed)</li>
+                        <li>Matches it's page intent</li>
+                        <li>Clear, user-friendly phrasing</li>
+                    </ul>
+                    
+                    <div className="bad-pill-group">
+                        <div className="bad-pill">Bad</div>
+                    </div>
+                    <ul>
+
+                        <li>
+                            Too Vague:
+                            <span className="bad-pill-example">
+                                software
+                            </span>
+                            <span className="bad-pill-example">
+                                Services
+                            </span>
+                            <span className="bad-pill-example">
+                                Blog
+                            </span>
+                        </li>
+
+                        <li>
+                            Too broad / competitive:
+                            <span className="bad-pill-example">
+                                AI
+                            </span>
+                            <span className="bad-pill-example">
+                                Marketing
+                            </span>
+                            <span className="bad-pill-example">
+                                Finance
+                            </span>
+                        </li>
+
+                        <li>
+                            Mismatch → Product page about invoicing software, but <br />
+                            <span className="bad-pill-example">
+                                 keyword = project management tool
+                            </span>
+                        </li>
+
+                        <li>
+                            Keyword stuffing:
+                            <span className="bad-pill-example">
+                                Best cheap affordable AI SaaS CRM download
+                            </span>
+                        </li>
+
+                        <li>
+                            Duplicate: Two pages in same site both targeting the same keyword
+                            <span className="bad-pill-example">
+                                AI writing software pricing
+                            </span>
+                        </li>
+                    </ul>
+                </Accordion>
+
+                <Accordion 
+                    title="How to set Main Keyword?"
+                    icon={<HelpIcon className="help-icon" />}
+                >
+                    <ul>
+                        <li>Enter the keyword in the input box above that best matches the page's intent.</li>
+                        <li>Click Save</li>
+                    </ul>
+                </Accordion>
             </div>
-        </div>
-    )
+        )
+    }
 
     const renderTitleSection = () => (
         <div className="optimization-section">
@@ -334,7 +436,7 @@ export function OptimizationDetail({
             >
                 <ul>
                     <li>Clear, keyword-rich descriptions boost clicks & engagement</li>
-                    <li>Doesn’t affect rankings but influences user decisions</li>
+                    <li>Doesn't affect rankings but influences user decisions</li>
                     <li>Acts like an elevator pitch (1–2 sentences)</li>
                 </ul>
             </Accordion>
@@ -360,7 +462,7 @@ export function OptimizationDetail({
                     <div className="bad-pill-example">Welcome to our homepage. Click to learn more about what we do.</div>
                 </div>
                 <ul>
-                    <li>Generic, no keyword, doesn’t explain page content</li>
+                    <li>Generic, no keyword, doesn't explain page content</li>
                 </ul>
             </Accordion>
 
@@ -691,15 +793,6 @@ export function OptimizationDetail({
         }
         
         return renderDefaultSection()
-    }
-
-    const hasChanges = () => {
-        const titleChanged = editedTitle !== extractedData.title
-        const metaChanged = editedMeta !== extractedData.metaDescription
-        const currentH1 = extractedData.headings.find(h => h.level === 'h1')?.text || ''
-        const h1Changed = editedH1 !== currentH1
-        
-        return titleChanged || metaChanged || h1Changed
     }
 
     return (
