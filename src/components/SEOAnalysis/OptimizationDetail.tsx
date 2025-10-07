@@ -6,6 +6,7 @@ import { TitleSection } from './sections/TitleSection'
 import { MetaDescriptionSection } from './sections/MetaDescriptionSection'
 import { H1Section } from './sections/H1Section'
 import { HeadingHierarchySection } from './sections/HeadingHierarchySection'
+import { KeywordPlacementSection } from './sections/KeywordPlacementSection'
 import { ContentSection } from './sections/ContentSection'
 
 interface OptimizationDetailProps {
@@ -40,6 +41,17 @@ export function OptimizationDetail({
 
     const renderSection = () => {
         if (!check) return <div>No check data available</div>
+
+        // Check for keyword-placement first (more specific)
+        if (check.category === 'content' && check.id === 'keyword-placement') {
+            return (
+                <KeywordPlacementSection
+                    status={check.status}
+                    description={check.description}
+                    evidence={check.evidence}
+                />
+            )
+        }
 
         if (check.id.includes('keyword') && !check.id.includes('title') && !check.id.includes('meta')) {
             return (
@@ -100,6 +112,7 @@ export function OptimizationDetail({
                 )
             }
         }
+
 
         if (check.category === 'content') {
             return (

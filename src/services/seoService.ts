@@ -1,3 +1,4 @@
+import { Password } from "@mui/icons-material";
 import { SEOCheck, SEOAnalysis, ExtractedSEOData, SEOHeading, SEOImage, SEOLink } from "../types/seo"
 
 export class SEOService {
@@ -270,6 +271,125 @@ export class SEOService {
         return data
     }
 
+    // ---------- Keyword matching helpers (diacritics/word-boundary aware) ----------
+
+   // Add this property to store keyword placement evidence
+    private static keywordPlacementEvidence: {
+        keyword: string;
+        title: SEOCheck;
+        meta: SEOCheck;
+        h1: SEOCheck;
+    } | null = null;
+
+    private static stripDiacritics(s: string): string {
+        return s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    }
+
+    private static normalizeForMatch(s: string): string {
+        return this.stripDiacritics(s)
+            .toLowerCase()
+            .replace(/[-_]+/g, ' ')
+            .replace(/[^\p{L}\p{N} ]+/gu, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+    }
+
+    private static containsPhrase(haystack: string, needle: string): boolean {
+        const H = ` ${this.normalizeForMatch(haystack)} `
+        const N = ` ${this.normalizeForMatch(needle)} `
+        if (!N.trim()) return false
+        return H.includes(N)
+    }
+
+    private static countPhrase(haystack: string, needle: string): number {
+        const H = this.normalizeForMatch(haystack)
+        const N = this.normalizeForMatch(needle)
+        if (!H || !N) return 0
+        return H.split(N).length - 1
+    }
+
+    // ---------- Granular keyword checks (title/meta/H1/stuffing) ----------
+
+    private static buildTitleKeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
+        const titleChecks: SEOCheck[] = []
+        const title = (data.title || '').trim()
+        if (!keyword) return titleChecks
+        if (!title) return titleChecks
+
+        const has = this.containsPhrase(title, keyword)
+        titleChecks.push({
+            id: 'kw-in-title',
+            name: 'Keyword in Title',
+            status: has ? 'pass' : 'warning',
+            description: has ? 'Keyword present in Title' : 'Keyword not found in Title',
+            evidence: `Title: "${title}"`,
+            importance: 'high',
+            category: 'meta',
+            suggestions: has ? [] : [`Include "${keyword}" once near the start if it reads naturally`]
+        })
+
+        return titleChecks
+    }
+
+    private static buildMetaKeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
+        const metaChecks: SEOCheck[] = []
+        const meta = (data.metaDescription || '').trim()
+        if (!keyword) return metaChecks
+        if (!meta) return metaChecks
+
+        const has = this.containsPhrase(meta, keyword)
+        const preview = meta.length > 180 ? `${meta.slice(0, 180)}…` : meta
+        metaChecks.push({
+            id: 'kw-in-meta',
+            name: 'Keyword in Meta',
+            status: has ? 'pass' : 'warning',
+            description: has ? 'Keyword present in Meta Description' : 'Keyword not found in Meta Description',
+            evidence: `Meta: "${preview}"`,
+            importance: 'high',
+            category: 'meta',
+            suggestions: has ? [] : [`Work "${keyword}" naturally into one sentence; avoid stuffing`]
+        })
+        return metaChecks
+    }
+
+    private static buildH1KeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
+        const h1Checks: SEOCheck[] = []
+        if (!keyword) return h1Checks
+        const h1s = data.headings.filter(h => h.level === 'h1')
+        if (h1s.length === 0) return h1Checks
+        const firstH1 = h1s[0]?.text || ''
+        const has = this.containsPhrase(firstH1, keyword)
+        h1Checks.push({
+            id: 'kw-in-h1',
+            name: 'Keyword in H1',
+            status: has ? 'pass' : 'warning',
+            description: has ? 'Keyword present in H1' : 'Keyword not found in H1',
+            evidence: `H1: "${firstH1}"`,
+            importance: 'high',
+            category: 'headings',
+            suggestions: has ? [] : [`Include "${keyword}" naturally in the main heading if it matches the topic`]
+        })
+        return h1Checks
+    }
+
+    private static buildStuffingGuard(data: ExtractedSEOData, keyword: string): SEOCheck | null {
+        if (!keyword) return null
+        const text = data.textContent || ''
+        const wc = data.wordCount || (text ? text.trim().split(/\s+/).length : 0)
+        const repeats = this.countPhrase(text, keyword)
+        const allowed = Math.ceil((wc || 1) / 150) + 1
+        return {
+            id: 'kw-stuffing',
+            name: 'Possible keyword stuffing',
+            status: repeats > allowed ? 'warning' : 'pass',
+            description: repeats > allowed ? 'Keyword may be overused' : 'No keyword stuffing detected',
+            evidence: `Found ${repeats} exact-phrase repeats across ~${wc} words (allowed ≈ ${allowed})`,
+            importance: 'medium',
+            category: 'content',
+            suggestions: repeats > allowed ? ['Use natural variants and synonyms instead of repeating the exact phrase'] : []
+        }
+    }
+
     private static extractSEOData(html: string, url: string): ExtractedSEOData {
         // Parse HTML string
         const parser = new DOMParser()
@@ -333,7 +453,7 @@ export class SEOService {
         console.log('🚀 performChecks method called!', { data, keyword, url })
         
         const checks: SEOCheck[] = []
-        const keywordStats = this.analyzeKeywordUsage(data, keyword)
+        // const keywordStats = this.analyzeKeywordUsage(data, keyword)
 
         function getPageName(url: string): string {
             const { pathname } = new URL(url);
@@ -526,6 +646,75 @@ export class SEOService {
             }
 
             checks.push(hierarchyCheck);
+        }
+
+        // Keyword placement checks (granular)
+        if (!keyword) {
+            // Only show the missing keyword check
+            checks.push({
+                id: 'keyword-placement',
+                name: 'Keyword Placement',
+                status: 'warning',
+                description: 'Main Keyword is not set',
+                evidence: 'No focus keyword found',
+                importance: 'high',
+                category: 'content',
+                suggestions: ['Add a focus keyword', 'Use it naturally in the content']
+            })  
+        } else {
+            // 1. Individual detailed checks (for specific sections)
+            // checks.push(
+            //     ...this.buildTitleKeywordChecks(data, keyword),    // kw-in-title
+            //     ...this.buildMetaKeywordChecks(data, keyword),     // kw-in-meta  
+            //     ...this.buildH1KeywordChecks(data, keyword)        // kw-in-h1
+            // )
+
+            // In seoService.ts, replace lines 672-677 with:
+            this.keywordPlacementEvidence = {
+                keyword,
+                title: this.buildTitleKeywordChecks(data, keyword)[0] || {
+                    id: 'kw-in-title',
+                    name: 'Keyword in Title',
+                    status: 'warning',
+                    description: 'Title check not available',
+                    evidence: 'No title or keyword available',
+                    importance: 'high',
+                    category: 'meta',
+                    suggestions: []
+                },
+                meta: this.buildMetaKeywordChecks(data, keyword)[0] || {
+                    id: 'kw-in-meta',
+                    name: 'Keyword in Meta',
+                    status: 'warning',
+                    description: 'Meta check not available',
+                    evidence: 'No meta description or keyword available',
+                    importance: 'high',
+                    category: 'meta',
+                    suggestions: []
+                },
+                h1: this.buildH1KeywordChecks(data, keyword)[0] || {
+                    id: 'kw-in-h1',
+                    name: 'Keyword in H1',
+                    status: 'warning',
+                    description: 'H1 check not available',
+                    evidence: 'No H1 or keyword available',
+                    importance: 'high',
+                    category: 'headings',
+                    suggestions: []
+                }
+            }
+            
+            // 2. Consolidated overview check (for KeywordPlacementSection)
+            checks.push({
+                id: 'keyword-placement',
+                name: 'Keyword Placement',
+                status: 'pass',
+                description: 'Main Keyword is Set',
+                evidence: JSON.stringify(this.keywordPlacementEvidence),
+                importance: 'high',
+                category: 'content',
+                suggestions: []
+            })
         }
 
         // Image checks
