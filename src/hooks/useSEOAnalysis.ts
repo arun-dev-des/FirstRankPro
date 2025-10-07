@@ -123,12 +123,19 @@ export function useSEOAnalysis(
         const reason = decision.reasons[0]
         console.log(`[CACHE TEST] 🔄 Running analysis due to: ${reason}`)
         analyzePage(next.url, next.keyword)
-    }, [page?.url, focusKeyword, deploymentTimes, analyzePage])
+    }, [page?.url, deploymentTimes, analyzePage]) // ❌ Removed focusKeyword from dependencies
+
+    // Manual trigger for keyword analysis
+    const triggerKeywordAnalysis = useCallback(async (keyword: string) => {
+        if (!page?.url) return
+        await analyzePage(page.url, keyword)
+    }, [page?.url, analyzePage])
 
     return { 
         analysis, 
         loading, 
         error,
-        updatePageContent: async () => Promise.resolve()
+        updatePageContent: async () => Promise.resolve(),
+        triggerKeywordAnalysis // ✅ New manual trigger function
     }
 }

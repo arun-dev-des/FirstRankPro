@@ -29,7 +29,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         rootDeploymentTimes?.production
     ])
     
-    const { analysis, loading, error, updatePageContent } = useSEOAnalysis(
+    const { analysis, loading, error, triggerKeywordAnalysis } = useSEOAnalysis(
         page, 
         focusKeyword,
         memoizedTimes
@@ -46,6 +46,11 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         setFocusKeyword(keyword)
         // Reset selected check when keyword changes
         setSelectedCheckId(null)
+    }
+
+    const handleKeywordLoad = (keyword: string) => {
+        setFocusKeyword(keyword)
+        // Don't reset selected check when loading a saved keyword
     }
 
     return (
@@ -103,10 +108,9 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                                 check={analysis.checks.find(c => c.id === selectedCheckId)!}
                                 focusKeyword={focusKeyword}
                                 onFocusKeywordChange={handleFocusKeywordChange}
+                                onKeywordLoad={handleKeywordLoad}
                                 extractedData={analysis.extractedData}
-                                duplicatePages={analysis.duplicatePages}
-                                keywordStats={analysis.keywordStats}
-                                onUpdateContent={updatePageContent}
+                                triggerKeywordAnalysis={triggerKeywordAnalysis}
                             />
                         )}
                     </div>

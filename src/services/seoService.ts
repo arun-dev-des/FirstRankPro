@@ -3,10 +3,6 @@ import { SEOCheck, SEOAnalysis, ExtractedSEOData, SEOHeading, SEOImage, SEOLink 
 export class SEOService {
     private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
     private static readonly TIMEOUT = 10000 // 10 seconds
-    // private static readonly TITLE_MIN_LENGTH = 30
-    // private static readonly TITLE_MAX_LENGTH = 60
-    // private static readonly META_MIN_LENGTH = 120
-    // private static readonly META_MAX_LENGTH = 160
 
     // Content length check - guideline, not a rule
     private static readonly MIN_WORD_COUNT_GUIDELINE = 300;
@@ -609,56 +605,6 @@ export class SEOService {
                 category: 'content'
             });
         }
-
-        // Keyword density check
-        // if (keyword && keywordStats) {
-        //     if (keywordStats.density > 3) {
-        //         checks.push({
-        //             id: 'keyword-density',
-        //             name: 'Keyword Density',
-        //             status: 'warning',
-        //             description: 'Keyword appears too frequently',
-        //             evidence: `Keyword density: ${keywordStats.density.toFixed(1)}% (${keywordStats.count} times)`,
-        //             importance: 'medium',
-        //             category: 'content',
-        //             suggestions: ['Reduce keyword repetition', 'Use synonyms and related terms']
-        //         })
-        //     } else if (keywordStats.count === 0) {
-        //         checks.push({
-        //             id: 'keyword-presence',
-        //             name: 'Keyword Usage',
-        //             status: 'warning',
-        //             description: 'Focus keyword not found in content',
-        //             evidence: `Keyword "${keyword}" not found in main content`,
-        //             importance: 'high',
-        //             category: 'content',
-        //             suggestions: ['Include your focus keyword in the content', 'Use it naturally in paragraphs']
-        //         })
-        //     } else {
-        //         checks.push({
-        //             id: 'keyword-usage',
-        //             name: 'Keyword Usage',
-        //             status: 'pass',
-        //             description: 'Keyword usage is good',
-        //             evidence: `Keyword density: ${keywordStats.density.toFixed(1)}% (${keywordStats.count} times)`,
-        //             importance: 'high',
-        //             category: 'content'
-        //         })
-        //     }
-
-        //     if (!keywordStats.positions.firstParagraph) {
-        //         checks.push({
-        //             id: 'keyword-first-paragraph',
-        //             name: 'Keyword in Introduction',
-        //             status: 'warning',
-        //             description: 'Focus keyword not found in first paragraph',
-        //             evidence: `First paragraph: "${data.firstParagraph}"`,
-        //             importance: 'medium',
-        //             category: 'content',
-        //             suggestions: ['Include your focus keyword early in the content', 'Add it naturally to the introduction']
-        //         })
-        //     }
-        // }
 
         return checks
     }
