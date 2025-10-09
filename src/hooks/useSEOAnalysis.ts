@@ -67,7 +67,7 @@ export function useSEOAnalysis(
         })
 
         try {
-            const result = await SEOService.analyzePage(url, keyword, deploymentTimes)
+            const result = await SEOService.analyzePage(url, keyword || '', deploymentTimes)
             
             // Set and cache the new analysis
             setAnalysis(result)

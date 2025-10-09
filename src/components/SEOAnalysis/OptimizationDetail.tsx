@@ -49,6 +49,7 @@ export function OptimizationDetail({
                     status={check.status}
                     description={check.description}
                     evidence={check.evidence}
+                    keyword={focusKeyword}
                 />
             )
         }

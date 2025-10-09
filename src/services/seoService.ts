@@ -282,10 +282,12 @@ export class SEOService {
     } | null = null;
 
     private static stripDiacritics(s: string): string {
+        if (!s || typeof s !== 'string') return ''
         return s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
     }
 
     private static normalizeForMatch(s: string): string {
+        if (!s || typeof s !== 'string') return ''
         return this.stripDiacritics(s)
             .toLowerCase()
             .replace(/[-_]+/g, ' ')
@@ -295,6 +297,7 @@ export class SEOService {
     }
 
     private static containsPhrase(haystack: string, needle: string): boolean {
+        if (!haystack || !needle) return false
         const H = ` ${this.normalizeForMatch(haystack)} `
         const N = ` ${this.normalizeForMatch(needle)} `
         if (!N.trim()) return false
@@ -302,6 +305,7 @@ export class SEOService {
     }
 
     private static countPhrase(haystack: string, needle: string): number {
+        if (!haystack || !needle) return 0
         const H = this.normalizeForMatch(haystack)
         const N = this.normalizeForMatch(needle)
         if (!H || !N) return 0
@@ -319,7 +323,7 @@ export class SEOService {
                 id: 'title-missing',
                 name: 'Page Title',
                 status: 'fail',
-                description: 'Page Title is missing',
+                description: 'Set Page Title first',
                 evidence: 'No title tag found',
                 importance: 'high',
                 category: 'meta',
@@ -329,14 +333,14 @@ export class SEOService {
 
         if (!keyword) {
             titleChecks.push({
-                id: 'focus-keyword-missing',
-                name: 'Main Keyword',
+                id: 'main-keyword-missing',
+                name: 'Main Keyword Placement',
                 status: 'warning',
-                description: 'Main Keyword is not set',
-                evidence: 'No focus keyword found',
+                description: 'Main Keyword is not set to check for placement',
+                evidence: 'No main keyword found to check for placement',
                 importance: 'high',
                 category: 'content',
-                suggestions: ['Add a focus keyword', 'Use it naturally in the content']
+                suggestions: ['Add a Main Keyword', 'Use it naturally in the content']
             })
         }
 
@@ -345,8 +349,8 @@ export class SEOService {
             id: 'kw-in-title',
             name: 'Keyword in Title',
             status: has ? 'pass' : 'warning',
-            description: has ? 'Keyword present in Title' : 'Keyword not found in Title',
-            evidence: `Title: "${title}"`,
+            description: has ? 'Main Keyword present in Title' : 'Main Keyword not found in Title',
+            evidence: `${title}`,
             importance: 'high',
             category: 'meta',
             suggestions: has ? [] : [`Include "${keyword}" once near the start if it reads naturally`]
@@ -363,7 +367,7 @@ export class SEOService {
                 id: 'meta-desc-missing',
                 name: 'Page Description',
                 status: 'fail',
-                description: 'Page Description is missing',
+                description: 'Set Page Description first',
                 evidence: 'No meta description found',
                 importance: 'high',
                 category: 'meta',
@@ -373,14 +377,14 @@ export class SEOService {
 
         if (!keyword) {
             metaChecks.push({
-                id: 'focus-keyword-missing',
-                name: 'Main Keyword',
+                id: 'main-keyword-missing',
+                name: 'Main Keyword Placement',
                 status: 'warning',
-                description: 'Main Keyword is not set',
-                evidence: 'No focus keyword found',
+                description: 'Main Keyword is not set to check for placement',
+                evidence: 'No main keyword found to check for placement',
                 importance: 'high',
                 category: 'content',
-                suggestions: ['Add a focus keyword', 'Use it naturally in the content']
+                suggestions: ['Add a Main Keyword', 'Use it naturally in the content']
             })
         }
 
@@ -390,8 +394,8 @@ export class SEOService {
             id: 'kw-in-meta',
             name: 'Keyword in Meta',
             status: has ? 'pass' : 'warning',
-            description: has ? 'Keyword present in Meta Description' : 'Keyword not found in Meta Description',
-            evidence: `Meta: "${preview}"`,
+            description: has ? 'Main Keyword present in Description' : 'Keyword not found in Description',
+            evidence: `${preview}`,
             importance: 'high',
             category: 'meta',
             suggestions: has ? [] : [`Work "${keyword}" naturally into one sentence; avoid stuffing`]
@@ -401,17 +405,54 @@ export class SEOService {
 
     private static buildH1KeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
         const h1Checks: SEOCheck[] = []
-        if (!keyword) return h1Checks
+
         const h1s = data.headings.filter(h => h.level === 'h1')
-        if (h1s.length === 0) return h1Checks
-        const firstH1 = h1s[0]?.text || ''
+        if (h1s.length === 0) {
+            h1Checks.push({
+                id: 'h1-missing',
+                name: 'H1 Heading',
+                status: 'fail',
+                description: 'Set H1 Heading first',
+                evidence: 'No H1 tag found',
+                importance: 'high',
+                category: 'headings',
+                suggestions: ['Add a clear main heading that describes the page content']
+            })
+        } else if (h1s.length > 1) {
+            h1Checks.push({
+                id: 'h1-check',
+                name: 'H1 Heading',
+                status: 'warning',
+                description: 'More than one H1 Heading. Set one H1 per page first',
+                evidence: h1s.map(h => h.text).join(', '),
+                importance: 'high',
+                category: 'headings',
+                suggestions: ['Keep one primary H1 that describes the page\'s topic', 'Use H2s/H3s for subsections to maintain logical structure']
+            })
+        }
+
+        const firstH1 = h1s[0]?.text
+
+        if (!keyword) {
+            h1Checks.push({
+                id: 'main-keyword-missing',
+                name: 'Main Keyword Placement',
+                status: 'warning',
+                description: 'Main Keyword is not set to check for placement',
+                evidence: 'No main keyword found to check for placement',
+                importance: 'high',
+                category: 'content',
+                suggestions: ['Add a Main Keyword', 'Use it naturally in the content']
+            })
+        }
+
         const has = this.containsPhrase(firstH1, keyword)
         h1Checks.push({
             id: 'kw-in-h1',
             name: 'Keyword in H1',
             status: has ? 'pass' : 'warning',
-            description: has ? 'Keyword present in H1' : 'Keyword not found in H1',
-            evidence: `H1: "${firstH1}"`,
+            description: has ? 'Main Keyword present in H1' : 'Main Keyword not found in H1',
+            evidence: `${firstH1}`,
             importance: 'high',
             category: 'headings',
             suggestions: has ? [] : [`Include "${keyword}" naturally in the main heading if it matches the topic`]
@@ -695,149 +736,99 @@ export class SEOService {
             checks.push(hierarchyCheck);
         }
 
+        // psueodocode for keyword placement checks
+        // if no keyword, return warning with no evidence
+            // becoz if no keyword, we can't check for keyword placement against Title, Meta, H1
+        // if keyword is set
+            // if all of Title, Meta, H1 checks are pass, return pass with evidence
+            // if any of Title, Meta, H1 checks are fail, return warning with evidence
+
         // Keyword placement checks (granular)
+
+        const titleChecks = this.buildTitleKeywordChecks(data, keyword)
+        const metaChecks = this.buildMetaKeywordChecks(data, keyword)
+        const h1Checks = this.buildH1KeywordChecks(data, keyword)
+
         if (!keyword) {
-            this.keywordPlacementEvidence = {
-                keyword,
-                title: this.buildTitleKeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-title',
-                    name: 'Keyword in Title',
-                    status: 'warning',
-                    description: 'Title check not available',
-                    evidence: 'No title or keyword available',
-                    importance: 'high',
-                    category: 'meta',
-                    suggestions: []
-                },
-                meta: this.buildMetaKeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-meta',
-                    name: 'Keyword in Meta',
-                    status: 'warning',
-                    description: 'Meta check not available',
-                    evidence: 'No meta description or keyword available',
-                    importance: 'high',
-                    category: 'meta',
-                    suggestions: []
-                },
-                h1: this.buildH1KeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-h1',
-                    name: 'Keyword in H1',
-                    status: 'warning',
-                    description: 'H1 check not available',
-                    evidence: 'No H1 or keyword available',
-                    importance: 'high',
-                    category: 'headings',
-                    suggestions: []
-                }
-            }
             // Only show the missing keyword check
             checks.push({
                 id: 'keyword-placement',
                 name: 'Keyword Placement',
                 status: 'warning',
-                description: 'Main Keyword is not set',
-                evidence: JSON.stringify(this.keywordPlacementEvidence),
+                description: 'Main Keyword is not set. Set Main Keyword first to see keyword placement analysis',
+                evidence: 'No main keyword found to check for placement',
                 importance: 'high',
                 category: 'content',
                 suggestions: ['Add a focus keyword', 'Use it naturally in the content']
             })  
-        } else if (this.keywordPlacementEvidence?.title.status === 'pass' && this.keywordPlacementEvidence?.meta.status === 'pass' && this.keywordPlacementEvidence?.h1.status === 'pass') {
-            // 1. Individual detailed checks (for specific sections)
-            // checks.push(
-            //     ...this.buildTitleKeywordChecks(data, keyword),    // kw-in-title
-            //     ...this.buildMetaKeywordChecks(data, keyword),     // kw-in-meta  
-            //     ...this.buildH1KeywordChecks(data, keyword)        // kw-in-h1
-            // )
-            
-            this.keywordPlacementEvidence = {
-                keyword,
-                title: this.buildTitleKeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-title',
-                    name: 'Keyword in Title',
-                    status: 'warning',
-                    description: 'Title check not available',
-                    evidence: 'No title or keyword available',
-                    importance: 'high',
-                    category: 'meta',
-                    suggestions: []
-                },
-                meta: this.buildMetaKeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-meta',
-                    name: 'Keyword in Meta',
-                    status: 'warning',
-                    description: 'Meta check not available',
-                    evidence: 'No meta description or keyword available',
-                    importance: 'high',
-                    category: 'meta',
-                    suggestions: []
-                },
-                h1: this.buildH1KeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-h1',
-                    name: 'Keyword in H1',
-                    status: 'warning',
-                    description: 'H1 check not available',
-                    evidence: 'No H1 or keyword available',
-                    importance: 'high',
-                    category: 'headings',
-                    suggestions: []
+        } else if (keyword) {
+            if (titleChecks[0]?.status === 'pass' && 
+                metaChecks[0]?.status === 'pass' && 
+                h1Checks[0]?.status === 'pass') {
+                    
+                this.keywordPlacementEvidence = {
+                    keyword,
+                    title: titleChecks[0],
+                    meta: metaChecks[0],
+                    h1: h1Checks[0]
                 }
-            }
-            
-            // 2. Consolidated overview check (for KeywordPlacementSection)
-            checks.push({
-                id: 'keyword-placement',
-                name: 'Keyword Placement',
-                status: 'pass',
-                description: 'Main Keyword is Set',
-                evidence: JSON.stringify(this.keywordPlacementEvidence),
-                importance: 'high',
-                category: 'content',
-                suggestions: []
-            }) 
-        } else {
-            this.keywordPlacementEvidence = {
-                keyword,
-                title: this.buildTitleKeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-title',
-                    name: 'Keyword in Title',
-                    status: 'warning',
-                    description: 'Title check not available',
-                    evidence: 'No title or keyword available',
+                
+                checks.push({
+                    id: 'keyword-placement',
+                    name: 'Keyword Placement',
+                    status: 'pass',
+                    description: 'Main Keyword is Set',
+                    evidence: JSON.stringify(this.keywordPlacementEvidence),
                     importance: 'high',
-                    category: 'meta',
+                    category: 'content',
                     suggestions: []
-                },
-                meta: this.buildMetaKeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-meta',
-                    name: 'Keyword in Meta',
-                    status: 'warning',
-                    description: 'Meta check not available',
-                    evidence: 'No meta description or keyword available',
-                    importance: 'high',
-                    category: 'meta',
-                    suggestions: []
-                },
-                h1: this.buildH1KeywordChecks(data, keyword)[0] || {
-                    id: 'kw-in-h1',
-                    name: 'Keyword in H1',
-                    status: 'warning',
-                    description: 'H1 check not available',
-                    evidence: 'No H1 or keyword available',
-                    importance: 'high',
-                    category: 'headings',
-                    suggestions: []
+                })
+
+            } else {
+                this.keywordPlacementEvidence = {
+                    keyword,
+                    title: titleChecks[0] || {
+                        id: 'kw-in-title',
+                        name: 'Keyword in Title',
+                        status: 'warning',
+                        description: 'Title check not available',
+                        evidence: 'No title or keyword available',
+                        importance: 'high',
+                        category: 'meta',
+                        suggestions: []
+                    },
+                    meta: metaChecks[0] || {
+                        id: 'kw-in-meta',
+                        name: 'Keyword in Meta',
+                        status: 'warning',
+                        description: 'Meta check not available',
+                        evidence: 'No meta description or keyword available',
+                        importance: 'high',
+                        category: 'meta',
+                        suggestions: []
+                    },
+                    h1: h1Checks[0] || {
+                        id: 'kw-in-h1',
+                        name: 'Keyword in H1',
+                        status: 'warning',
+                        description: 'H1 check not available',
+                        evidence: 'No H1 or keyword available',
+                        importance: 'high',
+                        category: 'headings',
+                        suggestions: []
+                    }
                 }
-            }
-            checks.push({
-                id: 'keyword-placement',
-                name: 'Keyword Placement',
-                status: 'pass',
-                description: 'Main Keyword is Set',
-                evidence: JSON.stringify(this.keywordPlacementEvidence),
-                importance: 'high',
-                category: 'content',
-                suggestions: []
-            })
+                checks.push({
+                    id: 'keyword-placement',
+                    name: 'Keyword Placement',
+                    status: 'warning',
+                    description: 'Main Keyword is Set',
+                    evidence: JSON.stringify(this.keywordPlacementEvidence),
+                    importance: 'high',
+                    category: 'content',
+                    suggestions: []
+                })
+            }    
         }
 
         // Image checks
@@ -948,15 +939,18 @@ export class SEOService {
         try {
             console.log('🔍 Starting SEO analysis with deployment times:', deploymentTimes)
 
+            // Ensure keyword is always a string (defensive programming)
+            const safeKeyword = focusKeyword || ''
+
             // Fetch HTML content
             const html = await this.fetchPageHTML(url)
             // console.log('🔍 HTML:', html)
             
             // Analyze content
             const extractedData = this.extractSEOData(html, url)
-            const checks = this.performChecks(extractedData, focusKeyword, url)
+            const checks = this.performChecks(extractedData, safeKeyword, url)
             const score = this.calculateScore(checks)
-            const keywordStats = this.analyzeKeywordUsage(extractedData, focusKeyword)
+            const keywordStats = this.analyzeKeywordUsage(extractedData, safeKeyword)
             
             // Only store deployment times if they have actual values
             const hasValidTimes = deploymentTimes && (deploymentTimes.staging || deploymentTimes.production)

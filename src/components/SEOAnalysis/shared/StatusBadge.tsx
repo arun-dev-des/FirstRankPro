@@ -21,11 +21,11 @@ function getStatusIcon(status: string) {
 
 export function StatusBadge({ status, description }: StatusBadgeProps) {
     return (
-        <div className={`status-badge ${status}`}>
+        <div className={`status-badge`}>
             <span className={`status-icon`}>
                 {getStatusIcon(status)}
             </span>
-            <span className="status-text">
+            <span className={`status-text ${status}`}>
                 {description}
             </span>
         </div>
