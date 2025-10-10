@@ -1,5 +1,5 @@
 import { Accordion } from '../../common/Accordion'
-import { HelpIcon } from '../../../assets/icons'
+import { GoodVsBadIcon, HelpIcon } from '../../../assets/icons'
 import { SEOCheck } from '../../../types/seo'
 import '../styles.css'
 
@@ -69,7 +69,7 @@ export function KeywordPlacementSection({ status, description, evidence, keyword
                 {newEvidence ? (
                     <>
                         <div className="field-label-group-keyword-placement">
-                            <span className="field-label">Keyword Placement Status</span>
+                            <span className="field-label">Main Keyword Placement Status</span>
                         </div>
 
                         <div className="main-keyword-status-badge">
@@ -106,10 +106,10 @@ export function KeywordPlacementSection({ status, description, evidence, keyword
 
             </div>
 
-            {description.includes('Main Keyword is set') || 
-            newEvidence?.title?.status === 'pass' || 
-            newEvidence?.meta?.status === 'pass' || 
-            newEvidence?.h1?.status === 'pass' ? (
+            {description.includes('Main Keyword is set') && 
+            (newEvidence?.title?.status === 'pass' || newEvidence?.title?.status === 'warning') ||
+            (newEvidence?.meta?.status === 'pass' || newEvidence?.meta?.status === 'warning') ||
+            (newEvidence?.h1?.status === 'pass' || newEvidence?.h1?.status === 'warning') ? (
                 <>
                     <div className="field-group">
                         <div className="field-label-group">
@@ -130,67 +130,85 @@ export function KeywordPlacementSection({ status, description, evidence, keyword
                         />
                     </div>
 
-                    <div className="field-group">
-                        <div className="field-label-group">
-                            <label className="field-label">Page Title</label>
-                            <div className="field-char-count">
-                                {titleLength > 90 ? <span className="warning"> {titleLength}/90 (too long - max 90 chars)</span> :
-                                titleLength < 30 ? <span className="warning"> {titleLength}/90 (too short - min 30 chars)</span> :
-                                <span>{titleLength}/90 chars</span>}
+                    {!(newEvidence?.title?.status === 'fail') &&
+                        <div className="field-group">
+                            <div className="field-label-group">
+                                <label className="field-label">Page Title</label>
+                                <div className="field-char-count">
+                                    {titleLength > 90 ? <span className="warning"> {titleLength}/90 (too long - max 90 chars)</span> :
+                                    titleLength < 30 ? <span className="warning"> {titleLength}/90 (too short - min 30 chars)</span> :
+                                    <span>{titleLength}/90 chars</span>}
+                                </div>
                             </div>
+                            <textarea
+                                value={title}
+                                readOnly
+                                placeholder="Enter page title..."
+                                className="field-input"
+                                disabled={true}
+                                rows={2}
+                            />
                         </div>
-                        <textarea
-                            value={title}
-                            readOnly
-                            placeholder="Enter page title..."
-                            className="field-input"
-                            disabled={true}
-                            rows={2}
-                        />
-                    </div>
+                    }
 
-                    <div className="field-group">
-                        <div className="field-label-group">
-                            <label className="field-label">Page Description</label>
-                            <div className="field-char-count">
-                            {metaLength > 200 ? <span className="warning"> {metaLength}/200 (too long - max 200 chars)</span> :
-                            metaLength < 40 ? <span className="warning"> {metaLength}/200 (too short - min 40 chars)</span> :
-                            <span>{metaLength}/200 chars</span>}
+                    {!(newEvidence?.meta?.status === 'fail') &&
+                        <div className="field-group">
+                            <div className="field-label-group">
+                                <label className="field-label">Page Description</label>
+                                <div className="field-char-count">
+                                {metaLength > 200 ? <span className="warning"> {metaLength}/200 (too long - max 200 chars)</span> :
+                                metaLength < 40 ? <span className="warning"> {metaLength}/200 (too short - min 40 chars)</span> :
+                                <span>{metaLength}/200 chars</span>}
+                                </div>
                             </div>
+                            <textarea
+                                value={meta}
+                                readOnly
+                                placeholder="Enter page description..."
+                                className="field-input"
+                                disabled={true}
+                                rows={3}
+                            />
                         </div>
-                        <textarea
-                            value={meta}
-                            readOnly
-                            placeholder="Enter page description..."
-                            className="field-input"
-                            disabled={true}
-                            rows={3}
-                        />
-                    </div>
+                    }
 
-                    <div className="field-group">
-                        <div className="field-label-group">
-                            <label className="field-label">H1 Heading</label>
-                            <div className="field-char-count">
-                                {h1Length > 200 ? <span className="warning"> {h1Length}/200 (too long - max 200 chars)</span> :
-                                h1Length < 40 ? <span className="warning"> {h1Length}/200 (too short - min 40 chars)</span> :
-                                <span>{h1Length}/200 chars</span>}
+                    {!(newEvidence?.h1?.status === 'fail') &&
+                        <div className="field-group">
+                            <div className="field-label-group">
+                                <label className="field-label">H1 Heading</label>
+                                <div className="field-char-count">
+                                    {h1Length > 200 ? <span className="warning"> {h1Length}/200 (too long - max 200 chars)</span> :
+                                    h1Length < 40 ? <span className="warning"> {h1Length}/200 (too short - min 40 chars)</span> :
+                                    <span>{h1Length}/200 chars</span>}
+                                </div>
                             </div>
+                            <textarea
+                                value={h1}
+                                readOnly
+                                placeholder="Enter H1 heading..."
+                                className="field-input"
+                                disabled={true}
+                                rows={2}
+                            />
                         </div>
-                        <textarea
-                            value={h1}
-                            readOnly
-                            placeholder="Enter H1 heading..."
-                            className="field-input"
-                            disabled={true}
-                            rows={2}
-                        />
-                    </div>
+                    }
                 </>
             ) : (
                 <>
                 </>
             )}
+            
+            <label className="field-label">Learn</label>
+            <Accordion
+                title="What is Main Keyword?"
+                icon={<HelpIcon />}
+            >
+                <ul>
+                    <li>The primary search phrase you want this page to rank for in Google</li>
+                    <li>Guides how you write the Title, Meta Description, and H1 to ensure your page is optimized for that keyword</li>
+                    <li>Chosen by you (designer or site owner), not by Google</li>
+                </ul>
+            </Accordion>
 
             {description.includes('Main Keyword is Set') ? (
                 <>
@@ -199,23 +217,67 @@ export function KeywordPlacementSection({ status, description, evidence, keyword
                         icon={<HelpIcon />}
                     >
                         <ul>
-                            <li>First signal Google and users see about your page</li>
-                            <li>Keyword presence makes the page clear, relevant</li>
                             <li>Consistency across Title, Meta, and H1 improves SEO visibility & clicks</li>
+                            <li>Keyword presence makes the page clear, relevant</li>
+                            <li>First signal Google and users see about your page</li>
+                        </ul>
+                    </Accordion>
+
+                    <Accordion
+                        key="good-vs-bad-keyword"
+                        title="Good vs Bad Main Keyword Placement"
+                        icon={<GoodVsBadIcon className="good-vs-bad-icon" />}
+                    >
+                        <div className="good-pill-group">
+                            <div className="good-pill">Good</div>
+                            <div className="good-pill-example">
+                                (Keyword = CRM tool for small businesses)
+                            </div>
+                        </div>
+                        <ul>
+                            <li>
+                                Title:
+                                <span className="good-pill-example">CRM Tool for Small Businesses | Grow Sales Easily</span>
+                            </li>
+                            <li>
+                                Description:
+                                <span className="good-pill-example">Looking for a CRM tool for small businesses? Manage 
+                                leads, track sales, and grow faster with an all-in-one platform.</span>
+                            </li>
+                            <li>
+                                H1:
+                                <span className="good-pill-example">CRM Tool for Small Businesses That Helps You Close More Deals</span>
+                            </li>
+                        </ul>
+                        <span className='field-label'>Why is it good?</span>
+                        <ul>
+                            <li>Keyword appears once in each (natural, not stuffed)</li>
+                            <li>Matches it's page intent</li>
+                            <li>Clear, user-friendly phrasing</li>
+                        </ul>
+
+                        <div className="bad-pill-group">
+                            <div className="bad-pill">Bad</div>
+                        </div>
+                        <ul>
+                            <li>
+                                Title:
+                                <span className="bad-pill-example">Home | ChatSphere</span>
+                            </li>
+                            <li>
+                                Description:
+                                <span className="bad-pill-example">Welcome to our website. Click to learn more about us.</span>
+                            </li>   
+                            <li>
+                                H1:
+                                <span className="bad-pill-example">All-in-One Platform</span>
+                            </li>
                         </ul>
                     </Accordion>
                 </>
             ) : (
-                <Accordion
-                    title="What is Main Keyword?"
-                    icon={<HelpIcon />}
-                >
-                    <ul>
-                        <li>The primary search phrase you want this page to rank for in Google</li>
-                        <li>Guides how you write the Title, Meta Description, and H1 to ensure your page is optimized for that keyword</li>
-                        <li>Chosen by you (designer or site owner), not by Google</li>
-                    </ul>
-                </Accordion>
+                <>
+                </>
             )}
 
         </div>

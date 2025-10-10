@@ -1,4 +1,3 @@
-import { Password } from "@mui/icons-material";
 import { SEOCheck, SEOAnalysis, ExtractedSEOData, SEOHeading, SEOImage, SEOLink } from "../types/seo"
 
 export class SEOService {
@@ -117,7 +116,7 @@ export class SEOService {
             }
 
             if (seenInParent.has(key)) {
-                item.duplicateOf = seenInParent.get(key)!
+                return // Skip duplicates entirely
             } else {
                 seenInParent.set(key, index)
             }
@@ -125,6 +124,26 @@ export class SEOService {
             // Keep duplicates but annotate duplicateOf (HeadingsMap-like)
             results.push(item)
         })
+
+        // Debug: Log all H1s found
+        const h1s = results.filter(h => h.level === 'h1')
+        console.log('🔍 Found H1s:', h1s.map(h => ({ 
+            text: h.text, 
+            visible: h.visible, 
+            duplicateOf: h.duplicateOf,
+            id: h.id,
+            parent: h.parent,
+            index: h.index
+        })))
+
+        // Debug: Log all headings for context
+        console.log('🔍 All headings:', results.map(h => ({ 
+            level: h.level,
+            text: h.text, 
+            visible: h.visible, 
+            duplicateOf: h.duplicateOf,
+            index: h.index
+        })))
 
         return results
     }
@@ -335,7 +354,7 @@ export class SEOService {
             titleChecks.push({
                 id: 'main-keyword-missing',
                 name: 'Main Keyword Placement',
-                status: 'warning',
+                status: 'fail',
                 description: 'Main Keyword is not set to check for placement',
                 evidence: 'No main keyword found to check for placement',
                 importance: 'high',
@@ -379,7 +398,7 @@ export class SEOService {
             metaChecks.push({
                 id: 'main-keyword-missing',
                 name: 'Main Keyword Placement',
-                status: 'warning',
+                status: 'fail',
                 description: 'Main Keyword is not set to check for placement',
                 evidence: 'No main keyword found to check for placement',
                 importance: 'high',
@@ -394,7 +413,7 @@ export class SEOService {
             id: 'kw-in-meta',
             name: 'Keyword in Meta',
             status: has ? 'pass' : 'warning',
-            description: has ? 'Main Keyword present in Description' : 'Keyword not found in Description',
+            description: has ? 'Main Keyword present in Description' : 'Main Keyword not found in Description',
             evidence: `${preview}`,
             importance: 'high',
             category: 'meta',
@@ -422,7 +441,7 @@ export class SEOService {
             h1Checks.push({
                 id: 'h1-check',
                 name: 'H1 Heading',
-                status: 'warning',
+                status: 'fail',
                 description: 'More than one H1 Heading. Set one H1 per page first',
                 evidence: h1s.map(h => h.text).join(', '),
                 importance: 'high',

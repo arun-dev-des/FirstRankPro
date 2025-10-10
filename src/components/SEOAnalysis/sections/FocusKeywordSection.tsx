@@ -145,7 +145,7 @@ export function FocusKeywordSection({
                         <span className="good-pill-example">How to improve customer support with AI</span>
                     </li>
                 </ul>
-                <span>Why is it good?</span>
+                <span className='field-label'>Why is it good?</span>
                 <ul>
                     <li>Keyword appears once in each (natural, not stuffed)</li>
                     <li>Matches it's page intent</li>
