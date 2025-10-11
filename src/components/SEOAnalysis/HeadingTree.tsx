@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { SEOHeading } from '../../types/seo';
+import { useState } from 'react';
+import { SEOHeading, HeadingIssue } from '../../types/seo';
 import { ChevronDownIcon, ChevronUpIcon } from '../../assets/icons';
 import './HeadingTree.css';
 
@@ -7,16 +7,11 @@ interface HeadingNode extends SEOHeading {
     children: HeadingNode[];
 }
 
-function buildHeadingTree(headings: SEOHeading[], hideDuplicates: boolean): HeadingNode[] {
-    // Filter out duplicates if hideDuplicates is true
-    const filteredHeadings = hideDuplicates 
-        ? headings.filter(h => h.duplicateOf === undefined)
-        : headings;
-
+function buildHeadingTree(headings: SEOHeading[]): HeadingNode[] {
     const roots: HeadingNode[] = [];
     const stack: HeadingNode[] = [];
 
-    filteredHeadings.forEach(h => {
+    headings.forEach(h => {
         const levelNum = Number(h.level[1]);
         const node: HeadingNode = { ...h, children: [] };
 
@@ -39,14 +34,21 @@ function buildHeadingTree(headings: SEOHeading[], hideDuplicates: boolean): Head
 interface HeadingRowProps {
     node: HeadingNode;
     depth?: number;
+    highlightedIndex?: number;
 }
 
-function HeadingRow({ node, depth = 0 }: HeadingRowProps) {
+function HeadingRow({ node, depth = 0, highlightedIndex }: HeadingRowProps) {
     const [isOpen, setIsOpen] = useState(true);
     const hasChildren = node.children.length > 0;
+    const isHighlighted = node.index === highlightedIndex;
+    const hasIssue = node.hasIssue || false;
 
     return (
-        <div className="heading-tree-item" style={{ marginLeft: depth * 20 }}>
+        <div 
+            className={`heading-tree-item ${hasIssue ? 'has-issue' : ''} ${isHighlighted ? 'highlighted' : ''}`}
+            style={{ marginLeft: depth * 20 }}
+            data-heading-index={node.index}
+        >
             <div className="heading-tree-row">
                 {hasChildren ? (
                     <button 
@@ -61,17 +63,17 @@ function HeadingRow({ node, depth = 0 }: HeadingRowProps) {
                 )}
 
                 <div className="heading-tree-content">
-                    <span className="heading-level-badge">
+                    <span className={`heading-level-badge ${hasIssue ? 'has-issue' : ''}`}>
                         {node.level.toUpperCase()}
                     </span>
                     <span className="heading-text">
                         {node.text}
                     </span>
+                    {hasIssue && (
+                        <span className="issue-indicator">⚠️</span>
+                    )}
                     {!node.visible && (
                         <span className="heading-meta">(hidden)</span>
-                    )}
-                    {node.duplicateOf !== undefined && (
-                        <span className="heading-meta">(duplicate)</span>
                     )}
                 </div>
             </div>
@@ -82,7 +84,8 @@ function HeadingRow({ node, depth = 0 }: HeadingRowProps) {
                         <HeadingRow 
                             key={child.index || index} 
                             node={child} 
-                            depth={depth + 1} 
+                            depth={depth + 1}
+                            highlightedIndex={highlightedIndex}
                         />
                     ))}
                 </div>
@@ -93,29 +96,28 @@ function HeadingRow({ node, depth = 0 }: HeadingRowProps) {
 
 interface HeadingTreeProps {
     headings: SEOHeading[];
+    issues?: HeadingIssue[];
+    highlightedIndex?: number;
 }
 
-export function HeadingTree({ headings }: HeadingTreeProps) {
-    const [hideDuplicates, setHideDuplicates] = useState(true);
-    const tree = buildHeadingTree(headings, hideDuplicates);
-    const duplicateCount = headings.filter(h => h.duplicateOf !== undefined).length;
+export function HeadingTree({ headings, issues = [], highlightedIndex }: HeadingTreeProps) {
+    // Mark headings with issues
+    const headingsWithIssues = headings.map(heading => ({
+        ...heading,
+        hasIssue: issues.some(issue => issue.index === heading.index),
+        issueType: issues.find(issue => issue.index === heading.index)?.type
+    }));
+    
+    const tree = buildHeadingTree(headingsWithIssues);
 
     return (
         <div className="heading-tree">
-            {/* {duplicateCount > 0 && (
-                <div className="heading-tree-controls">
-                    <label className="heading-tree-toggle-label">
-                        <input
-                            type="checkbox"
-                            checked={hideDuplicates}
-                            onChange={(e) => setHideDuplicates(e.target.checked)}
-                        />
-                        Hide {duplicateCount} duplicate heading{duplicateCount !== 1 ? 's' : ''}
-                    </label>
-                </div>
-            )} */}
             {tree.map((node, index) => (
-                <HeadingRow key={node.index || index} node={node} />
+                <HeadingRow 
+                    key={node.index || index} 
+                    node={node}
+                    highlightedIndex={highlightedIndex}
+                />
             ))}
         </div>
     );

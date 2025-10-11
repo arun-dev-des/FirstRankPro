@@ -6,6 +6,18 @@ export interface SEOHeading {
     id?: string
     parent?: string
     duplicateOf?: number
+    hasIssue?: boolean
+    issueType?: 'jump' | 'missing_level' | 'multiple_h1' | 'missing_h1'
+}
+
+export interface HeadingIssue {
+    type: 'jump' | 'missing_level' | 'missing_h1' | 'multiple_h1'
+    level: string
+    index: number
+    text: string
+    previousHeading?: { level: string; text: string; index: number }
+    missingLevel?: string
+    severity: 'error' | 'warning'
 }
 
 export interface SEOImage {

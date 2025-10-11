@@ -42,8 +42,8 @@ export function OptimizationDetail({
     const renderSection = () => {
         if (!check) return <div>No check data available</div>
 
-        // Check for keyword-placement first (more specific)
-        if (check.category === 'content' && check.id === 'keyword-placement') {
+        // Check for keyword-placement
+        if (check.id === 'keyword-placement') {
             return (
                 <KeywordPlacementSection
                     status={check.status}
@@ -54,7 +54,7 @@ export function OptimizationDetail({
             )
         }
 
-        if (check.id.includes('keyword') && !check.id.includes('title') && !check.id.includes('meta')) {
+        if (check.id === 'main-keyword') {
             return (
                 <FocusKeywordSection
                     status={check.status}
@@ -68,7 +68,7 @@ export function OptimizationDetail({
             )
         }
 
-        if (check.category === 'meta' && check.id.includes('title')) {
+        if (check.id === 'page-title') {
             return (
                 <TitleSection
                     status={check.status}
@@ -80,7 +80,7 @@ export function OptimizationDetail({
             )
         }
 
-        if (check.category === 'meta' && check.id.includes('meta')) {
+        if (check.id === 'page-description') {
             return (
                 <MetaDescriptionSection
                     status={check.status}
@@ -92,29 +92,28 @@ export function OptimizationDetail({
             )
         }
 
-        if (check.category === 'headings') {
-            if (check.id === 'h1-check' || check.id === 'h1-missing') {
-                return (
-                    <H1Section
-                        status={check.status}
-                        description={check.description}
-                        headings={extractedData.headings}
-                        h1Text={editedH1}
-                    />
-                )
-            }
-            if (check.id === 'heading-hierarchy') {
-                return (
-                    <HeadingHierarchySection
-                        status={check.status}
-                        description={check.description}
-                        headings={extractedData.headings}
-                    />
-                )
-            }
+        if (check.id === 'h1-check') {
+            return (
+                <H1Section
+                    status={check.status}
+                    description={check.description}
+                    headings={extractedData.headings}
+                    h1Text={editedH1}
+                />
+            )
         }
 
+        if (check.id === 'hierarchy-check') {
+            return (
+                <HeadingHierarchySection
+                    status={check.status}
+                    description={check.description}
+                    headings={extractedData.headings}
+                />
+            )
+        }
 
+        
         if (check.category === 'content') {
             return (
                 <ContentSection

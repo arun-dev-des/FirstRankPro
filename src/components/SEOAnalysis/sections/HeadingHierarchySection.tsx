@@ -1,9 +1,12 @@
+import { useState } from 'react'
 import { HelpIcon } from '../../../assets/icons'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { HeadingCounts } from '../HeadingCounts'
 import { HeadingTree } from '../HeadingTree'
+import { HeadingIssuesPanel } from '../HeadingIssuesPanel'
 import { SEOHeading } from '../../../types/seo'
+import { detectAllHeadingIssues } from '../../../services/seo/contentValidator'
 import '../styles.css'
 
 interface HeadingHierarchySectionProps {
@@ -13,18 +16,47 @@ interface HeadingHierarchySectionProps {
 }
 
 export function HeadingHierarchySection({ status, description, headings }: HeadingHierarchySectionProps) {
+    const [highlightedIndex, setHighlightedIndex] = useState<number | undefined>(undefined)
+    
+    // Detect all issues
+    const issues = detectAllHeadingIssues(headings)
+    
+    const handleLocateHeading = (index: number) => {
+        setHighlightedIndex(index)
+        
+        // Scroll to heading in tree
+        const element = document.querySelector(`[data-heading-index="${index}"]`)
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+        
+        // Clear highlight after 3 seconds
+        setTimeout(() => setHighlightedIndex(undefined), 3000)
+    }
+    
     return (
         <div className="optimization-section">
             <StatusBadge status={status} description={description} />
+            {/* Issues Panel above tree */}
+            <HeadingIssuesPanel 
+                issues={issues} 
+                onLocateHeading={handleLocateHeading}
+            />
 
             <HeadingCounts headings={headings} />
 
             <div className="headings-list">
                 <label className="field-label">H1-H6 Heading Hierarchy</label>
                 {headings.length > 0 ? (
-                    <HeadingTree headings={headings} />
+                    <HeadingTree 
+                        headings={headings}
+                        issues={issues}
+                        highlightedIndex={highlightedIndex}
+                    />
                 ) : (
-                    <p>No headings found on this page.</p>
+                    <ul>
+                        <li>No H1-H6 Headings found on this page.</li>
+                    </ul>
                 )}
             </div>
 

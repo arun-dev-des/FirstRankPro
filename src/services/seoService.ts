@@ -1,11 +1,23 @@
 import { SEOCheck, SEOAnalysis, ExtractedSEOData, SEOHeading, SEOImage, SEOLink } from "../types/seo"
+import { extractHeadings } from './seo/headingExtractor'
+import { 
+    checkTitleHasKeyword, 
+    checkMetaHasKeyword, 
+    checkH1HasKeyword, 
+    checkToSEOCheck
+} from './seo/keywordMatcher'
+import { 
+    validateFocusKeyword,
+    validateTitle,
+    validateMetaDescription,
+    validateH1,
+    validateHeadingHierarchy,
+    validateContentLength
+} from './seo/contentValidator'
 
 export class SEOService {
     private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
     private static readonly TIMEOUT = 10000 // 10 seconds
-
-    // Content length check - guideline, not a rule
-    private static readonly MIN_WORD_COUNT_GUIDELINE = 300;
 
     static async fetchPageHTML(url: string): Promise<string> {
         console.log(`🔍 Fetching HTML for: ${url}`)
@@ -77,120 +89,9 @@ export class SEOService {
     }
 
     private static extractHeadings(doc: Document): SEOHeading[] {
-        const nodes = Array.from(doc.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
-        const results: SEOHeading[] = []
-        // Parent-scoped dedupe: key = h{lvl}::parent={norm(parent)}::text={norm(text)}
-        const seenInParent = new Map<string, number>()
-
-        // Outline stack to determine nearest higher-level parent heading
-        const stack: { level: number; text: string; index: number }[] = []
-
-        nodes.forEach((el, index) => {
-            const visible = !this.isElementHidden(el)
-            if (!visible) return // includeHidden=false by default
-
-            const levelTag = el.tagName.toLowerCase() as SEOHeading['level']
-            const levelNum = Number(levelTag[1]) || 6
-            const rawText = (el.textContent || '').trim()
-            if (!rawText) return
-
-            // Maintain outline stack: pop until parent is strictly shallower
-            while (stack.length && stack[stack.length - 1].level >= levelNum) stack.pop()
-            stack.push({ level: levelNum, text: rawText, index })
-
-            // Determine parent text (nearest higher level)
-            let parentText = ''
-            if (stack.length >= 2) parentText = stack[stack.length - 2].text
-
-            const parentKey = this.normalizeText(parentText)
-            const textKey = this.normalizeText(rawText)
-            const key = `h${levelNum}::parent=${parentKey}::text=${textKey}`
-
-            const item: SEOHeading = {
-                level: levelTag,
-                text: rawText,
-                index,
-                visible,
-                id: el.id || undefined,
-                parent: parentText || undefined
-            }
-
-            if (seenInParent.has(key)) {
-                return // Skip duplicates entirely
-            } else {
-                seenInParent.set(key, index)
-            }
-
-            // Keep duplicates but annotate duplicateOf (HeadingsMap-like)
-            results.push(item)
-        })
-
-        // Debug: Log all H1s found
-        const h1s = results.filter(h => h.level === 'h1')
-        console.log('🔍 Found H1s:', h1s.map(h => ({ 
-            text: h.text, 
-            visible: h.visible, 
-            duplicateOf: h.duplicateOf,
-            id: h.id,
-            parent: h.parent,
-            index: h.index
-        })))
-
-        // Debug: Log all headings for context
-        console.log('🔍 All headings:', results.map(h => ({ 
-            level: h.level,
-            text: h.text, 
-            visible: h.visible, 
-            duplicateOf: h.duplicateOf,
-            index: h.index
-        })))
-
-        return results
+        return extractHeadings(doc, { dedupe: true })
     }
 
-    private static isElementHidden(el: HTMLElement): boolean {
-        // 1) Attributes
-        if (el.hidden) return true
-        if (el.getAttribute('aria-hidden') === 'true') return true
-        if (el.hasAttribute('inert')) return true
-
-        // 2) Inline styles (string check, works without layout)
-        const styleAttr = (el.getAttribute('style') || '').toLowerCase()
-        if (styleAttr.includes('display:none')) return true
-        if (styleAttr.includes('visibility:hidden')) return true
-        if (styleAttr.includes('content-visibility:hidden')) return true
-
-        // 3) Computed styles (if available). Do NOT treat opacity:0 as hidden
-        try {
-            const cs = window.getComputedStyle(el)
-            if (cs.display === 'none') return true
-            if (cs.visibility === 'hidden' || cs.visibility === 'collapse') return true
-            // @ts-ignore contentVisibility may be missing on older TS libs
-            if ((cs as any).contentVisibility === 'hidden') return true
-        } catch {
-            // SSR/JSDOM without layout
-        }
-
-        // 4) Hidden ancestors
-        let p: HTMLElement | null = el.parentElement
-        while (p) {
-            if (p.hidden || p.getAttribute('aria-hidden') === 'true' || p.hasAttribute('inert')) return true
-            const ps = (p.getAttribute('style') || '').toLowerCase()
-            if (ps.includes('display:none') || ps.includes('visibility:hidden') || ps.includes('content-visibility:hidden')) {
-                return true
-            }
-            try {
-                const pcs = window.getComputedStyle(p)
-                if (pcs.display === 'none' || pcs.visibility === 'hidden' || (pcs as any).contentVisibility === 'hidden') {
-                    return true
-                }
-            } catch {
-                // ignore
-            }
-            p = p.parentElement
-        }
-        return false
-    }
     
     private static extractImages(doc: Document): SEOImage[] {
         const images: SEOImage[] = []
@@ -300,202 +201,12 @@ export class SEOService {
         h1: SEOCheck;
     } | null = null;
 
-    private static stripDiacritics(s: string): string {
-        if (!s || typeof s !== 'string') return ''
-        return s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
-    }
-
-    private static normalizeForMatch(s: string): string {
-        if (!s || typeof s !== 'string') return ''
-        return this.stripDiacritics(s)
-            .toLowerCase()
-            .replace(/[-_]+/g, ' ')
-            .replace(/[^\p{L}\p{N} ]+/gu, '')
-            .replace(/\s+/g, ' ')
-            .trim()
-    }
-
-    private static containsPhrase(haystack: string, needle: string): boolean {
-        if (!haystack || !needle) return false
-        const H = ` ${this.normalizeForMatch(haystack)} `
-        const N = ` ${this.normalizeForMatch(needle)} `
-        if (!N.trim()) return false
-        return H.includes(N)
-    }
-
-    private static countPhrase(haystack: string, needle: string): number {
-        if (!haystack || !needle) return 0
-        const H = this.normalizeForMatch(haystack)
-        const N = this.normalizeForMatch(needle)
-        if (!H || !N) return 0
-        return H.split(N).length - 1
-    }
 
     // ---------- Granular keyword checks (title/meta/H1/stuffing) ----------
 
-    private static buildTitleKeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
-        const titleChecks: SEOCheck[] = []
-        const title = (data.title || '').trim()
 
-        if (!title) {
-            titleChecks.push({   
-                id: 'title-missing',
-                name: 'Page Title',
-                status: 'fail',
-                description: 'Set Page Title first',
-                evidence: 'No title tag found',
-                importance: 'high',
-                category: 'meta',
-                suggestions: ['Add a descriptive title tag', 'Include your focus keyword in the title']
-            })
-        }
 
-        if (!keyword) {
-            titleChecks.push({
-                id: 'main-keyword-missing',
-                name: 'Main Keyword Placement',
-                status: 'fail',
-                description: 'Main Keyword is not set to check for placement',
-                evidence: 'No main keyword found to check for placement',
-                importance: 'high',
-                category: 'content',
-                suggestions: ['Add a Main Keyword', 'Use it naturally in the content']
-            })
-        }
 
-        const has = this.containsPhrase(title, keyword)
-        titleChecks.push({
-            id: 'kw-in-title',
-            name: 'Keyword in Title',
-            status: has ? 'pass' : 'warning',
-            description: has ? 'Main Keyword present in Title' : 'Main Keyword not found in Title',
-            evidence: `${title}`,
-            importance: 'high',
-            category: 'meta',
-            suggestions: has ? [] : [`Include "${keyword}" once near the start if it reads naturally`]
-        })
-
-        return titleChecks
-    }
-
-    private static buildMetaKeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
-        const metaChecks: SEOCheck[] = []
-        const meta = (data.metaDescription || '').trim()
-        if (!meta) {
-            metaChecks.push({
-                id: 'meta-desc-missing',
-                name: 'Page Description',
-                status: 'fail',
-                description: 'Set Page Description first',
-                evidence: 'No meta description found',
-                importance: 'high',
-                category: 'meta',
-                suggestions: ['Add a compelling meta description', 'Include your focus keyword naturally']
-            })
-        }
-
-        if (!keyword) {
-            metaChecks.push({
-                id: 'main-keyword-missing',
-                name: 'Main Keyword Placement',
-                status: 'fail',
-                description: 'Main Keyword is not set to check for placement',
-                evidence: 'No main keyword found to check for placement',
-                importance: 'high',
-                category: 'content',
-                suggestions: ['Add a Main Keyword', 'Use it naturally in the content']
-            })
-        }
-
-        const has = this.containsPhrase(meta, keyword)
-        const preview = meta.length > 180 ? `${meta.slice(0, 180)}…` : meta
-        metaChecks.push({
-            id: 'kw-in-meta',
-            name: 'Keyword in Meta',
-            status: has ? 'pass' : 'warning',
-            description: has ? 'Main Keyword present in Description' : 'Main Keyword not found in Description',
-            evidence: `${preview}`,
-            importance: 'high',
-            category: 'meta',
-            suggestions: has ? [] : [`Work "${keyword}" naturally into one sentence; avoid stuffing`]
-        })
-        return metaChecks
-    }
-
-    private static buildH1KeywordChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
-        const h1Checks: SEOCheck[] = []
-
-        const h1s = data.headings.filter(h => h.level === 'h1')
-        if (h1s.length === 0) {
-            h1Checks.push({
-                id: 'h1-missing',
-                name: 'H1 Heading',
-                status: 'fail',
-                description: 'Set H1 Heading first',
-                evidence: 'No H1 tag found',
-                importance: 'high',
-                category: 'headings',
-                suggestions: ['Add a clear main heading that describes the page content']
-            })
-        } else if (h1s.length > 1) {
-            h1Checks.push({
-                id: 'h1-check',
-                name: 'H1 Heading',
-                status: 'fail',
-                description: 'More than one H1 Heading. Set one H1 per page first',
-                evidence: h1s.map(h => h.text).join(', '),
-                importance: 'high',
-                category: 'headings',
-                suggestions: ['Keep one primary H1 that describes the page\'s topic', 'Use H2s/H3s for subsections to maintain logical structure']
-            })
-        }
-
-        const firstH1 = h1s[0]?.text
-
-        if (!keyword) {
-            h1Checks.push({
-                id: 'main-keyword-missing',
-                name: 'Main Keyword Placement',
-                status: 'warning',
-                description: 'Main Keyword is not set to check for placement',
-                evidence: 'No main keyword found to check for placement',
-                importance: 'high',
-                category: 'content',
-                suggestions: ['Add a Main Keyword', 'Use it naturally in the content']
-            })
-        }
-
-        const has = this.containsPhrase(firstH1, keyword)
-        h1Checks.push({
-            id: 'kw-in-h1',
-            name: 'Keyword in H1',
-            status: has ? 'pass' : 'warning',
-            description: has ? 'Main Keyword present in H1' : 'Main Keyword not found in H1',
-            evidence: `${firstH1}`,
-            importance: 'high',
-            category: 'headings',
-            suggestions: has ? [] : [`Include "${keyword}" naturally in the main heading if it matches the topic`]
-        })
-        return h1Checks
-    }
-
-    private static buildStuffingGuard(data: ExtractedSEOData, keyword: string): SEOCheck | null {
-        if (!keyword) return null
-        const text = data.textContent || ''
-        const wc = data.wordCount || (text ? text.trim().split(/\s+/).length : 0)
-        const repeats = this.countPhrase(text, keyword)
-        const allowed = Math.ceil((wc || 1) / 150) + 1
-        return {
-            id: 'kw-stuffing',
-            name: 'Possible keyword stuffing',
-            status: repeats > allowed ? 'warning' : 'pass',
-            description: repeats > allowed ? 'Keyword may be overused' : 'No keyword stuffing detected',
-            evidence: `Found ${repeats} exact-phrase repeats across ~${wc} words (allowed ≈ ${allowed})`,
-            importance: 'medium',
-            category: 'content',
-            suggestions: repeats > allowed ? ['Use natural variants and synonyms instead of repeating the exact phrase'] : []
-        }
-    }
 
     private static extractSEOData(html: string, url: string): ExtractedSEOData {
         // Parse HTML string
@@ -560,213 +271,25 @@ export class SEOService {
         console.log('🚀 performChecks method called!', { data, keyword, url })
         
         const checks: SEOCheck[] = []
-        // const keywordStats = this.analyzeKeywordUsage(data, keyword)
-
-        function getPageName(url: string): string {
-            const { pathname } = new URL(url);
-            return pathname === "/" ? "home" : pathname.slice(1);
-        }
-
-        const pageName = getPageName(url)
-
-        // focus keyword checks
-        if (!keyword) {
-            checks.push({
-                id: 'focus-keyword-missing',
-                name: 'Main Keyword',
-                status: 'warning',
-                description: 'Main Keyword is not set',
-                evidence: 'No focus keyword found',
-                importance: 'high',
-                category: 'content',
-                suggestions: ['Add a focus keyword', 'Use it naturally in the content']
-            });
-        } else {
-            checks.push({
-                id: 'focus-keyword-present',
-                name: 'Main Keyword',
-                status: 'pass',
-                description: 'Main keyword is set',
-                evidence: keyword,
-                importance: 'high',
-                category: 'content',
-                suggestions: []
-            });
-        }
-
-        // Title checks
-        if (!data.title) {
-            checks.push({
-                id: 'title-missing',
-                name: 'Page Title',
-                status: 'fail',
-                description: 'Page Title is missing',
-                evidence: 'No title tag found',
-                importance: 'high',
-                category: 'meta',
-                suggestions: ['Add a descriptive title tag', 'Include your focus keyword in the title']
-            });
-        } else if (data.title.toLowerCase() === pageName.toLowerCase()) {
-            checks.push({
-                id: 'title-check',
-                name: 'Page Title',
-                status: 'fail',
-                description: 'Page Title is the same as the Page Name',
-                evidence: data.title,
-                importance: 'high',
-                category: 'meta',
-                suggestions: ['Change the Page Title to a more descriptive title']
-            });
-        }
-        else {
-            const titleCheck: SEOCheck = {
-                id: 'title-check',
-                name: 'Page Title',
-                status: 'pass',
-                description: 'Page Title is present',
-                evidence: data.title,
-                importance: 'high',
-                category: 'meta',
-                suggestions: [
-                    'Including your Focus Keyword at the start of your Page Title attracts more clicks and improves SEO'
-                ]
-            };
-
-            if (data.title.length < 30) {
-                titleCheck.suggestions?.push('May be too short to be descriptive');
-            }
-            if (data.title.length > 90) {
-                titleCheck.suggestions?.push('Might be truncated in search results');      
-            }
-
-            checks.push(titleCheck);
-        }
         
-        // Meta description checks
-        if (!data.metaDescription) {
-            checks.push({
-                id: 'meta-desc-missing',
-                name: 'Page Description',
-                status: 'fail',
-                description: 'Page Description is missing',
-                evidence: 'No meta description found',
-                importance: 'high',
-                category: 'meta',
-                suggestions: ['Add a compelling meta description', 'Include your focus keyword naturally']
-            });
-        } else {
-            const metaCheck: SEOCheck = {
-                id: 'meta-desc-check',
-                name: 'Page Description',
-                status: 'pass',
-                description: 'Page Description is present',
-                evidence: data.metaDescription,
-                importance: 'high',
-                category: 'meta',
-                suggestions: []
-            };
+        // Basic SEO checks using new services
+        checks.push(...validateFocusKeyword(keyword))
+        checks.push(...validateTitle(data.title || '', url))
+        checks.push(...validateMetaDescription(data.metaDescription || ''))
+        checks.push(...validateH1(data.headings || []))
+        checks.push(...validateHeadingHierarchy(data.headings || []))
+        
+        // Keyword placement checks
+        checks.push(...this.performKeywordPlacementChecks(data, keyword))
+        
+        // Content quality checks
+        checks.push(...validateContentLength(data.wordCount || 0))
+        
+        return checks
+    }
 
-            if (data.metaDescription.length < 40) {
-                metaCheck.suggestions?.push('May be too short to be descriptive');
-            }
-            if (data.metaDescription.length > 200) {
-                metaCheck.suggestions?.push('Might be truncated in search results');
-            }
-
-            checks.push(metaCheck);
-        }
-
-        // Heading checks
-        const h1s = data.headings.filter(h => h.level === 'h1')
-        if (h1s.length === 0) { 
-            checks.push({
-                id: 'h1-missing',
-                name: 'H1 Heading',
-                status: 'fail',
-                description: 'H1 Heading is missing',
-                evidence: 'No H1 tag found',
-                importance: 'high',
-                category: 'headings',
-                suggestions: ['Add a clear main heading that describes the page content']
-            });
-        } else if (h1s.length > 1) {
-            checks.push({
-                id: 'h1-check',
-                name: 'H1 Heading',
-                status: 'warning',
-                description: 'More than one H1 Heading is present',
-                evidence: h1s.map(h => h.text).join(', '),
-                importance: 'high',
-                category: 'headings',
-                suggestions: ['Keep one primary H1 that describes the page\'s topic', 'Use H2s/H3s for subsections to maintain logical structure']
-            });
-        } else {
-            const headingCheck: SEOCheck = {
-                id: 'h1-check',
-                name: 'H1 Heading',
-                status: 'pass',
-                description: h1s.length === 1 ? 'H1 Heading is present' : `Page has ${h1s.length} main headings`,
-                evidence: h1s.map(h => h.text).join(', '),
-                importance: 'high',
-                category: 'headings',
-                suggestions: []
-            };
-            checks.push(headingCheck);
-        }
-
-        // Heading hierarchy check
-        if (data.headings.length > 0) {
-            const hierarchyCheck: SEOCheck = {
-                id: 'heading-hierarchy',
-                name: 'H1 - H6 Hierarchy',
-                status: 'pass',
-                description: 'H1 - H6 Heading structure is logical',
-                evidence: data.headings.map(h => `${h.level}: ${h.text}`).join('\n'),
-                importance: 'medium',
-                category: 'headings',
-                suggestions: []
-            };
-
-            let lastLevel = parseInt(data.headings[0].level.charAt(1));
-            let lastHeading = data.headings[0];
-            const issues: string[] = [];
-
-            for (const heading of data.headings.slice(1)) {
-                const currentLevel = parseInt(heading.level.charAt(1));
-                if (currentLevel > lastLevel + 1) {
-                    hierarchyCheck.status = 'warning';
-                    issues.push(
-                        `Jump from ${lastHeading.level} "${lastHeading.text}" → ${heading.level} "${heading.text}"`
-                    );
-                    hierarchyCheck.suggestions?.push(
-                        `Consider adding an ${'H' + (lastLevel + 1)} before "${heading.text}"`,
-                        'Use heading levels to reflect content hierarchy',
-                        'Clear hierarchy helps both users and screen readers'
-                    );
-                }
-                lastLevel = currentLevel;
-                lastHeading = heading;
-            }
-
-            if (issues.length > 0) {
-                hierarchyCheck.description = `Heading structure has jumps: ${issues.join('; ')}`;
-            }
-
-            checks.push(hierarchyCheck);
-        }
-
-        // psueodocode for keyword placement checks
-        // if no keyword, return warning with no evidence
-            // becoz if no keyword, we can't check for keyword placement against Title, Meta, H1
-        // if keyword is set
-            // if all of Title, Meta, H1 checks are pass, return pass with evidence
-            // if any of Title, Meta, H1 checks are fail, return warning with evidence
-
-        // Keyword placement checks (granular)
-
-        const titleChecks = this.buildTitleKeywordChecks(data, keyword)
-        const metaChecks = this.buildMetaKeywordChecks(data, keyword)
-        const h1Checks = this.buildH1KeywordChecks(data, keyword)
+    private static performKeywordPlacementChecks(data: ExtractedSEOData, keyword: string): SEOCheck[] {
+        const checks: SEOCheck[] = []
 
         if (!keyword) {
             // Only show the missing keyword check
@@ -779,17 +302,30 @@ export class SEOService {
                 importance: 'high',
                 category: 'content',
                 suggestions: ['Add a focus keyword', 'Use it naturally in the content']
-            })  
+            })
         } else if (keyword) {
-            if (titleChecks[0]?.status === 'pass' && 
-                metaChecks[0]?.status === 'pass' && 
-                h1Checks[0]?.status === 'pass') {
-                    
+            // Use new keyword matcher services
+            const h1s = data.headings?.filter(h => h.level === 'h1') || []
+            const allH1Texts = h1s.map(h => h.text)
+            const firstH1 = h1s[0]?.text || ''
+            
+            const titleCheck = checkTitleHasKeyword(data.title || '', keyword)
+            const metaCheck = checkMetaHasKeyword(data.metaDescription || '', keyword)
+            const h1Check = checkH1HasKeyword(firstH1, keyword, allH1Texts)
+            
+            const titleSEOCheck = checkToSEOCheck(titleCheck, 'kw-in-title', 'Keyword in Title')
+            const metaSEOCheck = checkToSEOCheck(metaCheck, 'kw-in-meta', 'Keyword in Meta')
+            const h1SEOCheck = checkToSEOCheck(h1Check, 'kw-in-h1', 'Keyword in H1')
+            
+            if (titleSEOCheck.status === 'pass' && 
+                metaSEOCheck.status === 'pass' && 
+                h1SEOCheck.status === 'pass') {
+                
                 this.keywordPlacementEvidence = {
                     keyword,
-                    title: titleChecks[0],
-                    meta: metaChecks[0],
-                    h1: h1Checks[0]
+                    title: titleSEOCheck,
+                    meta: metaSEOCheck,
+                    h1: h1SEOCheck
                 }
                 
                 checks.push({
@@ -802,11 +338,10 @@ export class SEOService {
                     category: 'content',
                     suggestions: []
                 })
-
             } else {
                 this.keywordPlacementEvidence = {
                     keyword,
-                    title: titleChecks[0] || {
+                    title: titleSEOCheck || {
                         id: 'kw-in-title',
                         name: 'Keyword in Title',
                         status: 'warning',
@@ -816,7 +351,7 @@ export class SEOService {
                         category: 'meta',
                         suggestions: []
                     },
-                    meta: metaChecks[0] || {
+                    meta: metaSEOCheck || {
                         id: 'kw-in-meta',
                         name: 'Keyword in Meta',
                         status: 'warning',
@@ -826,7 +361,7 @@ export class SEOService {
                         category: 'meta',
                         suggestions: []
                     },
-                    h1: h1Checks[0] || {
+                    h1: h1SEOCheck || {
                         id: 'kw-in-h1',
                         name: 'Keyword in H1',
                         status: 'warning',
@@ -837,6 +372,7 @@ export class SEOService {
                         suggestions: []
                     }
                 }
+                
                 checks.push({
                     id: 'keyword-placement',
                     name: 'Keyword Placement',
@@ -847,89 +383,12 @@ export class SEOService {
                     category: 'content',
                     suggestions: []
                 })
-            }    
-        }
-
-        // Image checks
-        // const isSVG = (src: string) => src.toLowerCase().endsWith('.svg') || src.toLowerCase().includes('data:image/svg');
-        // const validImages = data.images.filter(img => !isSVG(img.src));
-        // const totalImages = validImages.length;
-        // const imagesWithoutAlt = validImages.filter(img => !img.alt);
-
-        // if (totalImages > 0) {
-        //     const missingCount = imagesWithoutAlt.length;
-        //     const missingPercent = (missingCount / totalImages) * 100;
-
-        //     if (missingCount === 0) {
-        //         checks.push({
-        //             id: 'images-alt',
-        //             name: 'Image Alt Text',
-        //             status: 'pass',
-        //             description: `All ${totalImages} images have alt text`,
-        //             evidence: `${totalImages} images checked`,
-        //             importance: 'high',
-        //             category: 'images'
-        //         });
-        //     } else if (missingPercent > 20) {
-        //         checks.push({
-        //             id: 'images-alt',
-        //             name: 'Image Alt Text',
-        //             status: 'fail',
-        //             description: `${missingCount} of ${totalImages} images (${missingPercent.toFixed(0)}%) missing alt text`,
-        //             evidence: imagesWithoutAlt.map(img => img.src).join('\n'),
-        //             importance: 'high',
-        //             category: 'images',
-        //             suggestions: [
-        //                 'Add descriptive alt text to all meaningful images',
-        //                 'Use empty alt="" for decorative images'
-        //             ]
-        //         });
-        //     } else {
-        //         checks.push({
-        //             id: 'images-alt',
-        //             name: 'Image Alt Text',
-        //             status: 'warning',
-        //             description: `${missingCount} of ${totalImages} images (${missingPercent.toFixed(0)}%) missing alt text`,
-        //             evidence: imagesWithoutAlt.map(img => img.src).join('\n'),
-        //             importance: 'medium',
-        //             category: 'images',
-        //             suggestions: [
-        //                 'Add alt text to the missing images',
-        //                 'Use empty alt="" for decorative ones'
-        //             ]
-        //         });
-        //     }
-        // }
-
-        // Content length check
-        if (data.wordCount < this.MIN_WORD_COUNT_GUIDELINE) {
-            checks.push({
-                id: 'content-length',
-                name: 'Content Length',
-                status: 'warning',
-                description: `Thin Content: only ${data.wordCount} words. May not provide enough depth`,
-                evidence: `Found ${data.wordCount} words. Suggested minimum for comprehensive coverage is ~${this.MIN_WORD_COUNT_GUIDELINE}+ words (depends on topic).`,
-                importance: 'medium',
-                category: 'content',
-                suggestions: [
-                    'Add more helpful details, examples, or explanations',
-                    'Expand content to better cover the topic for your audience'
-                ]
-            });
-        } else {
-            checks.push({
-                id: 'content-length',
-                name: 'Content Length',
-                status: 'pass',
-                description: `Good Content Length: ${data.wordCount} words`,
-                evidence: `Content length meets the suggested guideline of ~${this.MIN_WORD_COUNT_GUIDELINE}+ words.`,
-                importance: 'medium',
-                category: 'content'
-            });
+            }
         }
 
         return checks
     }
+
 
     private static calculateScore(checks: SEOCheck[]): number {
         const weights = {
