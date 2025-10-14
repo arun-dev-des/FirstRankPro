@@ -20,19 +20,6 @@ export function HeadingCounts({ headings, className = '' }: HeadingCountsProps) 
         <>
             <label className="field-label">H1-H6 Tag Counts</label>
             <div className={`heading-counter-container`}>
-
-                {/* {h1s.length < 1 ? 
-                    <span className="h1-supporting-text">
-                        Atleast one H1 per page is required to represent the page topic
-                    </span> : 
-                    null
-                }
-
-                {h1s.length > 1 ? 
-                    <p>only one H1 is allowed on page - represents the page main topic</p> : 
-                    null
-                } */}
-
                 <div className={`heading-count-container ${h1s.length < 1 ? 'fail' : ''} ${h1s.length > 1 ? 'warning' : ''}`}>
                     <span className="heading-level-badge-container">H1</span>
                     <span className="heading-count-number-container">{h1s.length}</span>

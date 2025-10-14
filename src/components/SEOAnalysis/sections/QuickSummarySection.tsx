@@ -2,6 +2,8 @@ import { OptimizedIcon, UnoptimizedIcon, WarningIcon, WarningArrowIcon, FailArro
 import { SEOAnalysis } from '../../../types/seo'
 import { StatusBadge } from '../shared/StatusBadge'
 import '../styles.css'
+import { HeadingCounts } from '../HeadingCounts'
+import { HeadingTree } from '../HeadingTree'
 
 interface QuickSummarySectionProps {
     analysis: SEOAnalysis
@@ -20,6 +22,7 @@ function getStatusIcon(status: string) {
             return null
     }
 }
+
 
 export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySectionProps) {
     const { checks, extractedData, focusKeyword } = analysis
@@ -42,6 +45,23 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
         return acc
     }, {} as Record<string, number>)
 
+    const h1s = extractedData.headings.filter(h => h.level === 'h1' && !h.duplicateOf);
+    const h2s = extractedData.headings.filter(h => h.level === 'h2' && !h.duplicateOf);
+    const h3s = extractedData.headings.filter(h => h.level === 'h3' && !h.duplicateOf);
+    const h4s = extractedData.headings.filter(h => h.level === 'h4' && !h.duplicateOf);
+    const h5s = extractedData.headings.filter(h => h.level === 'h5' && !h.duplicateOf);
+    const h6s = extractedData.headings.filter(h => h.level === 'h6' && !h.duplicateOf);
+
+
+    const parseHeadingIssues = (evidence: string) => {
+        try {
+            const parsed = JSON.parse(evidence || '[]')
+            return Array.isArray(parsed) ? parsed : []
+        } catch (error) {
+            console.error('Error parsing heading issues:', error)
+            return []
+        }
+    }
     // Count images with/without alt
     const imagesWithAlt = extractedData.images.filter(img => img.alt).length
     const imagesWithoutAlt = extractedData.images.length - imagesWithAlt
@@ -205,7 +225,7 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
 
             {/* H1 */}
             {h1Check && (
-                (h1Check.status === 'pass') && (
+                (h1Check.status === 'pass' && h1Check.description === 'H1 Heading is present') && (
                 <button 
                     className="clickable"
                     onClick={() => onTabSelect?.('h1-check')}
@@ -229,32 +249,117 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
                         </div>
                         {h1Check.evidence && <div className="field-input-group-summary">{h1Check.evidence}</div>}
                     </div>
-
-                    
                 </button>
                 )
-            )}
+            ) || (h1Check && h1Check.status === 'warning') && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('h1-check')}
+                >
+                    <div className="check-info-summary warning">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                {getStatusIcon(h1Check.status)}
+                            </span>
+                            <label className={`field-label-summary ${h1Check.status}`}>
+                                {h1Check.description}
+                            </label>
+                        </div>
+                        <WarningArrowIcon />
+                    </div>
+                </button>
+            ) || (h1Check && h1Check.status === 'fail') && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('h1-check')}
+                >
+                    <div className="check-info-summary fail">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                {getStatusIcon(h1Check.status)}
+                            </span>
+                            <label className={`field-label-summary ${h1Check.status}`}>
+                                {h1Check.description}
+                            </label>
+                        </div>
+                        <FailArrowIcon />
+                    </div>
+                </button>
+            )
+            }
+            
+            <hr />
 
+            {h1Check && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('h1-check')}
+                >
+                    <div className="field-label-group">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                    {getStatusIcon(h1Check?.status)}
+                                </span>
+                            <label className={`field-label-summary ${h1Check.status}`}>
+                                H1-H6 Tag Counts
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className={`heading-counter-container-summary`}>
+                        <div className={`heading-count-container ${h1s.length < 1 ? 'fail' : ''} ${h1s.length > 1 ? 'warning' : ''}`}>
+                            <span className="heading-level-badge-container">H1</span>
+                            <span className="heading-count-number-container">{h1s.length}</span>
+                        </div>
+                        <div className={`heading-count-container`}>
+                            <span className="heading-level-badge-container">H2</span>
+                            <span className="heading-count-number-container">{h2s.length}</span>
+                        </div>
+                        <div className={`heading-count-container ${h3s.length}`}>
+                            <span className="heading-level-badge-container">H3</span>
+                            <span className="heading-count-number-container">{h3s.length}</span>
+                        </div>
+                        <div className={`heading-count-container ${h4s.length}`}>
+                            <span className="heading-level-badge-container">H4</span>
+                            <span className="heading-count-number-container">{h4s.length}</span>
+                        </div>
+                        <div className={`heading-count-container ${h5s.length}`}>
+                            <span className="heading-level-badge-container">H5</span>
+                            <span className="heading-count-number-container">{h5s.length}</span>
+                        </div>
+                        <div className={`heading-count-container ${h6s.length}`}>
+                            <span className="heading-level-badge-container">H6</span>
+                            <span className="heading-count-number-container">{h6s.length}</span>
+                        </div>
+                    </div>
+                </button>
+            )}
+            
             <hr />
 
             {/* Heading Hierarchy */}
             {hierarchyCheck && (
-                <div className="summary-check-item">
-                    <StatusBadge status={hierarchyCheck.status} description={hierarchyCheck.name} />
-                    <div className="check-detail">
-                        <strong>{hierarchyCheck.name}</strong>
-                        <p>{hierarchyCheck.description}</p>
-                        <div className="heading-counts">
-                            {['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map(level => (
-                                <div key={level} className="heading-count-item">
-                                    <span className="level-label">{level.toUpperCase()}</span>
-                                    <span className="level-count">{headingCounts[level] || 0}</span>
-                                </div>
-                            ))}
+                <>
+                    <div className="field-label-group">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                    {getStatusIcon(hierarchyCheck.status)}
+                                </span>
+                            <label className={`field-label-summary ${hierarchyCheck.status}`}>
+                                {hierarchyCheck.description}
+                            </label>
                         </div>
                     </div>
-                </div>
+                    <div className="heading-tree-section">
+                        <HeadingTree 
+                            headings={extractedData.headings} 
+                            issues={parseHeadingIssues(hierarchyCheck.evidence)}
+                        />
+                    </div>
+                </>
             )}
+
+            <hr />
 
             {/* Keyword Placement */}
             {placementCheck && (

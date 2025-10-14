@@ -1,4 +1,4 @@
-.heading-counter-container {
+.heading-counter-container, .heading-counter-container-summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -8,6 +8,10 @@
     gap: 8px;
     padding: 12px;
     margin-bottom: 24px;
+}
+
+.heading-counter-container-summary {
+    margin-bottom: 0px;
 }
 
 .heading-count-container {

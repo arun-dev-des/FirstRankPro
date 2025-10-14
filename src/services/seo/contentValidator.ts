@@ -129,7 +129,7 @@ export function validateH1(headings: any[]): SEOCheck[] {
             id: 'h1-check',
             name: 'H1 Heading',
             status: 'fail',
-            description: 'H1 heading is missing',
+            description: 'H1 Heading is missing',
             evidence: 'No H1 found',
             importance: 'high',
             category: 'technical',
