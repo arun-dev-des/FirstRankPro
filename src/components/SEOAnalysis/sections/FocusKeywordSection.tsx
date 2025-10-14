@@ -20,7 +20,6 @@ export function FocusKeywordSection({
     description,
     pageUrl,
     focusKeyword,
-    onFocusKeywordChange,
     onKeywordLoad,
     triggerKeywordAnalysis
 }: FocusKeywordSectionProps) {
@@ -32,8 +31,14 @@ export function FocusKeywordSection({
         setEditedKeyword(focusKeyword)
     }, [focusKeyword])
 
-    // Load saved keyword on mount and trigger analysis if needed
+    // Load saved keyword on mount ONLY if parent hasn't already loaded it
     useEffect(() => {
+        // Skip loading if parent already has a keyword to avoid double analysis
+        if (focusKeyword) {
+            // console.log('[FocusKeywordSection] Skipping load - parent already has keyword:', focusKeyword)
+            return
+        }
+
         const load = async () => {
             try {
                 const key = `seo-keyword:${pageUrl}`
@@ -41,35 +46,40 @@ export function FocusKeywordSection({
                 if (saved) {
                     const parsed = JSON.parse(saved)
                     if (parsed?.mainKeyword) {
-                        console.log('Loading saved keyword:', parsed.mainKeyword)
+                        console.log('[FocusKeywordSection] Loading saved keyword:', parsed.mainKeyword)
                         setEditedKeyword(parsed.mainKeyword)
                         // Use onKeywordLoad to avoid resetting selected check
-                        if (parsed.mainKeyword !== focusKeyword) {
-                            onKeywordLoad(parsed.mainKeyword)
-                            if (triggerKeywordAnalysis) {
-                                console.log('Triggering analysis for loaded keyword')
-                                await triggerKeywordAnalysis(parsed.mainKeyword)
-                            }
+                        onKeywordLoad(parsed.mainKeyword)
+                        if (triggerKeywordAnalysis) {
+                            // console.log('[FocusKeywordSection] Triggering analysis for loaded keyword')
+                            await triggerKeywordAnalysis(parsed.mainKeyword)
                         }
                     }
                 }
             } catch (err) {
-                console.error('Error loading keyword:', err)
+                console.error('[FocusKeywordSection] Error loading keyword:', err)
             }
         }
         load()
-    }, [pageUrl])
+    }, [pageUrl, focusKeyword, onKeywordLoad, triggerKeywordAnalysis])
 
     const handleSaveKeyword = async () => {
         const value = editedKeyword.trim()
         if (!value) return
         setIsSavingKeyword(true)
         try {
-            const payload = JSON.stringify({ mainKeyword: value, lastUpdated: new Date().toISOString() })
+            const payload = JSON.stringify({ 
+                mainKeyword: value, 
+                lastUpdated: new Date().toISOString() 
+            })
             const key = `seo-keyword:${pageUrl}`
             await setProjectData(key, payload)
-            onFocusKeywordChange(value)
+            // Use onKeywordLoad to preserve current tab selection
+            onKeywordLoad(value)
             if (triggerKeywordAnalysis) await triggerKeywordAnalysis(value)
+            console.log('[FocusKeywordSection] Keyword saved and analysis triggered')
+        } catch (err) {
+            console.error('[FocusKeywordSection] Error saving keyword:', err)
         } finally {
             setIsSavingKeyword(false)
         }

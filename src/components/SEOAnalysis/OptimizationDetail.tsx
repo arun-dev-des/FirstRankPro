@@ -114,7 +114,7 @@ export function OptimizationDetail({
         }
 
         
-        if (check.category === 'content') {
+        if (check.id === 'content-length') {
             return (
                 <ContentSection
                     status={check.status}
