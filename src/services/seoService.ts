@@ -388,9 +388,9 @@ export class SEOService {
 
     private static calculateScore(checks: SEOCheck[]): number {
         const weights = {
-            high: { pass: 1, warning: 0.5, fail: 0 },
-            medium: { pass: 1, warning: 0.7, fail: 0.3 },
-            low: { pass: 1, warning: 0.8, fail: 0.5 }
+            high: { pass: 1, warning: 0.5, fail: 0, summary: 0 },
+            medium: { pass: 1, warning: 0.7, fail: 0.3, summary: 0 },
+            low: { pass: 1, warning: 0.8, fail: 0.5, summary: 0 }
         }
 
         let totalScore = 0

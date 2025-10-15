@@ -1,8 +1,6 @@
 import { OptimizedIcon, UnoptimizedIcon, WarningIcon, WarningArrowIcon, FailArrowIcon } from '@/assets/icons'
 import { SEOAnalysis } from '../../../types/seo'
-import { StatusBadge } from '../shared/StatusBadge'
 import '../styles.css'
-import { HeadingCounts } from '../HeadingCounts'
 import { HeadingTree } from '../HeadingTree'
 
 interface QuickSummarySectionProps {
@@ -39,12 +37,6 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
     const placementCheck = getCheck('keyword-placement')
     const contentCheck = getCheck('content-length')
 
-    // Count heading levels
-    const headingCounts = extractedData.headings.reduce((acc, h) => {
-        acc[h.level] = (acc[h.level] || 0) + 1
-        return acc
-    }, {} as Record<string, number>)
-
     const h1s = extractedData.headings.filter(h => h.level === 'h1' && !h.duplicateOf);
     const h2s = extractedData.headings.filter(h => h.level === 'h2' && !h.duplicateOf);
     const h3s = extractedData.headings.filter(h => h.level === 'h3' && !h.duplicateOf);
@@ -62,9 +54,6 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
             return []
         }
     }
-    // Count images with/without alt
-    const imagesWithAlt = extractedData.images.filter(img => img.alt).length
-    const imagesWithoutAlt = extractedData.images.length - imagesWithAlt
 
     return (
         <div className="optimization-section quick-summary">
@@ -457,40 +446,46 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
 
             {/* Content Length */}
             {contentCheck && (
-                <div className="summary-check-item">
-                    <StatusBadge status={contentCheck.status} description={contentCheck.name} />
-                    <div className="check-detail">
-                        <strong>{contentCheck.name}</strong>
-                        <p>{contentCheck.description}</p>
-                        <div className="content-stats">
-                            <span>Word Count: {extractedData.wordCount}</span>
+                (contentCheck.status === 'pass') && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('content-length')}
+                >
+                    <div className="field-group">
+                        <div className="field-label-group">
+                            
+                            <div className="field-label-group-summary">
+                                <span className="status-icon-small">
+                                        {getStatusIcon(contentCheck.status)}
+                                    </span>
+                                <label className={`field-label-summary ${contentCheck.status}`}>
+                                    Content Length
+                                </label>
+                            </div>
                         </div>
+                        {contentCheck.evidence && <div className="field-input-group-summary">{contentCheck.description}</div>}
                     </div>
-                </div>
+                </button>
+                )
+            ) || (contentCheck && contentCheck.status === 'warning') && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('content-length')}
+                >
+                    <div className="check-info-summary warning">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                {getStatusIcon(contentCheck.status)}
+                            </span>
+                            <label className={`field-label-summary ${contentCheck.status}`}>
+                                {contentCheck.description}
+                            </label>
+                        </div>
+                        <WarningArrowIcon />
+                    </div>
+                </button>
             )}
 
-            {/* Image Stats */}
-            <div className="summary-check-item">
-                <div className="check-detail">
-                    <strong>Images</strong>
-                    <div className="image-stats">
-                        <div className="stat-row">
-                            <label>Total Images:</label>
-                            <span>{extractedData.images.length}</span>
-                        </div>
-                        <div className="stat-row">
-                            <label>With Alt Text:</label>
-                            <span>{imagesWithAlt}</span>
-                        </div>
-                        <div className="stat-row">
-                            <label>Without Alt Text:</label>
-                            <span className={imagesWithoutAlt > 0 ? 'warning-text' : ''}>
-                                {imagesWithoutAlt}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     )
 }

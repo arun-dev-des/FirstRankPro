@@ -46,7 +46,7 @@
 }
 
 .left-panel {
-    width: 240px;
+    width: 200px;
     background-color: var(--color-surface);
     border-right: 1px solid var(--color-border);
     flex-shrink: 0; /* Prevent panel from shrinking */
@@ -67,7 +67,7 @@
 .check-item {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     padding: 16px;
     border-bottom: 1px solid var(--color-border);
     border-left: 4px solid var(--color-surface);
@@ -97,6 +97,11 @@
 
 .check-label {
     flex: 1;
+}
+
+.check-item.selected[data-status="summary"] .status-icon svg {
+    color: var(--accent-color, #73D5FF);
+    fill: var(--accent-color, #73D5FF);
 }
 
 /* status badge */
@@ -473,6 +478,7 @@
     line-height: 16px;
     font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
+    text-align: left;
     cursor: pointer;
 }
 

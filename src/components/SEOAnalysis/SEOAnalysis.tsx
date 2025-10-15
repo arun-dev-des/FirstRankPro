@@ -121,7 +121,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                 return {
                     id: 'summary',
                     name: tab.name,
-                    status: 'pass' as const,
+                    status: 'summary' as const,
                     description: 'Overview of your page SEO',
                     evidence: '',
                     importance: 'low' as const,

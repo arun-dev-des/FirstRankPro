@@ -62,7 +62,7 @@ export interface ExtractedSEOData {
 export interface SEOCheck {
     id: string
     name: string
-    status: 'pass' | 'fail' | 'warning'
+    status: 'pass' | 'fail' | 'warning' | 'summary'
     description: string
     evidence: string
     importance: 'high' | 'medium' | 'low'

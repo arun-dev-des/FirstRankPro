@@ -1,5 +1,5 @@
 import { SEOCheck } from '../../types/seo'
-import { OptimizedIcon, UnoptimizedIcon, WarningIcon } from '../../assets/icons'
+import { OptimizedIcon, QuickSummaryIcon, UnoptimizedIcon, WarningIcon } from '../../assets/icons'
 import './styles.css'
 
 interface SEOChecklistProps {
@@ -17,6 +17,8 @@ export function SEOChecklist({ checks, selectedCheckId, onCheckSelect }: SEOChec
                 return <UnoptimizedIcon />;
             case 'warning':
                 return <WarningIcon />;
+            case 'summary':
+                return <QuickSummaryIcon />;
             default:
                 return null;
         }
@@ -25,12 +27,13 @@ export function SEOChecklist({ checks, selectedCheckId, onCheckSelect }: SEOChec
     return (
         <div className="checks-list">
             {checks.map(check => (
-                <div 
-                    key={check.id} 
-                    className={`check-item ${check.status} ${selectedCheckId === check.id ? 'selected' : ''}`}
-                    onClick={() => onCheckSelect(check.id)}
-                >
-                    <span className={`status-icon`}>{getStatusIcon(check.status)}</span>
+                    <div 
+                        key={check.id} 
+                        className={`check-item ${check.status} ${selectedCheckId === check.id ? 'selected' : ''}`}
+                        data-status={check.status}
+                        onClick={() => onCheckSelect(check.id)}
+                    >
+                    <span className="status-icon" data-status={check.status}>{getStatusIcon(check.status)}</span>
                     <span className="check-label">{check.name}</span>
                 </div>
             ))}

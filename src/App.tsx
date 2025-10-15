@@ -14,8 +14,8 @@ import { SearchIcon } from './assets/icons/index.tsx'
 // Configure Framer plugin UI
 framer.showUI({
     position: "top right",
-    width: 800,
-    height: 800,
+    width: 660,
+    height: 900,
     resizable: true,
 })
 
