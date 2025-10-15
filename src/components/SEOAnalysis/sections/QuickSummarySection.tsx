@@ -337,9 +337,103 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
             
             <hr />
 
+            {/* Keyword Placement */}
+            {placementCheck && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('keyword-placement')}
+                >
+                    <div className="field-label-group">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                {getStatusIcon(placementCheck.status === 'pass' ? 'pass' : 'warning')}
+                            </span>
+                            <label className={`field-label-summary ${placementCheck.status === 'pass' ? 'pass' : 'warning'}`}>
+                                Main Keyword Placement
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Parse and show placement evidence */}
+                    {(() => {
+                        try {
+                            // Try to parse as JSON
+                            const evidence = JSON.parse(placementCheck.evidence || '{}')
+                            
+                            // If keyword exists in evidence, show detailed placement
+                            if (evidence?.keyword) {
+                                return (
+                                    <div className="keyword-placement-details">
+                                        <div className="placement-status-item">
+                                            <span className="status-icon-small">
+                                                {getStatusIcon('pass')}
+                                            </span>
+                                            <span className="placement-text pass">
+                                                Main Keyword is Set
+                                            </span>
+                                        </div>
+
+                                        <div className='placement-status-items'>
+                                            <div className="placement-status-item">
+                                                <span className="status-icon-small">
+                                                    {getStatusIcon(evidence?.title?.status || 'warning')}
+                                                </span>
+                                                <span className={`placement-text ${evidence?.title?.status || 'warning'}`}>
+                                                    {evidence?.title?.description || 'Title check not available'}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="placement-status-item">
+                                                <span className="status-icon-small">
+                                                    {getStatusIcon(evidence?.meta?.status || 'warning')}
+                                                </span>
+                                                <span className={`placement-text ${evidence?.meta?.status || 'warning'}`}>
+                                                    {evidence?.meta?.description || 'Meta check not available'}
+                                                </span>
+                                            </div>
+
+                                            <div className="placement-status-item">
+                                                <span className="status-icon-small">
+                                                    {getStatusIcon(evidence?.h1?.status || 'warning')}
+                                                </span>
+                                                <span className={`placement-text ${evidence?.h1?.status || 'warning'}`}>
+                                                    {evidence?.h1?.description || 'H1 check not available'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                        } catch (error) {
+                            // If parsing fails, it means no keyword is set
+                            console.log('No keyword set, showing warning')
+                        }
+                        
+                        // Show warning state when no keyword
+                        return (
+                            <div className="keyword-placement-details">
+                                <div className="placement-status-item">
+                                    <span className="status-icon-small">
+                                        {getStatusIcon('warning')}
+                                    </span>
+                                    <span className="placement-text warning">
+                                        {placementCheck.description}
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    })()}
+                </button>
+            )}
+
+            <hr />
+
             {/* Heading Hierarchy */}
             {hierarchyCheck && (
-                <>
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('hierarchy-check')}
+                >
                     <div className="field-label-group">
                         <div className="field-label-group-summary">
                             <span className="status-icon-small">
@@ -356,21 +450,10 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
                             issues={parseHeadingIssues(hierarchyCheck.evidence)}
                         />
                     </div>
-                </>
+                </button>
             )}
 
             <hr />
-
-            {/* Keyword Placement */}
-            {placementCheck && (
-                <div className="summary-check-item">
-                    <StatusBadge status={placementCheck.status} description={placementCheck.name} />
-                    <div className="check-detail">
-                        <strong>{placementCheck.name}</strong>
-                        <p>{placementCheck.description}</p>
-                    </div>
-                </div>
-            )}
 
             {/* Content Length */}
             {contentCheck && (

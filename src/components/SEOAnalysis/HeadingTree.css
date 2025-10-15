@@ -87,6 +87,7 @@
 .heading-text {
     color: var(--color-text-primary);
     font-size: 14px;
+    text-align: left;
 }
 
 .heading-meta {

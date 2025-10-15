@@ -553,6 +553,45 @@ hr {
     margin: 16px 0;
 }
 
+/* Keyword Placement Styles for Quick Summary */
+.keyword-placement-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background-color: var(--color-surface);
+    border-radius: 4px;
+}
+
+.placement-status-items {
+    display: flex;
+    flex-direction: column;
+    margin-left: 24px;
+}
+
+.placement-status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.placement-text {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-align: left;
+    flex: 1;
+}
+
+
+.placement-text.warning {
+    color: #FFF6E0;
+}
+
+.placement-text.fail {
+    color: #FFD9D9;
+}
+
 /* others */
 
 .arrow {

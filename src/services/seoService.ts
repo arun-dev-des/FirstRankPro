@@ -204,10 +204,6 @@ export class SEOService {
 
     // ---------- Granular keyword checks (title/meta/H1/stuffing) ----------
 
-
-
-
-
     private static extractSEOData(html: string, url: string): ExtractedSEOData {
         // Parse HTML string
         const parser = new DOMParser()
@@ -297,7 +293,7 @@ export class SEOService {
                 id: 'keyword-placement',
                 name: 'Keyword Placement',
                 status: 'warning',
-                description: 'Main Keyword is not set. Set Main Keyword first to see keyword placement analysis',
+                description: 'Main Keyword is not set. Set it first to see the analysis',
                 evidence: 'No main keyword found to check for placement',
                 importance: 'high',
                 category: 'content',
