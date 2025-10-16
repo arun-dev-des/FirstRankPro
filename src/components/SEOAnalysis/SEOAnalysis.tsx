@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Page, PublishInfo } from '../../types/page'
 import { useSEOAnalysis } from '../../hooks/useSEOAnalysis'
-import { LoadingSpinner } from '../common/LoadingSpinner'
+import { ChecklistSkeleton, DetailPanelSkeleton } from '../common/SkeletonLoader'
 import { ErrorMessage } from '../common/ErrorMessage'
 import { SEOChecklist } from './SEOChecklist'
 import { OptimizationDetail } from './OptimizationDetail'
@@ -155,7 +155,14 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
             </div>
 
             {loading ? (
-                <LoadingSpinner />
+                <div className="analysis-content">
+                    <div className="left-panel">
+                        <ChecklistSkeleton />
+                    </div>
+                    <div className="right-panel">
+                        <DetailPanelSkeleton />
+                    </div>
+                </div>
             ) : error ? (
                 <ErrorMessage message={error} />
             ) : !analysis ? (

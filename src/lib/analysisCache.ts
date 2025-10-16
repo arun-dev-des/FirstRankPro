@@ -49,16 +49,60 @@ export function setCachedState(state: AnalysisState): void {
     analyzedStateCache.set(state.url, state)
 }
 
-// --- Full analysis result cache (by URL) ---
-// We purposefully type as any here to avoid importing types in this minimal helper
-const analysisResultCache = new Map<string, any>()
-
-export function getCachedAnalysis(url: string | null | undefined): any | null {
-    if (!url) return null
-    return analysisResultCache.get(url) ?? null
+// --- Full analysis result cache (by URL + keyword + deployment time with TTL) ---
+interface CachedAnalysis {
+    result: any
+    timestamp: number
 }
 
-export function setCachedAnalysis(url: string | null | undefined, analysis: any): void {
+const ANALYSIS_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const analysisResultCache = new Map<string, CachedAnalysis>()
+
+// Generate composite cache key from URL, keyword, and deployment times
+function getCacheKey(url: string, keyword: string = '', times: DeploymentTimes = undefined): string {
+    const staging = times?.staging || 0
+    const production = times?.production || 0
+    return `${url}|${keyword}|${staging}|${production}`
+}
+
+export function getCachedAnalysis(url: string | null | undefined, keyword: string = '', times: DeploymentTimes = undefined): any | null {
+    if (!url) return null
+    
+    const cacheKey = getCacheKey(url, keyword, times)
+    const cached = analysisResultCache.get(cacheKey)
+    if (!cached) return null
+    
+    // Check if cache is still valid
+    const age = Date.now() - cached.timestamp
+    if (age > ANALYSIS_CACHE_TTL) {
+        analysisResultCache.delete(cacheKey)
+        console.log(`⏰ Analysis cache EXPIRED for ${url} (age: ${Math.round(age/1000)}s)`)
+        return null
+    }
+    
+    console.log(`✅ Analysis cache HIT for ${url} (age: ${Math.round(age/1000)}s)`)
+    return cached.result
+}
+
+export function setCachedAnalysis(url: string | null | undefined, keyword: string, times: DeploymentTimes, analysis: any): void {
     if (!url || !analysis) return
-    analysisResultCache.set(url, analysis)
+    
+    const cacheKey = getCacheKey(url, keyword, times)
+    analysisResultCache.set(cacheKey, {
+        result: analysis,
+        timestamp: Date.now()
+    })
+    
+    // Cleanup old entries (prevent memory leaks)
+    if (analysisResultCache.size > 30) {
+        const entries = Array.from(analysisResultCache.entries())
+        entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+        analysisResultCache.delete(entries[0][0])
+    }
+}
+
+// Add function to clear analysis cache
+export function clearAnalysisCache(): void {
+    analysisResultCache.clear()
+    console.log('🗑️ Analysis cache cleared')
 } 

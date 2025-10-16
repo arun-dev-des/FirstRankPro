@@ -38,3 +38,75 @@
 .error-icon {
     font-size: 16px;
 }
+
+/* Skeleton Loading Styles */
+.skeleton {
+    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.check-item.skeleton {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.skeleton-circle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 60%;
+    flex: 1;
+}
+
+.detail-panel-skeleton {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 40%;
+    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-line {
+    height: 12px;
+    width: 100%;
+    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-line.short {
+    width: 70%;
+}
+
+.skeleton-line.medium {
+    width: 85%;
+}
+
+.skeleton-box {
+    height: 80px;
+    width: 100%;
+    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+}

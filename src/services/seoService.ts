@@ -18,13 +18,50 @@ import {
 export class SEOService {
     private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
     private static readonly TIMEOUT = 10000 // 10 seconds
+    private static readonly HTML_CACHE_TTL = 30 * 1000 // 30 seconds only
+    private static htmlCache = new Map<string, { html: string; timestamp: number }>()
+
+    private static getCachedHTML(url: string): string | null {
+        const cached = this.htmlCache.get(url)
+        if (!cached) return null
+        
+        const age = Date.now() - cached.timestamp
+        if (age > this.HTML_CACHE_TTL) {
+            this.htmlCache.delete(url)
+            return null
+        }
+        
+        console.log(`✅ HTML cache HIT for ${url} (age: ${Math.round(age/1000)}s)`)
+        return cached.html
+    }
+
+    private static setCachedHTML(url: string, html: string): void {
+        this.htmlCache.set(url, { html, timestamp: Date.now() })
+        
+        // Cleanup old entries (prevent memory leaks)
+        if (this.htmlCache.size > 20) {
+            const entries = Array.from(this.htmlCache.entries())
+            entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
+            this.htmlCache.delete(entries[0][0])
+        }
+    }
+
+    // Add method to clear cache when deployment time changes
+    static clearHTMLCache(): void {
+        this.htmlCache.clear()
+        console.log('🗑️ HTML cache cleared due to deployment update')
+    }
 
     static async fetchPageHTML(url: string): Promise<string> {
+        // Check cache first (30-second window)
+        const cached = this.getCachedHTML(url)
+        if (cached) return cached
+        
         console.log(`🔍 Fetching HTML for: ${url}`)
 
         try {
-            // Add cache-busting timestamp to prevent cached responses
-            const cacheBuster = Date.now()
+            // Add cache-busting timestamp (changed from Date.now())
+            const cacheBuster = Math.floor(Date.now() / 60000) // 60-second cache window
             const proxyUrl = `${this.PROXY_URL}?url=${encodeURIComponent(url)}&t=${cacheBuster}`
             
             const controller = new AbortController()
@@ -56,6 +93,9 @@ export class SEOService {
                     throw new Error('Invalid HTML received from proxy')
                 }
 
+                // Cache the result
+                this.setCachedHTML(url, html)
+                
                 console.log('✅ Successfully fetched HTML via Vercel proxy')
                 return html
 

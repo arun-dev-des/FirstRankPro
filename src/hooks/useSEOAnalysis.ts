@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { SEOAnalysis } from '../types/seo'
 import { Page } from '../types/page'
 import { SEOService } from '../services/seoService'
-import { computeAnalysisDecision, type AnalysisState, getCachedState, setCachedState, getCachedAnalysis, setCachedAnalysis } from '../lib/analysisCache'
+import { computeAnalysisDecision, type AnalysisState, getCachedState, setCachedState, getCachedAnalysis, setCachedAnalysis, sameTimes, clearAnalysisCache } from '../lib/analysisCache'
 
 export function useSEOAnalysis(
     page: Page | null, 
@@ -18,19 +18,18 @@ export function useSEOAnalysis(
     const analysisInProgress = useRef(false)
 
     // Initialize from caches at mount / URL change
-    // Cache Restoration
+    // Cache Restoration - ONLY restore state, let decision logic handle analysis display
     useEffect(() => {
         // If no page, return
         if (!page?.url) return
 
         // If analysis is already in progress, skip cache restore
-        // Don't restore cache if analysis is already running
         if (analysisInProgress.current) {
             console.log('[CACHE TEST] 🔄 Skipping cache restore - analysis in progress')
             return
         }
 
-        // Restore last analyzed state from cache
+        // Restore last analyzed state from cache (for decision logic)
         const cachedState = getCachedState(page.url)
         if (cachedState) {
             console.log('[CACHE TEST] 📦 Found cached state:', {
@@ -40,12 +39,8 @@ export function useSEOAnalysis(
             lastAnalyzed.current = cachedState
         }
 
-        // Optimistically show last analysis while we decide
-        const cachedAnalysis = getCachedAnalysis(page.url)
-        if (cachedAnalysis) {
-            console.log('[CACHE TEST] ⚡️ Restoring cached analysis')
-            setAnalysis(cachedAnalysis)
-        }
+        // Don't set analysis here - let the main decision logic handle it
+        // This fixes the race condition where restoration happens before decision logic
     }, [page?.url])
 
     const analyzePage = useCallback(async (url: string, keyword: string) => {
@@ -53,6 +48,14 @@ export function useSEOAnalysis(
         if (analysisInProgress.current) {
             console.log('[CACHE TEST] ⚠️ Analysis already in progress, skipping')
             return
+        }
+
+        // Clear both HTML and analysis caches if deployment time changed
+        const cachedState = getCachedState(url)
+        if (cachedState && !sameTimes(cachedState.times, deploymentTimes)) {
+            SEOService.clearHTMLCache()
+            clearAnalysisCache()
+            console.log('[CACHE TEST] 🔄 Deployment time changed, all caches cleared')
         }
 
         // Set analysis in progress
@@ -69,9 +72,9 @@ export function useSEOAnalysis(
         try {
             const result = await SEOService.analyzePage(url, keyword || '', deploymentTimes)
             
-            // Set and cache the new analysis
+            // Set and cache the new analysis with composite key (url + keyword + times)
             setAnalysis(result)
-            setCachedAnalysis(url, result)
+            setCachedAnalysis(url, keyword, deploymentTimes, result)
             
             // Update state cache with new times
             const state: AnalysisState = { url, keyword, times: deploymentTimes }
@@ -116,14 +119,23 @@ export function useSEOAnalysis(
         })
 
         if (!decision.needsAnalysis) {
+            // Even if decision says no analysis needed, check if cache is still valid
+            const cachedAnalysis = getCachedAnalysis(next.url, next.keyword, next.times)
+            if (!cachedAnalysis) {
+                console.log('[CACHE TEST] ⏰ Cache expired, forcing re-analysis')
+                analyzePage(next.url, next.keyword)
+                return
+            }
+            // Cache hit - restore the cached analysis
             console.log('[CACHE TEST] ✨ Using cached analysis')
+            setAnalysis(cachedAnalysis)
             return
         }
 
         const reason = decision.reasons[0]
         console.log(`[CACHE TEST] 🔄 Running analysis due to: ${reason}`)
         analyzePage(next.url, next.keyword)
-    }, [page?.url, deploymentTimes, analyzePage]) // ❌ Removed focusKeyword from dependencies
+    }, [page?.url, deploymentTimes, analyzePage, focusKeyword]) // ✅ Added focusKeyword to dependencies
 
     // Manual trigger for keyword analysis
     const triggerKeywordAnalysis = useCallback(async (keyword: string) => {
