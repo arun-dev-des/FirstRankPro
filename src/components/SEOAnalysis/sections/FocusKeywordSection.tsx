@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getProjectData, setProjectData } from '../../../services/framerStorage'
+import { getNodeData, setNodeData } from '../../../services/framerStorage'
 import { HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
@@ -8,7 +8,7 @@ import '../styles.css'
 interface FocusKeywordSectionProps {
     status: string
     description: string
-    pageUrl: string
+    pageId: string
     focusKeyword: string
     onFocusKeywordChange: (keyword: string) => void
     onKeywordLoad: (keyword: string) => void
@@ -18,7 +18,7 @@ interface FocusKeywordSectionProps {
 export function FocusKeywordSection({
     status,
     description,
-    pageUrl,
+    pageId,
     focusKeyword,
     onKeywordLoad,
     triggerKeywordAnalysis
@@ -41,8 +41,7 @@ export function FocusKeywordSection({
 
         const load = async () => {
             try {
-                const key = `seo-keyword:${pageUrl}`
-                const saved = await getProjectData(key)
+                const saved = await getNodeData(pageId, 'frame-rank')
                 if (saved) {
                     const parsed = JSON.parse(saved)
                     if (parsed?.mainKeyword) {
@@ -61,7 +60,7 @@ export function FocusKeywordSection({
             }
         }
         load()
-    }, [pageUrl, focusKeyword, onKeywordLoad, triggerKeywordAnalysis])
+    }, [pageId, focusKeyword, onKeywordLoad, triggerKeywordAnalysis])
 
     const handleSaveKeyword = async () => {
         const value = editedKeyword.trim()
@@ -72,12 +71,11 @@ export function FocusKeywordSection({
                 mainKeyword: value, 
                 lastUpdated: new Date().toISOString() 
             })
-            const key = `seo-keyword:${pageUrl}`
-            await setProjectData(key, payload)
+            await setNodeData(pageId, 'frame-rank', payload)
             // Use onKeywordLoad to preserve current tab selection
             onKeywordLoad(value)
             if (triggerKeywordAnalysis) await triggerKeywordAnalysis(value)
-            console.log('[FocusKeywordSection] Keyword saved and analysis triggered')
+            console.log('[FocusKeywordSection] Keyword saved to page-level storage')
         } catch (err) {
             console.error('[FocusKeywordSection] Error saving keyword:', err)
         } finally {

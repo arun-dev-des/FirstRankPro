@@ -8,6 +8,7 @@ import { H1Section } from './sections/H1Section'
 import { HeadingHierarchySection } from './sections/HeadingHierarchySection'
 import { KeywordPlacementSection } from './sections/KeywordPlacementSection'
 import { ContentSection } from './sections/ContentSection'
+import { ImageAltSection } from './sections/ImageAltSection'
 
 interface OptimizationDetailProps {
     check: SEOCheck
@@ -16,6 +17,7 @@ interface OptimizationDetailProps {
     onKeywordLoad: (keyword: string) => void
     extractedData: ExtractedSEOData
     triggerKeywordAnalysis?: (keyword: string) => Promise<void>
+    pageId: string
 }
 
 export function OptimizationDetail({
@@ -24,7 +26,8 @@ export function OptimizationDetail({
     onFocusKeywordChange,
     onKeywordLoad,
     extractedData,
-    triggerKeywordAnalysis
+    triggerKeywordAnalysis,
+    pageId
 }: OptimizationDetailProps) {
     function getPageName(url: string): string {
         const { pathname } = new URL(url)
@@ -59,7 +62,7 @@ export function OptimizationDetail({
                 <FocusKeywordSection
                     status={check.status}
                     description={check.description}
-                    pageUrl={extractedData.url}
+                    pageId={pageId}
                     focusKeyword={focusKeyword}
                     onFocusKeywordChange={onFocusKeywordChange}
                     onKeywordLoad={onKeywordLoad}
@@ -113,6 +116,16 @@ export function OptimizationDetail({
             )
         }
 
+        if (check.id === 'image-alts') {
+            return (
+                <ImageAltSection
+                    status={check.status}
+                    description={check.description}
+                    evidence={check.evidence}
+                    images={extractedData.images}
+                />
+            )
+        }
         
         if (check.id === 'content-length') {
             return (

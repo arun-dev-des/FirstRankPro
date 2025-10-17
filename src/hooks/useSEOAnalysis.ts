@@ -66,11 +66,12 @@ export function useSEOAnalysis(
         console.log('[CACHE TEST] 🔄 Starting fresh analysis:', {
             url,
             keyword,
-            deploymentTimes
+            deploymentTimes,
+            pageId: page?.id
         })
 
         try {
-            const result = await SEOService.analyzePage(url, keyword || '', deploymentTimes)
+            const result = await SEOService.analyzePage(url, keyword || '', deploymentTimes, page?.id)
             
             // Set and cache the new analysis with composite key (url + keyword + times)
             setAnalysis(result)
@@ -90,7 +91,7 @@ export function useSEOAnalysis(
             analysisInProgress.current = false
             setLoading(false)
         }
-    }, [deploymentTimes])
+    }, [deploymentTimes, page?.id])
 
     useEffect(() => {
         const next: AnalysisState = {

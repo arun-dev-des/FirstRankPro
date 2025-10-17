@@ -35,6 +35,7 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
     const h1Check = getCheck('h1-check')
     const hierarchyCheck = getCheck('hierarchy-check')
     const placementCheck = getCheck('keyword-placement')
+    const imageCheck = getCheck('image-alts')
     const contentCheck = getCheck('content-length')
 
     const h1s = extractedData.headings.filter(h => h.level === 'h1' && !h.duplicateOf);
@@ -439,6 +440,52 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
                             issues={parseHeadingIssues(hierarchyCheck.evidence)}
                         />
                     </div>
+                </button>
+            )}
+
+            <hr />
+
+            {/* Image Alts */}
+            {imageCheck && (
+                <button 
+                    className="clickable"
+                    onClick={() => onTabSelect?.('image-alts')}
+                >
+                    <div className="field-label-group">
+                        <div className="field-label-group-summary">
+                            <span className="status-icon-small">
+                                {getStatusIcon(imageCheck.status)}
+                            </span>
+                            <label className={`field-label-summary ${imageCheck.status}`}>
+                                Image Alts
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Parse and show image statistics */}
+                    {(() => {
+                        try {
+                            const stats = JSON.parse(imageCheck.evidence || '{}')
+                            return (
+                                <div className="heading-counter-container-summary">
+                                    <div className="heading-count-container">
+                                        <span className="heading-level-badge-container"># IMAGES</span>
+                                        <span className="heading-count-number-container">{stats.total || 0}</span>
+                                    </div>
+                                    <div className={`heading-count-container ${stats.withAlt > 0 ? 'pass' : ''}`}>
+                                        <span className="heading-level-badge-container">WITH ALT</span>
+                                        <span className="heading-count-number-container">{stats.withAlt || 0}</span>
+                                    </div>
+                                    <div className={`heading-count-container ${stats.withoutAlt > 0 ? 'fail' : ''}`}>
+                                        <span className="heading-level-badge-container">WITHOUT ALT</span>
+                                        <span className="heading-count-number-container">{stats.withoutAlt || 0}</span>
+                                    </div>
+                                </div>
+                            )
+                        } catch {
+                            return <div className="field-input-group-summary">{imageCheck.description}</div>
+                        }
+                    })()}
                 </button>
             )}
 

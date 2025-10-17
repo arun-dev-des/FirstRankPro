@@ -242,6 +242,76 @@ export function validateContentLength(contentLength: number): SEOCheck[] {
 }
 
 /**
+ * Image alt text validation and checks
+ */
+export function validateImageAlts(images: any[]): SEOCheck[] {
+    const checks: SEOCheck[] = []
+    
+    const totalImages = images.length
+    const imagesWithAlt = images.filter(img => img.alt && img.alt.trim().length > 0).length
+    const imagesWithoutAlt = totalImages - imagesWithAlt
+    
+    // Calculate percentage
+    const percentageWithAlt = totalImages > 0 ? (imagesWithAlt / totalImages) * 100 : 100
+    
+    // Create evidence object
+    const evidence = JSON.stringify({
+        total: totalImages,
+        withAlt: imagesWithAlt,
+        withoutAlt: imagesWithoutAlt,
+        percentage: Math.round(percentageWithAlt)
+    })
+    
+    if (totalImages === 0) {
+        checks.push({
+            id: 'image-alts',
+            name: 'Image Alts',
+            status: 'pass',
+            description: 'No images found on this page',
+            evidence,
+            importance: 'medium',
+            category: 'images',
+            suggestions: []
+        })
+    } else if (percentageWithAlt > 80) {
+        checks.push({
+            id: 'image-alts',
+            name: 'Image Alts',
+            status: 'pass',
+            description: `${imagesWithAlt} of ${totalImages} images have alt text (${Math.round(percentageWithAlt)}%)`,
+            evidence,
+            importance: 'medium',
+            category: 'images',
+            suggestions: []
+        })
+    } else if (percentageWithAlt >= 50) {
+        checks.push({
+            id: 'image-alts',
+            name: 'Image Alts',
+            status: 'warning',
+            description: `Only ${imagesWithAlt} of ${totalImages} images have alt text (${Math.round(percentageWithAlt)}%)`,
+            evidence,
+            importance: 'medium',
+            category: 'images',
+            suggestions: ['Add alt text to images', 'Describe what the image shows', 'Keep alt text concise and descriptive']
+        })
+    } else {
+        checks.push({
+            id: 'image-alts',
+            name: 'Image Alts',
+            status: 'fail',
+            description: `Only ${imagesWithAlt} of ${totalImages} images have alt text (${Math.round(percentageWithAlt)}%)`,
+            evidence,
+            importance: 'medium',
+            category: 'images',
+            suggestions: ['Add alt text to all images', 'Alt text is important for accessibility', 'Alt text helps search engines understand images']
+        })
+    }
+    
+    return checks
+}
+
+/**
  * Heading hierarchy issue detection functions
  */
 

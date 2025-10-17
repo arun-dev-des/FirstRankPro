@@ -9,7 +9,7 @@ import { QuickSummarySection } from './sections/QuickSummarySection'
 // import { SEOScore } from './SEOScore.tsx'
 import './styles.css'
 import { BackIcon } from '../../assets/icons'
-import { getProjectData } from '../../services/framerStorage'
+import { getNodeData, cleanupOldKeywordEntries } from '../../services/framerStorage'
 
 interface SEOAnalysisProps {
     page: Page
@@ -32,16 +32,17 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         rootDeploymentTimes?.production
     ])
     
-    // Preload saved keyword BEFORE analysis starts
+    // Preload saved keyword from page-level storage BEFORE analysis starts
     useEffect(() => {
         const load = async () => {
-            if (!page?.url) return
+            if (!page?.id) return
             try {
-                const saved = await getProjectData(`seo-keyword:${page.url}`)
+                // Load from page-level storage with 'frame-rank' key
+                const saved = await getNodeData(page.id, 'frame-rank')
                 if (saved) {
                     const parsed = JSON.parse(saved)
                     if (parsed?.mainKeyword) {
-                        console.log('[SEOAnalysis] Pre-loading saved keyword:', parsed.mainKeyword)
+                        console.log('[SEOAnalysis] Pre-loading saved keyword from page storage:', parsed.mainKeyword)
                         setFocusKeyword(parsed.mainKeyword)
                     }
                 }
@@ -56,7 +57,12 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         return () => {
             setKeywordLoaded(false)
         }
-    }, [page?.url])
+    }, [page?.id])
+    
+    // Cleanup old project-level keyword entries (one-time migration)
+    useEffect(() => {
+        cleanupOldKeywordEntries()
+    }, [])
     
     // Only start analysis after keyword has been checked/loaded
     const { analysis, loading, error, triggerKeywordAnalysis } = useSEOAnalysis(
@@ -109,6 +115,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         { id: 'h1-check', name: 'H1 Heading' },
         { id: 'hierarchy-check', name: 'H1-H6 Heading Hierarchy' },
         { id: 'keyword-placement', name: 'Main Keyword Placement' },
+        { id: 'image-alts', name: 'Image Alts' },
         { id: 'content-length', name: 'Content Length' },
     ]
 
@@ -195,6 +202,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                                 onKeywordLoad={handleKeywordLoad}
                                 extractedData={analysis.extractedData}
                                 triggerKeywordAnalysis={triggerKeywordAnalysis}
+                                pageId={page.id}
                             />
                         )}
                     </div>

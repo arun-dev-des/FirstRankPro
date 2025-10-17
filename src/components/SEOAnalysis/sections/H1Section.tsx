@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { HelpIcon, GoodVsBadIcon, UnoptimizedIcon, MagicWandIcon } from '../../../assets/icons'
+import { HelpIcon, GoodVsBadIcon, MagicWandIcon } from '../../../assets/icons'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { HeadingCounts } from '../HeadingCounts'

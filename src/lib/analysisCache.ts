@@ -18,7 +18,7 @@ export function computeAnalysisDecision(prev: AnalysisState | null, next: Analys
         reasons.push('initial')
         return { needsAnalysis: true, reasons }
     }
-
+    
     if (prev.url !== next.url) reasons.push('url')
     if (prev.keyword !== next.keyword) reasons.push('keyword')
 

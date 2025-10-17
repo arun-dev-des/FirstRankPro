@@ -24,10 +24,10 @@ export function App() {
     const [selectedPage, setSelectedPage] = useState<Page | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     
-    // const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
+    const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
 
     // Temporarily disabled polling for CSS debugging
-    const { pages, publishInfo, loading, error } = usePages(false)
+    // const { pages, publishInfo, loading, error } = usePages(false)
 
     const handlePageSelect = (page: Page) => {
         setSelectedPage(page)

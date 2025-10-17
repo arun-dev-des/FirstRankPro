@@ -12,13 +12,15 @@ import {
     validateMetaDescription,
     validateH1,
     validateHeadingHierarchy,
-    validateContentLength
+    validateContentLength,
+    validateImageAlts
 } from './seo/contentValidator'
+import { FramerImageService } from './framerImageService'
 
 export class SEOService {
     private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
     private static readonly TIMEOUT = 10000 // 10 seconds
-    private static readonly HTML_CACHE_TTL = 30 * 1000 // 30 seconds only
+    private static readonly HTML_CACHE_TTL = 10 * 60 * 1000 // 10 minutes
     private static htmlCache = new Map<string, { html: string; timestamp: number }>()
 
     private static getCachedHTML(url: string): string | null {
@@ -36,14 +38,15 @@ export class SEOService {
     }
 
     private static setCachedHTML(url: string, html: string): void {
-        this.htmlCache.set(url, { html, timestamp: Date.now() })
-        
         // Cleanup old entries (prevent memory leaks)
-        if (this.htmlCache.size > 20) {
+        if (this.htmlCache.size >= 20) {
             const entries = Array.from(this.htmlCache.entries())
             entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
-            this.htmlCache.delete(entries[0][0])
+            this.htmlCache.delete(entries[0][0])  // Remove oldest
         }
+        
+        // Now add the new entry
+        this.htmlCache.set(url, { html, timestamp: Date.now() })
     }
 
     // Add method to clear cache when deployment time changes
@@ -318,6 +321,9 @@ export class SEOService {
         // Keyword placement checks
         checks.push(...this.performKeywordPlacementChecks(data, keyword))
         
+        // Image alt text checks
+        checks.push(...validateImageAlts(data.images || []))
+        
         // Content quality checks
         checks.push(...validateContentLength(data.wordCount || 0))
         
@@ -448,7 +454,8 @@ export class SEOService {
     static async analyzePage(
         url: string, 
         focusKeyword: string = '',
-        deploymentTimes?: { staging: number | null; production: number | null }
+        deploymentTimes?: { staging: number | null; production: number | null },
+        pageId?: string
     ): Promise<SEOAnalysis> {
         try {
             console.log('🔍 Starting SEO analysis with deployment times:', deploymentTimes)
@@ -462,6 +469,20 @@ export class SEOService {
             
             // Analyze content
             const extractedData = this.extractSEOData(html, url)
+            
+            // Replace images with Framer API data if pageId is available
+            if (pageId) {
+                try {
+                    const framerImages = await FramerImageService.getPageImages(pageId)
+                    if (framerImages.length > 0) {
+                        console.log('✅ Using Framer API images instead of HTML images')
+                        extractedData.images = framerImages
+                    }
+                } catch (error) {
+                    console.log('⚠️ Failed to fetch Framer images, using HTML fallback')
+                }
+            }
+            
             const checks = this.performChecks(extractedData, safeKeyword, url)
             const score = this.calculateScore(checks)
             const keywordStats = this.analyzeKeywordUsage(extractedData, safeKeyword)

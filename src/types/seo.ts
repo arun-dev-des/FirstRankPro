@@ -26,6 +26,7 @@ export interface SEOImage {
     width?: number
     height?: number
     loading?: string
+    nodeId?: string  // Framer node ID for updating alt text
 }
 
 export interface SEOLink {
