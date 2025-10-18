@@ -104,19 +104,22 @@ export function useAIGeneration(
                 },
             })
 
-            const newSuggestions = {
-                ...state.suggestions,
-                [type]: response.items,
-            }
-
-            setState(prev => ({
-                ...prev,
-                generating: { ...prev.generating, [type]: false },
-                suggestions: newSuggestions,
-            }))
-
-            // Persist to unified storage
-            await persist(newSuggestions)
+            // Use functional update to avoid stale state
+            setState(prev => {
+                const newSuggestions = {
+                    ...prev.suggestions,
+                    [type]: response.items,
+                }
+                
+                // Persist to unified storage
+                persist(newSuggestions)
+                
+                return {
+                    ...prev,
+                    generating: { ...prev.generating, [type]: false },
+                    suggestions: newSuggestions,
+                }
+            })
 
             console.log(`[useAIGeneration] Successfully generated ${response.items.length} ${type} suggestions`)
             return response.items
@@ -132,7 +135,7 @@ export function useAIGeneration(
 
             throw error
         }
-    }, [url, focusKeyword, extractedData, state.suggestions, persist])
+    }, [url, focusKeyword, extractedData, persist])
 
     const clearError = useCallback(() => {
         setState(prev => ({ ...prev, error: null }))
