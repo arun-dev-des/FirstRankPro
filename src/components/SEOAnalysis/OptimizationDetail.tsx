@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SEOCheck, ExtractedSEOData } from '../../types/seo'
+import type { UseAIGenerationReturn } from '../../hooks/useAIGeneration'
 import './styles.css'
 import { FocusKeywordSection } from './sections/FocusKeywordSection'
 import { TitleSection } from './sections/TitleSection'
@@ -18,6 +19,7 @@ interface OptimizationDetailProps {
     extractedData: ExtractedSEOData
     triggerKeywordAnalysis?: (keyword: string) => Promise<void>
     pageId: string
+    ai?: UseAIGenerationReturn
 }
 
 export function OptimizationDetail({
@@ -27,7 +29,8 @@ export function OptimizationDetail({
     onKeywordLoad,
     extractedData,
     triggerKeywordAnalysis,
-    pageId
+    pageId,
+    ai
 }: OptimizationDetailProps) {
     function getPageName(url: string): string {
         const { pathname } = new URL(url)
@@ -67,6 +70,7 @@ export function OptimizationDetail({
                     onFocusKeywordChange={onFocusKeywordChange}
                     onKeywordLoad={onKeywordLoad}
                     triggerKeywordAnalysis={triggerKeywordAnalysis}
+                    ai={ai}
                 />
             )
         }
@@ -79,6 +83,7 @@ export function OptimizationDetail({
                     pageName={pageName}
                     title={editedTitle}
                     metaDescription={editedMeta || extractedData.metaDescription}
+                    ai={ai}
                 />
             )
         }
@@ -91,6 +96,7 @@ export function OptimizationDetail({
                     pageName={pageName}
                     title={editedTitle}
                     metaDescription={editedMeta || extractedData.metaDescription}
+                    ai={ai}
                 />
             )
         }
@@ -102,6 +108,7 @@ export function OptimizationDetail({
                     description={check.description}
                     headings={extractedData.headings}
                     h1Text={editedH1}
+                    ai={ai}
                 />
             )
         }

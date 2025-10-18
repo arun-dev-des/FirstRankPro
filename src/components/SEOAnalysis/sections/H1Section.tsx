@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { HelpIcon, GoodVsBadIcon, MagicWandIcon } from '../../../assets/icons'
+import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { HeadingCounts } from '../HeadingCounts'
@@ -11,9 +12,10 @@ interface H1SectionProps {
     description: string
     headings: SEOHeading[]
     h1Text: string
+    ai?: UseAIGenerationReturn
 }
 
-export function H1Section({ status, description, headings, h1Text }: H1SectionProps) {
+export function H1Section({ status, description, headings, h1Text, ai }: H1SectionProps) {
     const visibleH1s = useMemo(() => headings.filter(h => h.level === 'h1' && h.visible && !h.duplicateOf), [headings])
 
     return (
@@ -66,11 +68,63 @@ export function H1Section({ status, description, headings, h1Text }: H1SectionPr
             )}
 
             <div className="ai-section">
-                <button className="ai-generate-button">
+                <button 
+                    className="ai-generate-button"
+                    onClick={async () => {
+                        if (ai) {
+                            try {
+                                await ai.generate('h1')
+                            } catch (error) {
+                                console.error('Error generating H1:', error)
+                            }
+                        }
+                    }}
+                    disabled={!ai || ai.generating.h1}
+                >
                     <MagicWandIcon />
-                    Generate new H1 Heading
+                    {ai?.generating.h1 ? 'Generating...' : 'Generate new H1 Heading'}
                 </button>
             </div>
+
+            {ai?.suggestions.h1 && ai.suggestions.h1.length > 0 && (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {ai.suggestions.h1.map((suggestion, index) => (
+                        <div key={index} className="ai-suggestion-card">
+                            <div className="ai-suggestion-text">{suggestion}</div>
+                            <div className="ai-suggestion-char-count">
+                                {suggestion.length > 200 ? (
+                                    <span className="warning">{suggestion.length}/200 (too long)</span>
+                                ) : suggestion.length < 40 ? (
+                                    <span className="warning">{suggestion.length}/200 (recommended: 40-200 chars)</span>
+                                ) : (
+                                    <span>{suggestion.length}/200 chars</span>
+                                )}
+                            </div>
+                            <div className="ai-suggestion-actions">
+                                <button
+                                    className="ai-suggestion-action-button primary"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(suggestion)
+                                    }}
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    <div className="ai-suggestion-note">
+                        Copy the suggestion and update it in Framer: Select text layer → Text Settings → Heading 1
+                    </div>
+                </div>
+            )}
+
+            {ai?.error && (
+                <div className="ai-error">
+                    <span>Error: {ai.error}</span>
+                    <button onClick={ai.clearError}>Dismiss</button>
+                </div>
+            )}
 
             <label className="field-label">Learn</label>
             <Accordion 

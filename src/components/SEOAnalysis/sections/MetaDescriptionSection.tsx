@@ -1,4 +1,5 @@
 import { MagicWandIcon, HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
+import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { SearchPreview } from '../shared/SearchPreview'
@@ -10,9 +11,10 @@ interface MetaDescriptionSectionProps {
     pageName: string
     title: string
     metaDescription: string
+    ai?: UseAIGenerationReturn
 }
 
-export function MetaDescriptionSection({ status, description, pageName, title, metaDescription }: MetaDescriptionSectionProps) {
+export function MetaDescriptionSection({ status, description, pageName, title, metaDescription, ai }: MetaDescriptionSectionProps) {
     return (
         <div className="optimization-section">
             <StatusBadge status={status} description={description} />
@@ -39,11 +41,63 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
             )}
 
             <div className="ai-section">
-                <button className="ai-generate-button">
+                <button 
+                    className="ai-generate-button"
+                    onClick={async () => {
+                        if (ai) {
+                            try {
+                                await ai.generate('meta', pageName)
+                            } catch (error) {
+                                console.error('Error generating meta description:', error)
+                            }
+                        }
+                    }}
+                    disabled={!ai || ai.generating.meta}
+                >
                     <MagicWandIcon />
-                    Generate new Title
+                    {ai?.generating.meta ? 'Generating...' : 'Generate new Description'}
                 </button>
             </div>
+
+            {ai?.suggestions.meta && ai.suggestions.meta.length > 0 && (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {ai.suggestions.meta.map((suggestion, index) => (
+                        <div key={index} className="ai-suggestion-card">
+                            <div className="ai-suggestion-text">{suggestion}</div>
+                            <div className="ai-suggestion-char-count">
+                                {suggestion.length > 200 ? (
+                                    <span className="warning">{suggestion.length}/200 (too long)</span>
+                                ) : suggestion.length < 40 ? (
+                                    <span className="warning">{suggestion.length}/200 (too short)</span>
+                                ) : (
+                                    <span>{suggestion.length}/200 chars</span>
+                                )}
+                            </div>
+                            <div className="ai-suggestion-actions">
+                                <button
+                                    className="ai-suggestion-action-button primary"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(suggestion)
+                                    }}
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    <div className="ai-suggestion-note">
+                        Copy the suggestion and update it in Framer: Page Settings → Description
+                    </div>
+                </div>
+            )}
+
+            {ai?.error && (
+                <div className="ai-error">
+                    <span>Error: {ai.error}</span>
+                    <button onClick={ai.clearError}>Dismiss</button>
+                </div>
+            )}
 
             <label className="field-label">Learn</label>
             <Accordion 

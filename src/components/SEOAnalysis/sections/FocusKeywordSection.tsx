@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getNodeData, setNodeData } from '../../../services/framerStorage'
-import { HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
+import { PageDataService } from '../../../services/pageDataService'
+import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
+import { HelpIcon, GoodVsBadIcon, MagicWandIcon } from '../../../assets/icons'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import '../styles.css'
@@ -13,6 +14,7 @@ interface FocusKeywordSectionProps {
     onFocusKeywordChange: (keyword: string) => void
     onKeywordLoad: (keyword: string) => void
     triggerKeywordAnalysis?: (keyword: string) => Promise<void>
+    ai?: UseAIGenerationReturn
 }
 
 export function FocusKeywordSection({
@@ -21,7 +23,8 @@ export function FocusKeywordSection({
     pageId,
     focusKeyword,
     onKeywordLoad,
-    triggerKeywordAnalysis
+    triggerKeywordAnalysis,
+    ai
 }: FocusKeywordSectionProps) {
     const [editedKeyword, setEditedKeyword] = useState(focusKeyword)
     const [isSavingKeyword, setIsSavingKeyword] = useState(false)
@@ -41,18 +44,15 @@ export function FocusKeywordSection({
 
         const load = async () => {
             try {
-                const saved = await getNodeData(pageId, 'frame-rank')
-                if (saved) {
-                    const parsed = JSON.parse(saved)
-                    if (parsed?.mainKeyword) {
-                        console.log('[FocusKeywordSection] Loading saved keyword:', parsed.mainKeyword)
-                        setEditedKeyword(parsed.mainKeyword)
-                        // Use onKeywordLoad to avoid resetting selected check
-                        onKeywordLoad(parsed.mainKeyword)
-                        if (triggerKeywordAnalysis) {
-                            // console.log('[FocusKeywordSection] Triggering analysis for loaded keyword')
-                            await triggerKeywordAnalysis(parsed.mainKeyword)
-                        }
+                const coreData = await PageDataService.getCoreData(pageId)
+                if (coreData?.focusKeyword) {
+                    console.log('[FocusKeywordSection] Loading saved keyword:', coreData.focusKeyword)
+                    setEditedKeyword(coreData.focusKeyword)
+                    // Use onKeywordLoad to avoid resetting selected check
+                    onKeywordLoad(coreData.focusKeyword)
+                    if (triggerKeywordAnalysis) {
+                        // console.log('[FocusKeywordSection] Triggering analysis for loaded keyword')
+                        await triggerKeywordAnalysis(coreData.focusKeyword)
                     }
                 }
             } catch (err) {
@@ -67,15 +67,14 @@ export function FocusKeywordSection({
         if (!value) return
         setIsSavingKeyword(true)
         try {
-            const payload = JSON.stringify({ 
-                mainKeyword: value, 
-                lastUpdated: new Date().toISOString() 
+            await PageDataService.updateCoreData(pageId, {
+                focusKeyword: value
             })
-            await setNodeData(pageId, 'frame-rank', payload)
+            
             // Use onKeywordLoad to preserve current tab selection
             onKeywordLoad(value)
             if (triggerKeywordAnalysis) await triggerKeywordAnalysis(value)
-            console.log('[FocusKeywordSection] Keyword saved to page-level storage')
+            console.log('[FocusKeywordSection] Keyword saved to unified storage')
         } catch (err) {
             console.error('[FocusKeywordSection] Error saving keyword:', err)
         } finally {
@@ -113,6 +112,72 @@ export function FocusKeywordSection({
                     </button>
                 </div>
             </div>
+
+            <div className="ai-section">
+                <button 
+                    className="ai-generate-button"
+                    onClick={async () => {
+                        if (ai) {
+                            try {
+                                await ai.generate('keyword')
+                            } catch (error) {
+                                console.error('Error generating keyword:', error)
+                            }
+                        }
+                    }}
+                    disabled={!ai || ai.generating.keyword}
+                >
+                    <MagicWandIcon />
+                    {ai?.generating.keyword ? 'Generating...' : 'Generate new Main Keyword'}
+                </button>
+            </div>
+
+            {ai?.suggestions.keyword && ai.suggestions.keyword.length > 0 && (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {ai.suggestions.keyword.map((suggestion, index) => (
+                        <div key={index} className="ai-suggestion-card">
+                            <div className="ai-suggestion-text">{suggestion}</div>
+                            <div className="ai-suggestion-actions">
+                                <button
+                                    className="ai-suggestion-action-button"
+                                    onClick={() => setEditedKeyword(suggestion)}
+                                >
+                                    Use
+                                </button>
+                                <button
+                                    className="ai-suggestion-action-button primary"
+                                    onClick={async () => {
+                                        setEditedKeyword(suggestion)
+                                        setIsSavingKeyword(true)
+                                        try {
+                                            await PageDataService.updateCoreData(pageId, {
+                                                focusKeyword: suggestion
+                                            })
+                                            onKeywordLoad(suggestion)
+                                            if (triggerKeywordAnalysis) await triggerKeywordAnalysis(suggestion)
+                                        } catch (err) {
+                                            console.error('Error saving keyword:', err)
+                                        } finally {
+                                            setIsSavingKeyword(false)
+                                        }
+                                    }}
+                                    disabled={isSavingKeyword}
+                                >
+                                    {isSavingKeyword ? 'Saving...' : 'Save & Analyze'}
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {ai?.error && (
+                <div className="ai-error">
+                    <span>Error: {ai.error}</span>
+                    <button onClick={ai.clearError}>Dismiss</button>
+                </div>
+            )}
 
             <label className="field-label">Learn</label>
             <Accordion
