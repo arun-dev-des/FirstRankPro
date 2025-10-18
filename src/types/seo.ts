@@ -58,6 +58,19 @@ export interface ExtractedSEOData {
     charset: string | null
     language: string | null
     robotsMeta: string | null
+    // Enhanced data for AI analysis
+    contentFeatures?: {
+        lists: number
+        tables: number
+        faqs: number
+        blockquotes: number
+        codeBlocks: number
+    }
+    bodyTextExcerpt?: string
+    urlSegments?: string[]
+    internalLinks?: SEOLink[]
+    externalLinks?: SEOLink[]
+    imageAlts?: string[]
 }
 
 export interface SEOCheck {

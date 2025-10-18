@@ -101,6 +101,24 @@ export function useAIGeneration(
                     firstParagraph: extractedData.firstParagraph || '',
                     wordCount: extractedData.wordCount || 0,
                     openGraphData: extractedData.openGraphData,
+                    // Enhanced data for better AI context
+                    bodyTextExcerpt: extractedData.bodyTextExcerpt,
+                    urlSegments: extractedData.urlSegments,
+                    structuredData: extractedData.structuredData,
+                    links: extractedData.internalLinks && extractedData.externalLinks ? {
+                        internal: extractedData.internalLinks.map(link => ({
+                            href: link.href,
+                            text: link.text,
+                            isNofollow: link.isNofollow
+                        })),
+                        external: extractedData.externalLinks.map(link => ({
+                            href: link.href,
+                            text: link.text,
+                            isNofollow: link.isNofollow
+                        }))
+                    } : undefined,
+                    imageAlts: extractedData.imageAlts,
+                    contentFeatures: extractedData.contentFeatures
                 },
             })
 

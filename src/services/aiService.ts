@@ -14,6 +14,22 @@ export interface AIGenerateRequest {
             title?: string
             description?: string
         }
+        // New enhanced data fields for better AI context
+        bodyTextExcerpt?: string // First 500-1000 words of body text
+        urlSegments?: string[] // URL path segments for topic hierarchy
+        structuredData?: any[] // JSON-LD data for content type/product info
+        links?: {
+            internal: Array<{ href: string; text: string; isNofollow: boolean }>
+            external: Array<{ href: string; text: string; isNofollow: boolean }>
+        }
+        imageAlts?: string[] // All image alt texts for keyword context
+        contentFeatures?: {
+            lists: number // Count of ul/ol elements
+            tables: number // Count of table elements
+            faqs: number // Count of FAQ patterns (dt/dd, accordions)
+            blockquotes: number // Count of blockquote elements
+            codeBlocks: number // Count of pre/code elements
+        }
     }
     pageName?: string
 }

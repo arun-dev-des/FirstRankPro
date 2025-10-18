@@ -16,6 +16,9 @@ import {
     validateImageAlts
 } from './seo/contentValidator'
 import { FramerImageService } from './framerImageService'
+import { extractContentFeatures } from './seo/contentFeatureExtractor'
+import { extractBodyTextExcerpt } from './seo/textExtractor'
+import { parseUrlSegments } from './seo/urlParser'
 
 export class SEOService {
     private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
@@ -265,14 +268,30 @@ export class SEOService {
         const bodyText = doc.body?.textContent?.trim() || ''
         const wordCount = bodyText.split(/\s+/).length
         
+        // Extract enhanced data for AI analysis
+        const contentFeatures = extractContentFeatures(doc)
+        const bodyTextExcerpt = extractBodyTextExcerpt(doc, 750) // 750 words target
+        const urlSegments = parseUrlSegments(url)
+        const links = this.extractLinks(doc, url)
+        const images = this.extractImages(doc)
+        
+        // Separate internal and external links
+        const internalLinks = links.filter(link => link.isInternal)
+        const externalLinks = links.filter(link => !link.isInternal)
+        
+        // Extract image alt texts
+        const imageAlts = images
+            .map(img => img.alt)
+            .filter(alt => alt && alt.trim().length > 0) as string[]
+        
         return {
             title: titleElement?.textContent?.trim() || '',
             metaDescription: metaDesc?.getAttribute('content')?.trim() || '',
             url,
             canonicalUrl: canonical?.getAttribute('href') || null,
             headings: this.extractHeadings(doc),
-            images: this.extractImages(doc),
-            links: this.extractLinks(doc, url),
+            images,
+            links,
             textContent: bodyText,
             wordCount,
             firstParagraph: this.extractFirstParagraph(doc),
@@ -281,7 +300,14 @@ export class SEOService {
             viewport: viewport?.getAttribute('content') || null,
             charset: charset?.getAttribute('charset') || null,
             language,
-            robotsMeta: robotsMeta?.getAttribute('content') || null
+            robotsMeta: robotsMeta?.getAttribute('content') || null,
+            // Enhanced data for AI analysis
+            contentFeatures,
+            bodyTextExcerpt,
+            urlSegments,
+            internalLinks,
+            externalLinks,
+            imageAlts
         }
     }
 
