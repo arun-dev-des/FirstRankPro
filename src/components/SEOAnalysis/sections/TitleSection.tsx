@@ -1,4 +1,5 @@
 import { MagicWandIcon, HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
+import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { SearchPreview } from '../shared/SearchPreview'
@@ -10,9 +11,10 @@ interface TitleSectionProps {
     pageName: string
     title: string
     metaDescription: string
+    ai?: UseAIGenerationReturn
 }
 
-export function TitleSection({ status, description, pageName, title, metaDescription }: TitleSectionProps) {
+export function TitleSection({ status, description, pageName, title, metaDescription, ai }: TitleSectionProps) {
     return (
         <div className="optimization-section">
             <StatusBadge status={status} description={description} />
@@ -39,11 +41,63 @@ export function TitleSection({ status, description, pageName, title, metaDescrip
             )}
 
             <div className="ai-section">
-                <button className="ai-generate-button">
+                <button 
+                    className="ai-generate-button"
+                    onClick={async () => {
+                        if (ai) {
+                            try {
+                                await ai.generate('title', pageName)
+                            } catch (error) {
+                                console.error('Error generating title:', error)
+                            }
+                        }
+                    }}
+                    disabled={!ai || ai.generating.title}
+                >
                     <MagicWandIcon />
-                    Generate new Title
+                    {ai?.generating.title ? 'Generating...' : 'Generate new Title'}
                 </button>
             </div>
+
+            {ai?.suggestions.title && ai.suggestions.title.length > 0 && (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {ai.suggestions.title.map((suggestion, index) => (
+                        <div key={index} className="ai-suggestion-card">
+                            <div className="ai-suggestion-text">{suggestion}</div>
+                            <div className="ai-suggestion-char-count">
+                                {suggestion.length > 90 ? (
+                                    <span className="warning">{suggestion.length}/90 (too long)</span>
+                                ) : suggestion.length < 30 ? (
+                                    <span className="warning">{suggestion.length}/90 (too short)</span>
+                                ) : (
+                                    <span>{suggestion.length}/90 chars</span>
+                                )}
+                            </div>
+                            <div className="ai-suggestion-actions">
+                                <button
+                                    className="ai-suggestion-action-button primary"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(suggestion)
+                                    }}
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    <div className="ai-suggestion-note">
+                        Copy the suggestion and update it in Framer: Page Settings → Title
+                    </div>
+                </div>
+            )}
+
+            {ai?.error && (
+                <div className="ai-error">
+                    <span>Error: {ai.error}</span>
+                    <button onClick={ai.clearError}>Dismiss</button>
+                </div>
+            )}
 
             <label className="field-label">Learn</label>
             <Accordion 

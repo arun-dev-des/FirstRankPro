@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Page, PublishInfo } from '../../types/page'
 import { useSEOAnalysis } from '../../hooks/useSEOAnalysis'
+import { useAIGeneration } from '../../hooks/useAIGeneration'
 import { ChecklistSkeleton, DetailPanelSkeleton } from '../common/SkeletonLoader'
 import { ErrorMessage } from '../common/ErrorMessage'
 import { SEOChecklist } from './SEOChecklist'
@@ -9,7 +10,8 @@ import { QuickSummarySection } from './sections/QuickSummarySection'
 // import { SEOScore } from './SEOScore.tsx'
 import './styles.css'
 import { BackIcon } from '../../assets/icons'
-import { getNodeData, cleanupOldKeywordEntries } from '../../services/framerStorage'
+import { PageDataService } from '../../services/pageDataService'
+import { cleanupOldKeywordEntries } from '../../services/framerStorage'
 
 interface SEOAnalysisProps {
     page: Page
@@ -37,14 +39,11 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         const load = async () => {
             if (!page?.id) return
             try {
-                // Load from page-level storage with 'frame-rank' key
-                const saved = await getNodeData(page.id, 'frame-rank')
-                if (saved) {
-                    const parsed = JSON.parse(saved)
-                    if (parsed?.mainKeyword) {
-                        console.log('[SEOAnalysis] Pre-loading saved keyword from page storage:', parsed.mainKeyword)
-                        setFocusKeyword(parsed.mainKeyword)
-                    }
+                // Load from unified storage
+                const coreData = await PageDataService.getCoreData(page.id)
+                if (coreData?.focusKeyword) {
+                    console.log('[SEOAnalysis] Pre-loading saved keyword from unified storage:', coreData.focusKeyword)
+                    setFocusKeyword(coreData.focusKeyword)
                 }
             } catch (err) {
                 console.error('[SEOAnalysis] Error pre-loading keyword:', err)
@@ -69,6 +68,14 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         keywordLoaded ? page : null, // Block analysis until keyword is loaded
         focusKeyword,
         memoizedTimes
+    )
+
+    // Initialize AI generation hook (always call, but pass safe defaults if analysis is null)
+    const ai = useAIGeneration(
+        page.id,
+        analysis?.extractedData?.url || '',
+        analysis?.extractedData || null,
+        focusKeyword
     )
 
     // Auto-select Quick Summary by default when analysis loads
@@ -203,6 +210,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                                 extractedData={analysis.extractedData}
                                 triggerKeywordAnalysis={triggerKeywordAnalysis}
                                 pageId={page.id}
+                                ai={analysis ? ai : undefined}
                             />
                         )}
                     </div>
