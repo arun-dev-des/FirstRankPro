@@ -104,24 +104,31 @@ export function useAIGeneration(
                 },
             })
 
-            // Use functional update to avoid stale state
-            setState(prev => {
-                const newSuggestions = {
-                    ...prev.suggestions,
-                    [type]: response.items,
-                }
-                
-                // Persist to unified storage
-                persist(newSuggestions)
-                
-                return {
-                    ...prev,
-                    generating: { ...prev.generating, [type]: false },
-                    suggestions: newSuggestions,
-                }
-            })
+            // Update state with new suggestions
+            const newSuggestions = {
+                ...state.suggestions,
+                [type]: response.items,
+            }
 
-            console.log(`[useAIGeneration] Successfully generated ${response.items.length} ${type} suggestions`)
+            setState(prev => ({
+                ...prev,
+                generating: { ...prev.generating, [type]: false },
+                suggestions: newSuggestions,
+            }))
+
+            // Persist to storage with proper error handling
+            try {
+                await persist(newSuggestions)
+                console.log(`[useAIGeneration] Successfully generated and saved ${response.items.length} ${type} suggestions`)
+            } catch (persistError) {
+                console.error(`[useAIGeneration] Failed to save suggestions to storage:`, persistError)
+                // Update error state to inform user that suggestions might not persist
+                setState(prev => ({
+                    ...prev,
+                    error: 'Suggestions generated but failed to save. They may be lost on refresh.'
+                }))
+            }
+
             return response.items
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to generate suggestions'
@@ -135,7 +142,7 @@ export function useAIGeneration(
 
             throw error
         }
-    }, [url, focusKeyword, extractedData, persist])
+    }, [url, focusKeyword, extractedData, persist, state.suggestions])
 
     const clearError = useCallback(() => {
         setState(prev => ({ ...prev, error: null }))
