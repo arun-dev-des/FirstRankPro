@@ -59,30 +59,45 @@ export function TitleSection({ status, description, pageName, title, metaDescrip
                 </button>
             </div>
 
-            {ai?.suggestions.title && ai.suggestions.title.length > 0 && (
+            {ai?.generating.title ? (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {/* Shimmer skeleton cards */}
+                    {[1, 2, 3].map((index) => (
+                        <div key={index} className="ai-suggestion-card shimmer">
+                            <div className="ai-suggestion-content">
+                                <div className="shimmer-icon"></div>
+                                <div className="shimmer-text"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : ai?.suggestions.title && ai.suggestions.title.length > 0 ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
                     {ai.suggestions.title.map((suggestion, index) => (
                         <div key={index} className="ai-suggestion-card">
                             <div className="ai-suggestion-text">{suggestion}</div>
-                            <div className="ai-suggestion-char-count">
-                                {suggestion.length > 90 ? (
-                                    <span className="warning">{suggestion.length}/90 (too long)</span>
-                                ) : suggestion.length < 30 ? (
-                                    <span className="warning">{suggestion.length}/90 (too short)</span>
-                                ) : (
-                                    <span>{suggestion.length}/90 chars</span>
-                                )}
-                            </div>
-                            <div className="ai-suggestion-actions">
-                                <button
-                                    className="ai-suggestion-action-button primary"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(suggestion)
-                                    }}
-                                >
-                                    Copy
-                                </button>
+                            <div className="ai-suggestion-char-button-group">
+                                <div className="ai-suggestion-char-count">
+                                    {suggestion.length > 90 ? (
+                                        <span className="warning">{suggestion.length}/90 (too long)</span>
+                                    ) : suggestion.length < 30 ? (
+                                        <span className="warning">{suggestion.length}/90 (too short)</span>
+                                    ) : (
+                                        <span>{suggestion.length}/90 chars</span>
+                                    )}
+                                </div>
+                                <div className="ai-suggestion-actions">
+                                    <button
+                                        className="ai-suggestion-action-button primary"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(suggestion)
+                                        }}
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -90,7 +105,7 @@ export function TitleSection({ status, description, pageName, title, metaDescrip
                         Copy the suggestion and update it in Framer: Page Settings → Title
                     </div>
                 </div>
-            )}
+            ) : null}
 
             {ai?.error && (
                 <div className="ai-error">

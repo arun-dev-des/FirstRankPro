@@ -59,30 +59,45 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
                 </button>
             </div>
 
-            {ai?.suggestions.meta && ai.suggestions.meta.length > 0 && (
+            {ai?.generating.meta ? (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {/* Shimmer skeleton cards */}
+                    {[1, 2, 3].map((index) => (
+                        <div key={index} className="ai-suggestion-card shimmer">
+                            <div className="ai-suggestion-content">
+                                <div className="shimmer-icon"></div>
+                                <div className="shimmer-text"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : ai?.suggestions.meta && ai.suggestions.meta.length > 0 ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
                     {ai.suggestions.meta.map((suggestion, index) => (
                         <div key={index} className="ai-suggestion-card">
                             <div className="ai-suggestion-text">{suggestion}</div>
-                            <div className="ai-suggestion-char-count">
-                                {suggestion.length > 200 ? (
-                                    <span className="warning">{suggestion.length}/200 (too long)</span>
-                                ) : suggestion.length < 40 ? (
-                                    <span className="warning">{suggestion.length}/200 (too short)</span>
-                                ) : (
-                                    <span>{suggestion.length}/200 chars</span>
-                                )}
-                            </div>
-                            <div className="ai-suggestion-actions">
-                                <button
-                                    className="ai-suggestion-action-button primary"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(suggestion)
-                                    }}
-                                >
-                                    Copy
-                                </button>
+                            <div className="ai-suggestion-char-button-group">
+                                <div className="ai-suggestion-char-count">
+                                    {suggestion.length > 200 ? (
+                                        <span className="warning">{suggestion.length}/200 (too long)</span>
+                                    ) : suggestion.length < 40 ? (
+                                        <span className="warning">{suggestion.length}/200 (too short)</span>
+                                    ) : (
+                                        <span>{suggestion.length}/200 chars</span>
+                                    )}
+                                </div>
+                                <div className="ai-suggestion-actions">
+                                    <button
+                                        className="ai-suggestion-action-button primary"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(suggestion)
+                                        }}
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -90,7 +105,7 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
                         Copy the suggestion and update it in Framer: Page Settings → Description
                     </div>
                 </div>
-            )}
+            ) : null}
 
             {ai?.error && (
                 <div className="ai-error">

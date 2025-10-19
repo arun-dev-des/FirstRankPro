@@ -250,12 +250,12 @@
 }
 
 .ai-generate-button:hover {
-    background-color: var(--color-accent);
-    color: var(--color-bg);
+    background: linear-gradient(135deg, #6985FF 0%, #A44CFF 100%);
+    color: #fff;
 }
 
 .ai-generate-button:hover svg path {
-    fill: var(--color-bg);
+    fill: #fff;
 }
 
 .save-button {
@@ -1514,42 +1514,55 @@ hr {
 
 /* AI Suggestions Styles */
 .ai-suggestions {
-    margin-top: 16px;
+    margin: 16px 0;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
 .ai-suggestion-card {
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
+    background: linear-gradient(90deg, rgba(105, 133, 255, 0.1) 0%, rgba(164, 76, 255, 0.1) 100%);
+    border-radius: 4px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 10px;
     transition: all 0.2s;
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
 }
 
 .ai-suggestion-card:hover {
-    border-color: #2196f3;
-    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+    border: 1px solid #6985FF;
+}
+
+.ai-suggestion-content {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .ai-suggestion-text {
     font-size: 14px;
     line-height: 1.5;
-    color: #333;
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-medium);
     word-wrap: break-word;
+}
+
+.ai-suggestion-char-button-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .ai-suggestion-char-count {
     font-size: 12px;
-    color: #666;
+    color: var(--color-text-tertiary);
 }
 
 .ai-suggestion-char-count .warning {
-    color: #ff9800;
+    color: #BF9533;
     font-weight: 500;
 }
 
@@ -1560,31 +1573,118 @@ hr {
 }
 
 .ai-suggestion-action-button {
-    padding: 6px 16px;
-    border: 1px solid #ddd;
+    padding: 4px 8px;
     border-radius: 4px;
-    background: white;
+    background: #382B60;
     font-size: 13px;
     font-weight: 500;
-    color: #666;
+    color: var(--color-text-primary);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .ai-suggestion-action-button:hover {
-    border-color: #2196f3;
-    color: #2196f3;
+    color: var(--color-bg);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+/* Lighter shimmer skeleton styles */
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.ai-suggestion-card.shimmer {
+    background: linear-gradient(90deg, 
+        rgba(105, 133, 255, 0.03) 0%, 
+        rgba(164, 76, 255, 0.05) 50%, 
+        rgba(105, 133, 255, 0.03) 100%);
+    border: 1px solid var(--color-border);
+    pointer-events: none;
+}
+
+.shimmer-icon {
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(90deg, 
+        rgba(105, 133, 255, 0.06) 25%, 
+        rgba(164, 76, 255, 0.10) 50%, 
+        rgba(105, 133, 255, 0.06) 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 2px;
+}
+
+.shimmer-text {
+    height: 16px;
+    background: linear-gradient(90deg, 
+        rgba(105, 133, 255, 0.05) 25%, 
+        rgba(164, 76, 255, 0.08) 50%, 
+        rgba(105, 133, 255, 0.05) 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    flex: 1;
+}
+
+.shimmer-button {
+    width: 60px;
+    height: 28px;
+    background: linear-gradient(90deg, 
+        rgba(105, 133, 255, 0.07) 25%, 
+        rgba(164, 76, 255, 0.12) 50%, 
+        rgba(105, 133, 255, 0.07) 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+/* Lighter dark mode shimmer */
+@media (prefers-color-scheme: dark) {
+    .ai-suggestion-card.shimmer {
+        background: linear-gradient(90deg, 
+            rgba(105, 133, 255, 0.05) 0%, 
+            rgba(164, 76, 255, 0.08) 50%, 
+            rgba(105, 133, 255, 0.05) 100%);
+    }
+    
+    .shimmer-icon {
+        background: linear-gradient(90deg, 
+            rgba(105, 133, 255, 0.08) 25%, 
+            rgba(164, 76, 255, 0.12) 50%, 
+            rgba(105, 133, 255, 0.08) 75%);
+    }
+    
+    .shimmer-text {
+        background: linear-gradient(90deg, 
+            rgba(105, 133, 255, 0.06) 25%, 
+            rgba(164, 76, 255, 0.10) 50%, 
+            rgba(105, 133, 255, 0.06) 75%);
+    }
+    
+    .shimmer-button {
+        background: linear-gradient(90deg, 
+            rgba(105, 133, 255, 0.09) 25%, 
+            rgba(164, 76, 255, 0.14) 50%, 
+            rgba(105, 133, 255, 0.09) 75%);
+    }
 }
 
 .ai-suggestion-action-button.primary {
-    background: #2196f3;
-    border-color: #2196f3;
-    color: white;
+    background: #382B60;
+    border-color: 382B60;
+    color: var(--color-text-primary);
 }
 
 .ai-suggestion-action-button.primary:hover {
-    background: #1976d2;
-    border-color: #1976d2;
+    color: var(--color-bg);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
 }
 
 .ai-suggestion-action-button:disabled {

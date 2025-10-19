@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageDataService } from '../../../services/pageDataService'
 import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
-import { HelpIcon, GoodVsBadIcon, MagicWandIcon } from '../../../assets/icons'
+import { HelpIcon, GoodVsBadIcon, MagicWandIcon, SparklesIcon } from '../../../assets/icons'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import '../styles.css'
@@ -132,18 +132,41 @@ export function FocusKeywordSection({
                 </button>
             </div>
 
-            {ai?.suggestions.keyword && ai.suggestions.keyword.length > 0 && (
+            {ai?.generating.keyword ? (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {/* Shimmer skeleton cards */}
+                    {[1, 2, 3].map((index) => (
+                        <div key={index} className="ai-suggestion-card shimmer">
+                            <div className="ai-suggestion-content">
+                                <div className="shimmer-icon"></div>
+                                <div className="shimmer-text"></div>
+                            </div>
+                            <div className="ai-suggestion-actions">
+                                <div className="shimmer-button"></div>
+                                <div className="shimmer-button"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : ai?.suggestions.keyword && ai.suggestions.keyword.length > 0 ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
                     {ai.suggestions.keyword.map((suggestion, index) => (
                         <div key={index} className="ai-suggestion-card">
-                            <div className="ai-suggestion-text">{suggestion}</div>
+                            <div className="ai-suggestion-content">
+                                <SparklesIcon />
+                                <div className="ai-suggestion-text">{suggestion}</div>
+                            </div>
                             <div className="ai-suggestion-actions">
                                 <button
                                     className="ai-suggestion-action-button"
-                                    onClick={() => setEditedKeyword(suggestion)}
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(suggestion)
+                                        // Optional: Show a brief toast notification
+                                    }}
                                 >
-                                    Use
+                                    Copy
                                 </button>
                                 <button
                                     className="ai-suggestion-action-button primary"
@@ -170,7 +193,7 @@ export function FocusKeywordSection({
                         </div>
                     ))}
                 </div>
-            )}
+            ) : null}
 
             {ai?.error && (
                 <div className="ai-error">

@@ -86,30 +86,45 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
                 </button>
             </div>
 
-            {ai?.suggestions.h1 && ai.suggestions.h1.length > 0 && (
+            {ai?.generating.h1 ? (
+                <div className="ai-suggestions">
+                    <label className="field-label">AI Suggestions</label>
+                    {/* Shimmer skeleton cards */}
+                    {[1, 2, 3].map((index) => (
+                        <div key={index} className="ai-suggestion-card shimmer">
+                            <div className="ai-suggestion-content">
+                                <div className="shimmer-icon"></div>
+                                <div className="shimmer-text"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : ai?.suggestions.h1 && ai.suggestions.h1.length > 0 ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
                     {ai.suggestions.h1.map((suggestion, index) => (
                         <div key={index} className="ai-suggestion-card">
                             <div className="ai-suggestion-text">{suggestion}</div>
-                            <div className="ai-suggestion-char-count">
-                                {suggestion.length > 200 ? (
-                                    <span className="warning">{suggestion.length}/200 (too long)</span>
-                                ) : suggestion.length < 40 ? (
-                                    <span className="warning">{suggestion.length}/200 (recommended: 40-200 chars)</span>
-                                ) : (
-                                    <span>{suggestion.length}/200 chars</span>
-                                )}
-                            </div>
-                            <div className="ai-suggestion-actions">
-                                <button
-                                    className="ai-suggestion-action-button primary"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(suggestion)
-                                    }}
-                                >
-                                    Copy
-                                </button>
+                            <div className="ai-suggestion-char-button-group">
+                                <div className="ai-suggestion-char-count">
+                                    {suggestion.length > 200 ? (
+                                        <span className="warning">{suggestion.length}/200 (too long)</span>
+                                    ) : suggestion.length < 40 ? (
+                                        <span className="warning">{suggestion.length}/200 (recommended: 40-200 chars)</span>
+                                    ) : (
+                                        <span>{suggestion.length}/200 chars</span>
+                                    )}
+                                </div>
+                                <div className="ai-suggestion-actions">
+                                    <button
+                                        className="ai-suggestion-action-button primary"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(suggestion)
+                                        }}
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -117,7 +132,7 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
                         Copy the suggestion and update it in Framer: Select text layer → Text Settings → Heading 1
                     </div>
                 </div>
-            )}
+            ) : null}
 
             {ai?.error && (
                 <div className="ai-error">
