@@ -246,14 +246,34 @@ export function validateContentLength(contentLength: number): SEOCheck[] {
  */
 export function validateImageAlts(images: any[]): SEOCheck[] {
     const checks: SEOCheck[] = []
-    
-    const totalImages = images.length
-    const imagesWithAlt = images.filter(img => img.alt && img.alt.trim().length > 0).length
+
+    // Build unique images by normalized src (ignore query/hash), so duplicates count once
+    const normalizeSrc = (src: string | null | undefined): string => {
+        if (!src) return ''
+        try {
+            const u = new URL(src, 'http://example.com')
+            return (u.origin + u.pathname).toLowerCase()
+        } catch {
+            return src.split('?')[0].split('#')[0].toLowerCase()
+        }
+    }
+
+    const uniqueMap = new Map<string, any>()
+    for (const img of images || []) {
+        const key = normalizeSrc(img?.src)
+        if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, img)
+        }
+    }
+
+    const uniqueImages = Array.from(uniqueMap.values())
+    const totalImages = uniqueImages.length
+    const imagesWithAlt = uniqueImages.filter((img: any) => img?.alt && String(img.alt).trim().length > 0).length
     const imagesWithoutAlt = totalImages - imagesWithAlt
-    
+
     // Calculate percentage
     const percentageWithAlt = totalImages > 0 ? (imagesWithAlt / totalImages) * 100 : 100
-    
+
     // Create evidence object
     const evidence = JSON.stringify({
         total: totalImages,

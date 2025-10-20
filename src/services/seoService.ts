@@ -496,17 +496,19 @@ export class SEOService {
             // Analyze content
             const extractedData = this.extractSEOData(html, url)
             
-            // Replace images with Framer API data if pageId is available
+            // Use ONLY Framer API images for this page (no HTML images)
             if (pageId) {
                 try {
                     const framerImages = await FramerImageService.getPageImages(pageId)
-                    if (framerImages.length > 0) {
-                        console.log('✅ Using Framer API images instead of HTML images')
-                        extractedData.images = framerImages
-                    }
+                    console.log('✅ Using ONLY Framer API images for image analysis')
+                    extractedData.images = framerImages || []
                 } catch (error) {
-                    console.log('⚠️ Failed to fetch Framer images, using HTML fallback')
+                    console.log('⚠️ Failed to fetch Framer images; using empty image list for this page')
+                    extractedData.images = []
                 }
+            } else {
+                // No pageId available → do not use HTML images
+                extractedData.images = []
             }
             
             const checks = this.performChecks(extractedData, safeKeyword, url)

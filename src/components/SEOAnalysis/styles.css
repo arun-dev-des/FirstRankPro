@@ -1418,6 +1418,18 @@ hr {
     color: #c62828;
 }
 
+.status-svg {
+    background: #e3f2fd;
+    color: #1565c0;
+    font-weight: 500;
+}
+
+.status-image {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    font-weight: 500;
+}
+
 /* Alt Text Cell */
 .alt-text-cell {
     position: relative;
@@ -1734,6 +1746,43 @@ hr {
 
 .ai-error button:hover {
     background: #ffcdd2;
+}
+
+/* Auto-save status indicators */
+.auto-save-status {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.auto-save-status.saving {
+    background: #e3f2fd;
+    color: #1976d2;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.auto-save-status.pending {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.auto-save-status.saved {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 .ai-generate-button:disabled {
