@@ -11,7 +11,6 @@ import { QuickSummarySection } from './sections/QuickSummarySection'
 import './styles.css'
 import { BackIcon } from '../../assets/icons'
 import { PageDataService } from '../../services/pageDataService'
-import { cleanupOldKeywordEntries } from '../../services/framerStorage'
 
 interface SEOAnalysisProps {
     page: Page
@@ -57,11 +56,6 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
             setKeywordLoaded(false)
         }
     }, [page?.id])
-    
-    // Cleanup old project-level keyword entries (one-time migration)
-    useEffect(() => {
-        cleanupOldKeywordEntries()
-    }, [])
     
     // Only start analysis after keyword has been checked/loaded
     const { analysis, loading, error, triggerKeywordAnalysis } = useSEOAnalysis(

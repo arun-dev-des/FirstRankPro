@@ -1,5 +1,10 @@
 export type AIGenerateType = 'keyword' | 'title' | 'meta' | 'h1'
 
+export interface AltTextGenerateResponse {
+    altText: string
+    model: 'gemini' | 'gpt-4o-mini'
+}
+
 export interface AIGenerateRequest {
     type: AIGenerateType
     url: string
@@ -41,9 +46,11 @@ export interface AIGenerateResponse {
 }
 
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'https://riseup-seo-proxy.vercel.app/api/ai-generate'
+const ALT_TEXT_API_URL = import.meta.env.VITE_ALT_TEXT_API_URL || 'https://riseup-seo-proxy.vercel.app/api/generate-alt-text'
 
 export class AIService {
     private static readonly TIMEOUT = 30000 // 30 seconds
+    private static readonly ALT_TEXT_TIMEOUT = 45000 // 45 seconds (vision models can be slower)
 
     static async generate(payload: AIGenerateRequest, signal?: AbortSignal): Promise<AIGenerateResponse> {
         if (!AI_API_URL) {
@@ -103,6 +110,75 @@ export class AIService {
                 throw error
             }
             throw new Error('Failed to generate AI suggestions')
+        } finally {
+            clearTimeout(timeoutId)
+        }
+    }
+
+    /**
+     * Generate alt text for an image using AI vision models
+     * @param imageUrl - The URL or data URI of the image
+     * @param signal - Optional abort signal
+     * @returns The generated alt text and the model used
+     */
+    static async generateAltText(imageUrl: string, signal?: AbortSignal): Promise<AltTextGenerateResponse> {
+        if (!ALT_TEXT_API_URL) {
+            throw new Error('Alt text API URL not configured. Please set VITE_ALT_TEXT_API_URL environment variable.')
+        }
+
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), this.ALT_TEXT_TIMEOUT)
+
+        // Combine external signal with timeout
+        if (signal) {
+            signal.addEventListener('abort', () => controller.abort())
+        }
+
+        try {
+            const response = await fetch(ALT_TEXT_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ imageUrl }),
+                signal: controller.signal,
+            })
+
+            if (!response.ok) {
+                const contentType = response.headers.get('content-type')
+                let errorMessage = `AI API error: ${response.status}`
+                
+                if (contentType?.includes('application/json')) {
+                    try {
+                        const errorData = await response.json()
+                        errorMessage = errorData.error || errorMessage
+                    } catch {
+                        // Fallback to status text
+                    }
+                } else {
+                    const text = await response.text().catch(() => '')
+                    if (text) errorMessage = text
+                }
+                
+                throw new Error(errorMessage)
+            }
+
+            const data: AltTextGenerateResponse = await response.json()
+            
+            // Validate response structure
+            if (!data.altText || !data.model) {
+                throw new Error('Invalid response format from AI API')
+            }
+
+            return data
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out. Please try again.')
+                }
+                throw error
+            }
+            throw new Error('Failed to generate alt text')
         } finally {
             clearTimeout(timeoutId)
         }

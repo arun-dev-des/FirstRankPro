@@ -27,6 +27,7 @@ export interface SEOImage {
     height?: number
     loading?: string
     nodeId?: string  // Framer node ID for updating alt text
+    isLocked?: boolean  // Whether the node is locked/protected in Framer
 }
 
 export interface SEOLink {

@@ -240,7 +240,7 @@
     padding: 8px 16px;
     margin-bottom: 24px;
     background-color: rgba(115, 213, 255, 0.07);
-    border: none;
+    border: 1px solid var(--color-accent);
     border-radius: 4px;
     color: var(--color-accent);
     font-size: 14px;
@@ -252,6 +252,7 @@
 .ai-generate-button:hover {
     background: linear-gradient(135deg, #6985FF 0%, #A44CFF 100%);
     color: #fff;
+    border: 1px solid transparent;
 }
 
 .ai-generate-button:hover svg path {
@@ -1311,15 +1312,16 @@ hr {
 .image-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    background: var(--color-surface);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .image-table thead {
-    background: #f5f5f5;
-    border-bottom: 2px solid #e0e0e0;
+    background: var(--color-surface);
+    color: var(--color-text-tertiary);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .image-table th {
@@ -1327,61 +1329,76 @@ hr {
     text-align: left;
     font-size: 12px;
     font-weight: 700;
-    color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .image-table td {
     padding: 12px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
 }
+
 
 .image-table tbody tr:last-child td {
     border-bottom: none;
 }
 
 .image-table tbody tr:hover {
-    background: #fafafa;
+    background: var(--color-border);
 }
 
 /* Table Column Widths */
 .image-col {
-    width: 120px;
-}
-
-.status-col {
-    width: 140px;
+    width: 160px;
 }
 
 .alt-text-col {
     width: auto;
-    min-width: 300px;
+    min-width: 286px;
 }
 
 .action-col {
-    width: 100px;
+    width: 120px;
     text-align: center;
 }
 
 /* Image Cell */
 .image-cell {
     position: relative;
+    vertical-align: top;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Ensure the image cell height matches the thumbnail wrapper by removing vertical padding */
+.image-table td.image-cell {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Fixed-size wrapper so TD height is exactly this size */
+.image-thumb-wrap {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 4px;
 }
 
 .image-thumbnail {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid #e0e0e0;
+    width: 120px;
+    height: 120px;
+    box-sizing: border-box;
+    object-fit: contain;
+    border-radius: 4px;
     display: block;
 }
 
 .image-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1391,8 +1408,18 @@ hr {
     border: 1px dashed #ccc;
     font-size: 11px;
     color: #999;
-    padding: 4px;
     text-align: center;
+}
+
+/* Place the copies hint visually below the thumbnail without affecting cell height */
+.image-copies-hint {
+    position: absolute;
+    bottom: -18px;
+    left: 0;
+    font-size: 12px;
+    color: #0066cc;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .image-placeholder.hidden {
@@ -1418,21 +1445,37 @@ hr {
     color: #c62828;
 }
 
+.status-svg {
+    background: #e3f2fd;
+    color: #1565c0;
+    font-weight: 500;
+}
+
+.status-image {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    font-weight: 500;
+}
+
 /* Alt Text Cell */
 .alt-text-cell {
     position: relative;
+    vertical-align: top;
 }
 
 .alt-text-input {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid #e0e0e0;
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 4px;
     font-size: 13px;
     font-family: inherit;
     resize: vertical;
-    min-height: 50px;
+    height: 80px;
     transition: border-color 0.2s;
+    box-sizing: border-box;
 }
 
 .alt-text-input:focus {
@@ -1444,6 +1487,80 @@ hr {
 .alt-text-input:disabled {
     background: #f5f5f5;
     cursor: not-allowed;
+}
+
+.alt-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Alt text actions container */
+.alt-text-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+}
+
+.alt-text-actions .save-button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+}
+
+.alt-text-actions .save-button:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.alt-text-actions .save-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.alt-text-actions .save-status.locked {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.alt-text-actions .no-edit-label {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.ai-suggestion-action-button.primary.save svg {
+    color: white;
+    fill: white;
+}
+
+.ai-suggestion-action-button.primary.save svg path {
+    fill: white;
+}
+
+.save-button:hover:not(:disabled) {
+    background: #1976d2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.save-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .char-count {
@@ -1734,6 +1851,48 @@ hr {
 
 .ai-error button:hover {
     background: #ffcdd2;
+}
+
+/* Save status indicators */
+.save-status {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.save-status.saving {
+    background: #e3f2fd;
+    color: #1976d2;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.save-status.pending {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.save-status.saved {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.save-status.locked {
+    background: #f5f5f5;
+    color: #757575;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 .ai-generate-button:disabled {

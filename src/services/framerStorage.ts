@@ -114,19 +114,35 @@ export async function getProjectDataKeys(): Promise<string[]> {
 	}
 }
 
-// Cleanup old seo-keyword entries (migration helper)
-export async function cleanupOldKeywordEntries(): Promise<void> {
+// Cleanup old entries (migration helper)
+export async function cleanupOldEntries(): Promise<void> {
 	try {
 		const keys = await getProjectDataKeys()
-		const oldKeys = keys.filter(k => k.startsWith('seo-keyword:'))
-		console.log(`[Cleanup] Found ${oldKeys.length} old seo-keyword entries to delete`)
 		
-		for (const key of oldKeys) {
+		// Clean up old seo-keyword entries
+		const oldKeywordKeys = keys.filter(k => k.startsWith('seo-keyword:'))
+		console.log(`[Cleanup] Found ${oldKeywordKeys.length} old seo-keyword entries to delete`)
+		
+		for (const key of oldKeywordKeys) {
+			await deleteProjectData(key)
+			console.log(`[Cleanup] Deleted: ${key}`)
+		}
+		
+		// Clean up old frame-rank entries (node-level storage)
+		const oldFrameRankKeys = keys.filter(k => k.startsWith('node:') && k.includes(':frame-rank'))
+		console.log(`[Cleanup] Found ${oldFrameRankKeys.length} old frame-rank entries to delete`)
+		
+		for (const key of oldFrameRankKeys) {
 			await deleteProjectData(key)
 			console.log(`[Cleanup] Deleted: ${key}`)
 		}
 	} catch (err) {
 		console.error('[Cleanup] Error cleaning up old entries:', err)
 	}
+}
+
+// Keep old function name for backward compatibility
+export async function cleanupOldKeywordEntries(): Promise<void> {
+	return cleanupOldEntries()
 }
 
