@@ -1,10 +1,12 @@
 import { framer } from "framer-plugin"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { usePages } from './hooks/usePages'
 import { Page } from './types/page'
 import { PagesList } from './components/PagesList/PagesList'
 import { SEOAnalysis } from './components/SEOAnalysis/SEOAnalysis'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
+import { PageDataService } from './services/pageDataService'
+import { cleanupOldEntries } from './services/framerStorage'
 
 import './App.css'
 
@@ -28,6 +30,25 @@ export function App() {
 
     // Temporarily disabled polling for CSS debugging
     // const { pages, publishInfo, loading, error } = usePages(false)
+
+    // Initialize: Clean up old entries and migrate data (runs once on mount)
+    useEffect(() => {
+        const initializeStorage = async () => {
+            try {
+                // Clean up old storage entries
+                await cleanupOldEntries()
+                
+                // Migrate data from frame-rank to first-rank
+                await PageDataService.migrateOldData()
+                
+                console.log('✅ Storage initialization complete')
+            } catch (err) {
+                console.error('❌ Storage initialization failed:', err)
+            }
+        }
+        
+        initializeStorage()
+    }, [])
 
     const handlePageSelect = (page: Page) => {
         setSelectedPage(page)

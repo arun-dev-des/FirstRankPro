@@ -2,9 +2,9 @@ import { useState, useMemo } from 'react'
 import { framer } from 'framer-plugin'
 import { SEOImage } from '../../types/seo'
 import { FramerImageService } from '../../services/framerImageService'
+import { AIService } from '../../services/aiService'
 import { clearAnalysisCache } from '../../lib/analysisCache'
 import './styles.css'
-import { SparklesIcon } from '@/assets/icons'
 
 interface ImageTableProps {
     images: SEOImage[]
@@ -24,6 +24,7 @@ export function ImageTable({ images }: ImageTableProps) {
     const [editingStates, setEditingStates] = useState<{ [key: string]: string }>({})
     const [savingStates, setSavingStates] = useState<{ [key: string]: boolean }>({})
     const [savedAlts, setSavedAlts] = useState<{ [key: string]: string }>({})
+    const [generatingAlt, setGeneratingAlt] = useState<{ [key: string]: boolean }>({})
 
     // Helper function to detect if image is SVG
     const isSVG = (src: string): boolean => {
@@ -67,7 +68,17 @@ export function ImageTable({ images }: ImageTableProps) {
             }
         })
         
+        // Filter out images with no valid src and sort
         return Array.from(groups.values())
+            .filter(group => group.src && group.src.trim() !== '') // Only show images with valid src
+            .sort((a, b) => {
+                // First sort by type: 'Image' comes before 'SVG'
+                if (a.imageType !== b.imageType) {
+                    return a.imageType === 'Image' ? -1 : 1
+                }
+                // Then sort by count (descending - most copies first)
+                return b.count - a.count
+            })
     }, [images, savedAlts])
     
     const handleAltChange = (src: string, value: string) => {
@@ -144,10 +155,99 @@ export function ImageTable({ images }: ImageTableProps) {
         return group.alt || ''
     }
 
-    const hasChanges = (src: string, group: GroupedImage) => {
-        if (editingStates[src] === undefined) return false
-        const baseline = savedAlts[src] !== undefined ? savedAlts[src] : (group.alt || '')
-        return editingStates[src].trim() !== baseline.trim()
+    const handleGenerateAltText = async (src: string, group: GroupedImage) => {
+        if (group.nodeIds.length === 0) {
+            framer.notify('Cannot generate: No node ID for image', { variant: 'error' })
+            return
+        }
+
+        // Don't generate for SVGs
+        if (group.imageType === 'SVG') {
+            framer.notify('AI generation not available for SVG images', { variant: 'error' })
+            return
+        }
+
+        setGeneratingAlt(prev => ({ ...prev, [src]: true }))
+
+        try {
+            console.log('Generating alt text for image:', src.substring(0, 50))
+            
+            // Call AI service to generate alt text
+            const response = await AIService.generateAltText(src)
+            const generatedAltText = response.altText
+            
+            console.log(`Generated alt text using ${response.model}:`, generatedAltText)
+
+            // Update the editing state with generated text
+            setEditingStates(prev => ({
+                ...prev,
+                [src]: generatedAltText
+            }))
+
+            // Automatically save the generated alt text
+            setSavingStates(prev => ({ ...prev, [src]: true }))
+            
+            try {
+                // Update all instances of this image
+                await Promise.all(
+                    group.nodeIds.map(nodeId => 
+                        FramerImageService.updateImageAltText(nodeId, generatedAltText, false)
+                    )
+                )
+                
+                // Reflect saved value immediately in UI
+                setSavedAlts(prev => ({ ...prev, [src]: generatedAltText.trim() }))
+
+                // Clear editing state after successful save
+                setEditingStates(prev => {
+                    const newStates = { ...prev }
+                    delete newStates[src]
+                    return newStates
+                })
+
+                // Show success notification
+                const instanceText = group.count > 1 ? `${group.count} copies` : '1 image'
+                framer.notify(`✨ AI-generated alt text saved for ${instanceText}`, { variant: 'success' })
+                
+                // Clear analysis cache
+                clearAnalysisCache()
+            } catch (saveError) {
+                console.error('Failed to save generated alt text:', saveError)
+                
+                if (saveError instanceof Error) {
+                    if (saveError.message.includes('insufficient permissions') || saveError.message.includes('setAttributes')) {
+                        framer.notify('Cannot save: Insufficient permissions', { variant: 'error' })
+                    } else if (saveError.message.includes('No image property found')) {
+                        framer.notify('Cannot save: Image format not supported', { variant: 'error' })
+                    } else {
+                        framer.notify('Failed to save alt text', { variant: 'error' })
+                    }
+                } else {
+                    framer.notify('Failed to save alt text', { variant: 'error' })
+                }
+            } finally {
+                setSavingStates(prev => ({ ...prev, [src]: false }))
+            }
+        } catch (error) {
+            console.error('Failed to generate alt text:', error)
+            
+            let errorMessage = 'Failed to generate alt text'
+            if (error instanceof Error) {
+                if (error.message.includes('AI service not configured') || error.message.includes('API key')) {
+                    errorMessage = 'AI service not configured'
+                } else if (error.message.includes('timed out')) {
+                    errorMessage = 'Request timed out. Please try again.'
+                } else if (error.message.includes('unavailable')) {
+                    errorMessage = 'AI generation unavailable'
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
+            framer.notify(errorMessage, { variant: 'error' })
+        } finally {
+            setGeneratingAlt(prev => ({ ...prev, [src]: false }))
+        }
     }
 
 
@@ -171,8 +271,9 @@ export function ImageTable({ images }: ImageTableProps) {
                 <tbody>
                     {groupedImages.map((group, index) => {
                         const currentAltText = getCurrentAltText(group.src, group)
-                        const changed = hasChanges(group.src, group)
                         const isSaving = savingStates[group.src]
+                        const isGenerating = generatingAlt[group.src]
+                        const isSVG = group.imageType === 'SVG'
 
                         return (
                             <tr key={index} className="image-table-row">
@@ -218,42 +319,29 @@ export function ImageTable({ images }: ImageTableProps) {
                                             placeholder="No Alt Text"
                                             className="alt-text-input"
                                             rows={2}
-                                            disabled={isSaving || group.nodeIds.length === 0 || group.isLocked}
+                                            disabled={isSaving || isGenerating || group.nodeIds.length === 0 || group.isLocked}
                                         />
                                         <div className="ai-suggestion-char-button-group">
                                             <button
                                                 className="ai-suggestion-action-button primary save"
                                                 onClick={() => handleSave(group.src, group)}
-                                                disabled={isSaving}
+                                                disabled={isSaving || isGenerating}
                                                 title="Save alt text"
                                             >
                                                 {isSaving ? '⏳ Saving...' : '💾 Save'}
                                             </button>
 
-                                            <button
-                                                className="ai-suggestion-action-button primary save"
-                                            >
-                                                <SparklesIcon />
-                                            </button>
-                                        </div>
-                                        {/* <div className="alt-text-actions">
-                                            {group.isLocked ? (
-                                                <span className="save-status locked">
-                                                    🔒 Locked
-                                                </span>
-                                            ) : group.nodeIds.length > 0 ? (
+                                            {!isSVG && (
                                                 <button
-                                                    className="save-button"
-                                                    onClick={() => handleSave(group.src, group)}
-                                                    disabled={isSaving}
-                                                    title="Save alt text"
+                                                    className="ai-suggestion-action-button primary save"
+                                                    onClick={() => handleGenerateAltText(group.src, group)}
+                                                    disabled={isGenerating || isSaving || group.nodeIds.length === 0 || group.isLocked}
+                                                    title="Generate alt text using AI"
                                                 >
-                                                    {isSaving ? '⏳ Saving...' : '💾 Save'}
+                                                    {isGenerating ? '⏳ Generating...' : '✨ Write Alt Text'}
                                                 </button>
-                                            ) : (
-                                                <span className="no-edit-label">Read-only</span>
                                             )}
-                                        </div> */}
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
