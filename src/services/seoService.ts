@@ -21,7 +21,7 @@ import { extractBodyTextExcerpt } from './seo/textExtractor'
 import { parseUrlSegments } from './seo/urlParser'
 
 export class SEOService {
-    private static readonly PROXY_URL = 'https://riseup-seo-proxy.vercel.app/api/proxy'
+    private static readonly PROXY_URL = 'https://first-rank-proxy.vercel.app/api/proxy'
     private static readonly TIMEOUT = 10000 // 10 seconds
     private static readonly HTML_CACHE_TTL = 10 * 60 * 1000 // 10 minutes
     private static htmlCache = new Map<string, { html: string; timestamp: number }>()

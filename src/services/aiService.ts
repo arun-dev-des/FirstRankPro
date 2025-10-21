@@ -45,8 +45,8 @@ export interface AIGenerateResponse {
     rationale?: string
 }
 
-const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'https://riseup-seo-proxy.vercel.app/api/ai-generate'
-const ALT_TEXT_API_URL = import.meta.env.VITE_ALT_TEXT_API_URL || 'https://riseup-seo-proxy.vercel.app/api/generate-alt-text'
+const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'https://first-rank-proxy.vercel.app/api/ai-generate'
+const ALT_TEXT_API_URL = import.meta.env.VITE_ALT_TEXT_API_URL || 'https://first-rank-proxy.vercel.app/api/generate-alt-text'
 
 export class AIService {
     private static readonly TIMEOUT = 30000 // 30 seconds
