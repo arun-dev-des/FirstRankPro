@@ -500,14 +500,16 @@ export class SEOService {
             if (pageId) {
                 try {
                     const framerImages = await FramerImageService.getPageImages(pageId)
-                    console.log('✅ Using ONLY Framer API images for image analysis')
+                    console.log('✅ Using Framer project images for Alt Image analysis')
                     extractedData.images = framerImages || []
                 } catch (error) {
                     console.log('⚠️ Failed to fetch Framer images; using empty image list for this page')
+                    console.log('Error details:', error)
                     extractedData.images = []
                 }
             } else {
                 // No pageId available → do not use HTML images
+                console.log('⚠️ No pageId provided - skipping image analysis')
                 extractedData.images = []
             }
             

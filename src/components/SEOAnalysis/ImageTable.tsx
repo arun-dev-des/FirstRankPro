@@ -1,8 +1,10 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import { framer } from 'framer-plugin'
 import { SEOImage } from '../../types/seo'
 import { FramerImageService } from '../../services/framerImageService'
+import { clearAnalysisCache } from '../../lib/analysisCache'
 import './styles.css'
+import { SparklesIcon } from '@/assets/icons'
 
 interface ImageTableProps {
     images: SEOImage[]
@@ -15,15 +17,13 @@ interface GroupedImage {
     instances: SEOImage[]
     nodeIds: string[]
     imageType: 'SVG' | 'Image'
+    isLocked: boolean
 }
 
 export function ImageTable({ images }: ImageTableProps) {
     const [editingStates, setEditingStates] = useState<{ [key: string]: string }>({})
     const [savingStates, setSavingStates] = useState<{ [key: string]: boolean }>({})
     const [savedAlts, setSavedAlts] = useState<{ [key: string]: string }>({})
-    
-    // Debounce timers for auto-save
-    const saveTimers = useRef<{ [key: string]: NodeJS.Timeout }>({})
 
     // Helper function to detect if image is SVG
     const isSVG = (src: string): boolean => {
@@ -38,7 +38,7 @@ export function ImageTable({ images }: ImageTableProps) {
         return false
     }
 
-    // Group images by their src
+    // Group images by their src and apply saved alt texts
     const groupedImages = useMemo((): GroupedImage[] => {
         const groups = new Map<string, GroupedImage>()
         
@@ -52,68 +52,57 @@ export function ImageTable({ images }: ImageTableProps) {
                     existing.nodeIds.push(image.nodeId)
                 }
             } else {
+                // Use saved alt text if available, otherwise use the image's alt
+                const altText = savedAlts[image.src] !== undefined ? savedAlts[image.src] : image.alt
+                
                 groups.set(image.src, {
                     src: image.src,
-                    alt: image.alt,
+                    alt: altText,
                     count: 1,
                     instances: [image],
                     nodeIds: image.nodeId ? [image.nodeId] : [],
-                    imageType: isSVG(image.src) ? 'SVG' : 'Image'
+                    imageType: isSVG(image.src) ? 'SVG' : 'Image',
+                    isLocked: image.isLocked || false
                 })
             }
         })
         
         return Array.from(groups.values())
-    }, [images])
-
-    const handleAltChange = (src: string, value: string, group: GroupedImage) => {
+    }, [images, savedAlts])
+    
+    const handleAltChange = (src: string, value: string) => {
         setEditingStates(prev => ({
             ...prev,
             [src]: value
         }))
-        
-        // Clear existing timer for this image
-        if (saveTimers.current[src]) {
-            clearTimeout(saveTimers.current[src])
-        }
-        
-        // Set new timer to auto-save after 1.5 seconds of no typing
-        saveTimers.current[src] = setTimeout(() => {
-            handleSave(src, group, true) // true = silent auto-save
-        }, 1500)
     }
 
-    const handleSave = async (src: string, group: GroupedImage, isSilent = false) => {
+    const handleSave = async (src: string, group: GroupedImage) => {
         if (group.nodeIds.length === 0) {
             console.error('Cannot save: no nodeIds for image')
             return
         }
 
-        const newAltText = editingStates[src] ?? savedAlts[src] ?? group.alt ?? ''
-        const baseline = savedAlts[src] !== undefined ? savedAlts[src] : (group.alt || '')
+        const newAltText = (editingStates[src] ?? savedAlts[src] ?? group.alt ?? '').trim()
+        const baseline = (savedAlts[src] !== undefined ? savedAlts[src] : (group.alt || '')).trim()
         
-        // Don't save if nothing changed
+        // Don't save if nothing changed (after trimming whitespace)
         if (newAltText === baseline) {
             return
         }
         
-        if (!isSilent) {
-            console.log('[ImageTable] Manual save triggered')
-        }
-        
-        console.log('[ImageTable] Saving alt text...', { src, nodeIds: group.nodeIds, newAltText, isSilent })
         setSavingStates(prev => ({ ...prev, [src]: true }))
         
         try {
-            // Update all instances of this image (without individual notifications)
+            // Update all instances of this image
             await Promise.all(
                 group.nodeIds.map(nodeId => 
                     FramerImageService.updateImageAltText(nodeId, newAltText, false)
                 )
             )
             
-            // Reflect saved value immediately in UI
-            setSavedAlts(prev => ({ ...prev, [src]: newAltText }))
+            // Reflect saved value immediately in UI (store trimmed version)
+            setSavedAlts(prev => ({ ...prev, [src]: newAltText.trim() }))
 
             // Clear editing state after successful save
             setEditingStates(prev => {
@@ -122,18 +111,28 @@ export function ImageTable({ images }: ImageTableProps) {
                 return newStates
             })
 
-            // Show notification (more subtle for auto-save)
+            // Show notification
             const instanceText = group.count > 1 ? `${group.count} copies` : '1 image'
-            if (isSilent) {
-                framer.notify(`✓ Auto-saved for ${instanceText}`, { variant: 'success' })
-            } else {
-                framer.notify(`Alt text updated for ${instanceText}`, { variant: 'success' })
-            }
+            framer.notify(`Alt text updated for ${instanceText}`, { variant: 'success' })
             
-            console.log('[ImageTable] Alt text updated successfully', { src, newAltText, count: group.count })
+            // Clear analysis cache to force fresh data on next page load
+            // No need to trigger immediate re-analysis - UI updates via state
+            clearAnalysisCache()
         } catch (error) {
-            console.error('[ImageTable] Failed to save alt text:', error)
-            framer.notify('Failed to update alt text', { variant: 'error' })
+            console.error('Failed to save alt text:', error)
+            
+            // Show more specific error message based on error type
+            if (error instanceof Error) {
+                if (error.message.includes('insufficient permissions') || error.message.includes('setAttributes')) {
+                    framer.notify('Cannot edit: Insufficient permissions', { variant: 'error' })
+                } else if (error.message.includes('No image property found')) {
+                    framer.notify('Cannot edit: Image format not supported', { variant: 'error' })
+                } else {
+                    framer.notify('Failed to update alt text', { variant: 'error' })
+                }
+            } else {
+                framer.notify('Failed to update alt text', { variant: 'error' })
+            }
         } finally {
             setSavingStates(prev => ({ ...prev, [src]: false }))
         }
@@ -148,15 +147,9 @@ export function ImageTable({ images }: ImageTableProps) {
     const hasChanges = (src: string, group: GroupedImage) => {
         if (editingStates[src] === undefined) return false
         const baseline = savedAlts[src] !== undefined ? savedAlts[src] : (group.alt || '')
-        return editingStates[src] !== baseline
+        return editingStates[src].trim() !== baseline.trim()
     }
 
-    // Cleanup timers on unmount
-    useEffect(() => {
-        return () => {
-            Object.values(saveTimers.current).forEach(timer => clearTimeout(timer))
-        }
-    }, [])
 
     if (images.length === 0) {
         return (
@@ -168,42 +161,45 @@ export function ImageTable({ images }: ImageTableProps) {
 
     return (
         <div className="image-table-container">
-            <div style={{ marginBottom: '12px', fontSize: '14px', color: '#666' }}>
-                Showing {groupedImages.length} unique image{groupedImages.length !== 1 ? 's' : ''} 
-                ({images.length} total instance{images.length !== 1 ? 's' : ''})
-            </div>
             <table className="image-table">
                 <thead>
                     <tr>
                         <th className="image-col">Image</th>
-                        <th className="status-col">Type</th>
-                        <th className="status-col">Status</th>
                         <th className="alt-text-col">Alt Text</th>
-                        <th className="action-col">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {groupedImages.map((group, index) => {
                         const currentAltText = getCurrentAltText(group.src, group)
-                        const hasAlt = currentAltText && currentAltText.trim().length > 0
                         const changed = hasChanges(group.src, group)
                         const isSaving = savingStates[group.src]
 
                         return (
                             <tr key={index} className="image-table-row">
                                 <td className="image-cell">
-                                    {group.src ? (
-                                        <>
-                                            <img 
-                                                src={group.src} 
-                                                alt={currentAltText || 'Preview'} 
-                                                className="image-thumbnail"
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none'
-                                                    e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                                                }}
-                                            />
-                                            <div className="image-placeholder hidden">
+                                    <div className="image-thumb-wrap">
+                                        {group.src ? (
+                                            <>
+                                                <img 
+                                                    src={group.src} 
+                                                    alt={currentAltText || 'Preview'} 
+                                                    className="image-thumbnail"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none'
+                                                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                                    }}
+                                                />
+                                                <div className="image-placeholder hidden">
+                                                    <div>No preview</div>
+                                                    {group.nodeIds.length > 0 && (
+                                                        <div className="node-id-label">
+                                                            ID: {group.nodeIds[0].substring(0, 8)}...
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="image-placeholder">
                                                 <div>No preview</div>
                                                 {group.nodeIds.length > 0 && (
                                                     <div className="node-id-label">
@@ -211,82 +207,54 @@ export function ImageTable({ images }: ImageTableProps) {
                                                     </div>
                                                 )}
                                             </div>
-                                        </>
-                                    ) : (
-                                        <div className="image-placeholder">
-                                            <div>No preview</div>
-                                            {group.nodeIds.length > 0 && (
-                                                <div className="node-id-label">
-                                                    ID: {group.nodeIds[0].substring(0, 8)}...
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {group.count > 1 && (
-                                        <div style={{ 
-                                            marginTop: '4px', 
-                                            fontSize: '12px', 
-                                            color: '#0066cc',
-                                            fontWeight: 500 
-                                        }}>
-                                            {group.count} copies
-                                        </div>
-                                    )}
-                                </td>
-                                <td className="status-cell">
-                                    <span className={`status-badge ${group.imageType === 'SVG' ? 'status-svg' : 'status-image'}`}>
-                                        {group.imageType}
-                                    </span>
-                                </td>
-                                <td className="status-cell">
-                                    <span className={`status-badge ${hasAlt ? 'status-success' : 'status-error'}`}>
-                                        {hasAlt ? '✓ With Alt' : '✕ Without Alt'}
-                                    </span>
-                                </td>
-                                <td className="alt-text-cell">
-                                    <textarea
-                                        value={currentAltText}
-                                        onChange={(e) => handleAltChange(group.src, e.target.value, group)}
-                                        placeholder="Enter alt text..."
-                                        className="alt-text-input"
-                                        rows={2}
-                                        disabled={isSaving || group.nodeIds.length === 0}
-                                    />
-                                    <div className="char-count">
-                                        {currentAltText.length} / 125 chars
-                                        {currentAltText.length > 125 && (
-                                            <span className="char-warning"> (too long)</span>
                                         )}
                                     </div>
-                                    {group.count > 1 && (
-                                        <div style={{ 
-                                            marginTop: '4px', 
-                                            fontSize: '11px', 
-                                            color: '#888',
-                                            fontStyle: 'italic' 
-                                        }}>
-                                            Will update all {group.count} copies
-                                        </div>
-                                    )}
                                 </td>
-                                <td className="action-cell">
-                                    {group.nodeIds.length > 0 ? (
-                                        isSaving ? (
-                                            <span className="auto-save-status saving">
-                                                💾 Saving...
-                                            </span>
-                                        ) : changed ? (
-                                            <span className="auto-save-status pending">
-                                                ⏳ Pending...
-                                            </span>
-                                        ) : (
-                                            <span className="auto-save-status saved">
-                                                ✓ Saved
-                                            </span>
-                                        )
-                                    ) : (
-                                        <span className="no-edit-label">Read-only</span>
-                                    )}
+                                <td className="alt-text-cell">
+                                    <div className="alt-text-container">
+                                        <textarea
+                                            value={currentAltText}
+                                            onChange={(e) => handleAltChange(group.src, e.target.value)}
+                                            placeholder="No Alt Text"
+                                            className="alt-text-input"
+                                            rows={2}
+                                            disabled={isSaving || group.nodeIds.length === 0 || group.isLocked}
+                                        />
+                                        <div className="ai-suggestion-char-button-group">
+                                            <button
+                                                className="ai-suggestion-action-button primary save"
+                                                onClick={() => handleSave(group.src, group)}
+                                                disabled={isSaving}
+                                                title="Save alt text"
+                                            >
+                                                {isSaving ? '⏳ Saving...' : '💾 Save'}
+                                            </button>
+
+                                            <button
+                                                className="ai-suggestion-action-button primary save"
+                                            >
+                                                <SparklesIcon />
+                                            </button>
+                                        </div>
+                                        {/* <div className="alt-text-actions">
+                                            {group.isLocked ? (
+                                                <span className="save-status locked">
+                                                    🔒 Locked
+                                                </span>
+                                            ) : group.nodeIds.length > 0 ? (
+                                                <button
+                                                    className="save-button"
+                                                    onClick={() => handleSave(group.src, group)}
+                                                    disabled={isSaving}
+                                                    title="Save alt text"
+                                                >
+                                                    {isSaving ? '⏳ Saving...' : '💾 Save'}
+                                                </button>
+                                            ) : (
+                                                <span className="no-edit-label">Read-only</span>
+                                            )}
+                                        </div> */}
+                                    </div>
                                 </td>
                             </tr>
                         )
@@ -296,4 +264,3 @@ export function ImageTable({ images }: ImageTableProps) {
         </div>
     )
 }
-

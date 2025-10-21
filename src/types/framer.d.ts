@@ -29,6 +29,8 @@ declare module 'framer-plugin' {
         getNodesWithAttributeSet: (attribute: string) => Promise<ImageNode[]>;
         getCurrentPage: () => Promise<FramerPage>;
         getPageById?: (id: string) => Promise<FramerPage>;
+        isAllowedTo: (action: string) => boolean;
+        subscribeToIsAllowedTo?: (action: string, callback: (isAllowed: boolean) => void) => () => void;
     }
 
     export const framer: FramerPluginAPI;
