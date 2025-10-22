@@ -51,10 +51,10 @@ export function useAIGeneration(
                         h1: aiSuggestions.h1
                     }
                     setState(prev => ({ ...prev, suggestions }))
-                    console.log('[useAIGeneration] Loaded cached suggestions from unified storage:', suggestions)
+                    // console.log('[useAIGeneration] Loaded cached suggestions from unified storage:', suggestions)
                 }
             } catch (err) {
-                console.error('[useAIGeneration] Error loading cached suggestions:', err)
+                // console.error('[useAIGeneration] Error loading cached suggestions:', err)
             }
         }
         loadCached()
@@ -63,9 +63,9 @@ export function useAIGeneration(
     const persist = useCallback(async (suggestions: SuggestionsState) => {
         try {
             await PageDataService.updateAISuggestions(pageId, suggestions)
-            console.log('[useAIGeneration] Persisted suggestions to unified storage')
+            // console.log('[useAIGeneration] Persisted suggestions to unified storage')
         } catch (err) {
-            console.error('[useAIGeneration] Error persisting suggestions:', err)
+            // console.error('[useAIGeneration] Error persisting suggestions:', err)
         }
     }, [pageId])
 
@@ -84,7 +84,7 @@ export function useAIGeneration(
         }))
 
         try {
-            console.log(`[useAIGeneration] Generating ${type} suggestions...`)
+            // console.log(`[useAIGeneration] Generating ${type} suggestions...`)
             
             const response = await AIService.generate({
                 type,
@@ -137,9 +137,9 @@ export function useAIGeneration(
             // Persist to storage with proper error handling
             try {
                 await persist(newSuggestions)
-                console.log(`[useAIGeneration] Successfully generated and saved ${response.items.length} ${type} suggestions`)
+                // console.log(`[useAIGeneration] Successfully generated and saved ${response.items.length} ${type} suggestions`)
             } catch (persistError) {
-                console.error(`[useAIGeneration] Failed to save suggestions to storage:`, persistError)
+                // console.error(`[useAIGeneration] Failed to save suggestions to storage:`, persistError)
                 // Update error state to inform user that suggestions might not persist
                 setState(prev => ({
                     ...prev,
@@ -150,7 +150,7 @@ export function useAIGeneration(
             return response.items
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to generate suggestions'
-            console.error(`[useAIGeneration] Error generating ${type}:`, error)
+            // console.error(`[useAIGeneration] Error generating ${type}:`, error)
             
             setState(prev => ({
                 ...prev,

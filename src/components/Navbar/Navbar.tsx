@@ -19,7 +19,7 @@ export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAudi
                 </span>
             </div>
 
-            <div className="navbar-actions">
+            {/* <div className="navbar-actions">
                 <button 
                     onClick={onChangeAuditLink}
                     className="navbar-button"
@@ -35,7 +35,7 @@ export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAudi
                     <SyncRoundedIcon sx={{ fontSize: 16 }} />
                     RUN AUDIT
                 </button>
-            </div>
+            </div> */}
         </nav>
     );
 }

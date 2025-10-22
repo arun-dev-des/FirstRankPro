@@ -8,7 +8,7 @@ const CURRENT_VERSION = '1.0'
 export class PageDataService {
   private static projectIdCache: string | null = null
 
-  // Get a unique project identifier from production URL
+  // Get a unique project identifier from staging URL (fallback to production)
   private static async getProjectIdentifier(): Promise<string> {
     if (this.projectIdCache) return this.projectIdCache
     
@@ -17,24 +17,24 @@ export class PageDataService {
       const productionUrl = publishInfo.production?.url
       const stagingUrl = publishInfo.staging?.url
       
-      // Try production URL first, then staging
-      const projectUrl = productionUrl || stagingUrl
+      // Try staging URL first, then production
+      const projectUrl = stagingUrl || productionUrl
       
       if (projectUrl) {
         // Create a stable hash from URL
         const hash = btoa(projectUrl).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16)
         this.projectIdCache = hash
-        console.log('🔑 Project identifier:', hash, 'from URL:', projectUrl)
+        // console.log('🔑 Project identifier:', hash, 'from URL:', projectUrl)
         return hash
       }
     } catch (error) {
-      console.warn('Could not get project identifier:', error)
+      // console.warn('Could not get project identifier:', error)
     }
     
     // Fallback to timestamp-based ID (will be different per session)
     const fallbackId = `project-${Date.now()}`
     this.projectIdCache = fallbackId
-    console.warn('⚠️ Using fallback project ID:', fallbackId)
+    // console.warn('⚠️ Using fallback project ID:', fallbackId)
     return fallbackId
   }
 
@@ -66,9 +66,9 @@ export class PageDataService {
       }
       
       localStorage.setItem(key, JSON.stringify(updated))
-      console.log(`💾 Saved AI suggestions to localStorage: ${key}`)
+      // console.log(`💾 Saved AI suggestions to localStorage: ${key}`)
     } catch (err) {
-      console.error('[PageDataService] Error saving AI suggestions to localStorage:', err)
+      // console.error('[PageDataService] Error saving AI suggestions to localStorage:', err)
       throw err
     }
   }
@@ -80,15 +80,15 @@ export class PageDataService {
       const saved = localStorage.getItem(key)
       
       if (!saved) {
-        console.log(`📭 No AI suggestions found in localStorage: ${key}`)
+        // console.log(`📭 No AI suggestions found in localStorage: ${key}`)
         return null
       }
       
       const parsed = JSON.parse(saved) as AISuggestions
-      console.log(`✅ Loaded AI suggestions from localStorage: ${key}`)
+      // console.log(`✅ Loaded AI suggestions from localStorage: ${key}`)
       return parsed
     } catch (err) {
-      console.error('[PageDataService] Error loading AI suggestions from localStorage:', err)
+      // console.error('[PageDataService] Error loading AI suggestions from localStorage:', err)
       return null
     }
   }
@@ -98,9 +98,9 @@ export class PageDataService {
     try {
       const key = await this.getAISuggestionsKey(pageId)
       localStorage.removeItem(key)
-      console.log(`🗑️ Deleted AI suggestions from localStorage: ${key}`)
+      // console.log(`🗑️ Deleted AI suggestions from localStorage: ${key}`)
     } catch (err) {
-      console.error('[PageDataService] Error deleting AI suggestions from localStorage:', err)
+      // console.error('[PageDataService] Error deleting AI suggestions from localStorage:', err)
     }
   }
 
@@ -111,15 +111,15 @@ export class PageDataService {
       const saved = await getProjectData(storageKey)
       
       if (!saved) {
-        console.log(`📭 No data found for key: ${storageKey}`)
+        // console.log(`📭 No data found for key: ${storageKey}`)
         return null
       }
 
       const parsed = JSON.parse(saved)
-      console.log(`✅ Loaded data from key: ${storageKey}`)
+      // console.log(`✅ Loaded data from key: ${storageKey}`)
       return parsed as PageData
     } catch (err) {
-      console.error('[PageDataService] Error loading page data:', err)
+      // console.error('[PageDataService] Error loading page data:', err)
       return null
     }
   }
@@ -130,9 +130,9 @@ export class PageDataService {
       const storageKey = await this.getStorageKey(pageId)
       const payload = JSON.stringify(data)
       await setProjectData(storageKey, payload)
-      console.log(`💾 Saved data to key: ${storageKey}`)
+      // console.log(`💾 Saved data to key: ${storageKey}`)
     } catch (err) {
-      console.error('[PageDataService] Error saving page data:', err)
+      // console.error('[PageDataService] Error saving page data:', err)
       throw err
     }
   }
@@ -208,7 +208,7 @@ export class PageDataService {
     }
     
     await this.savePageData(pageId, updated)
-    console.log(`📊 Updated analysis summary for ${pageId}:`, counts)
+    // console.log(`📊 Updated analysis summary for ${pageId}:`, counts)
   }
 
   // Get only analysis summary (for home page display)
@@ -240,12 +240,12 @@ export class PageDataService {
    */
   static async migrateOldData(): Promise<void> {
     try {
-      console.log('🔄 Starting data migration...')
+      // console.log('🔄 Starting data migration...')
       
       const allKeys = await getProjectDataKeys()
       const oldKeys = allKeys.filter(k => k.startsWith('frame-rank-') || k.startsWith('first-rank-'))
       
-      console.log(`📦 Found ${oldKeys.length} entries to check for migration`)
+      // console.log(`📦 Found ${oldKeys.length} entries to check for migration`)
       
       for (const key of oldKeys) {
         // Get data
@@ -263,7 +263,7 @@ export class PageDataService {
           
           // Check if data has old structure (with aiSuggestions field)
           if (data.aiSuggestions) {
-            console.log(`🔄 Migrating AI suggestions for ${pageId}`)
+            // console.log(`🔄 Migrating AI suggestions for ${pageId}`)
             
             // Move AI suggestions to localStorage
             const aiSuggestions: AISuggestions = {
@@ -296,7 +296,7 @@ export class PageDataService {
               : key
             
             await setProjectData(newKey, JSON.stringify(newData))
-            console.log(`✅ Migrated data structure for ${pageId}`)
+            // console.log(`✅ Migrated data structure for ${pageId}`)
             
             // Delete old key if it was frame-rank
             if (key.startsWith('frame-rank-')) {
@@ -307,16 +307,16 @@ export class PageDataService {
             const newKey = key.replace('frame-rank-', 'first-rank-')
             await setProjectData(newKey, dataStr)
             await deleteProjectData(key)
-            console.log(`✅ Renamed: ${key} → ${newKey}`)
+            // console.log(`✅ Renamed: ${key} → ${newKey}`)
           }
         } catch (parseErr) {
-          console.error(`❌ Error parsing data for key ${key}:`, parseErr)
+          // console.error(`❌ Error parsing data for key ${key}:`, parseErr)
         }
       }
       
-      console.log('✅ Migration completed!')
+      // console.log('✅ Migration completed!')
     } catch (err) {
-      console.error('❌ Migration failed:', err)
+      // console.error('❌ Migration failed:', err)
     }
   }
 }

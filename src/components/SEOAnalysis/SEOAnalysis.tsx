@@ -41,11 +41,11 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                 // Load from unified storage
                 const coreData = await PageDataService.getCoreData(page.id)
                 if (coreData?.focusKeyword) {
-                    console.log('[SEOAnalysis] Pre-loading saved keyword from unified storage:', coreData.focusKeyword)
+                    // console.log('[SEOAnalysis] Pre-loading saved keyword from unified storage:', coreData.focusKeyword)
                     setFocusKeyword(coreData.focusKeyword)
                 }
             } catch (err) {
-                console.error('[SEOAnalysis] Error pre-loading keyword:', err)
+                // console.error('[SEOAnalysis] Error pre-loading keyword:', err)
             } finally {
                 // Mark keyword as loaded (even if empty) so analysis can proceed
                 setKeywordLoaded(true)
@@ -204,7 +204,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                                 extractedData={analysis.extractedData}
                                 triggerKeywordAnalysis={triggerKeywordAnalysis}
                                 pageId={page.id}
-                                ai={analysis ? ai : undefined}
+                                ai={ai}
                             />
                         )}
                     </div>

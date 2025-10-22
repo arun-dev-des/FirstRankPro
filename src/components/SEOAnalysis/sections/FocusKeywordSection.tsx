@@ -46,7 +46,7 @@ export function FocusKeywordSection({
             try {
                 const coreData = await PageDataService.getCoreData(pageId)
                 if (coreData?.focusKeyword) {
-                    console.log('[FocusKeywordSection] Loading saved keyword:', coreData.focusKeyword)
+                    // console.log('[FocusKeywordSection] Loading saved keyword:', coreData.focusKeyword)
                     setEditedKeyword(coreData.focusKeyword)
                     // Use onKeywordLoad to avoid resetting selected check
                     onKeywordLoad(coreData.focusKeyword)
@@ -56,7 +56,7 @@ export function FocusKeywordSection({
                     }
                 }
             } catch (err) {
-                console.error('[FocusKeywordSection] Error loading keyword:', err)
+                // console.error('[FocusKeywordSection] Error loading keyword:', err)
             }
         }
         load()
@@ -74,9 +74,9 @@ export function FocusKeywordSection({
             // Use onKeywordLoad to preserve current tab selection
             onKeywordLoad(value)
             if (triggerKeywordAnalysis) await triggerKeywordAnalysis(value)
-            console.log('[FocusKeywordSection] Keyword saved to unified storage')
+            // console.log('[FocusKeywordSection] Keyword saved to unified storage')
         } catch (err) {
-            console.error('[FocusKeywordSection] Error saving keyword:', err)
+            // console.error('[FocusKeywordSection] Error saving keyword:', err)
         } finally {
             setIsSavingKeyword(false)
         }
@@ -135,7 +135,6 @@ export function FocusKeywordSection({
             {ai?.generating.keyword ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
-                    {/* Shimmer skeleton cards */}
                     {[1, 2, 3].map((index) => (
                         <div key={index} className="ai-suggestion-card shimmer">
                             <div className="ai-suggestion-content">
@@ -163,7 +162,6 @@ export function FocusKeywordSection({
                                     className="ai-suggestion-action-button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(suggestion)
-                                        // Optional: Show a brief toast notification
                                     }}
                                 >
                                     Copy
