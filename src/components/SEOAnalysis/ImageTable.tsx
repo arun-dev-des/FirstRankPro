@@ -319,13 +319,13 @@ export function ImageTable({ images }: ImageTableProps) {
                                             placeholder="No Alt Text"
                                             className="alt-text-input"
                                             rows={2}
-                                            disabled={isSaving || group.nodeIds.length === 0 || group.isLocked}
+                                            disabled={isSaving || isGenerating || group.nodeIds.length === 0 || group.isLocked}
                                         />
                                         <div className="ai-suggestion-char-button-group">
                                             <button
                                                 className="ai-suggestion-action-button primary save"
                                                 onClick={() => handleSave(group.src, group)}
-                                                disabled={isSaving}
+                                                disabled={isSaving || isGenerating}
                                                 title="Save alt text"
                                             >
                                                 {isSaving ? '⏳ Saving...' : '💾 Save'}
