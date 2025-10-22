@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageDataService } from '../../../services/pageDataService'
-import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
-import { HelpIcon, GoodVsBadIcon, MagicWandIcon, SparklesIcon } from '../../../assets/icons'
+// import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
+import { HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import '../styles.css'
@@ -14,7 +14,7 @@ interface FocusKeywordSectionProps {
     onFocusKeywordChange: (keyword: string) => void
     onKeywordLoad: (keyword: string) => void
     triggerKeywordAnalysis?: (keyword: string) => Promise<void>
-    ai?: UseAIGenerationReturn
+    // ai?: UseAIGenerationReturn
 }
 
 export function FocusKeywordSection({
@@ -23,8 +23,7 @@ export function FocusKeywordSection({
     pageId,
     focusKeyword,
     onKeywordLoad,
-    triggerKeywordAnalysis,
-    ai
+    triggerKeywordAnalysis
 }: FocusKeywordSectionProps) {
     const [editedKeyword, setEditedKeyword] = useState(focusKeyword)
     const [isSavingKeyword, setIsSavingKeyword] = useState(false)
@@ -46,7 +45,7 @@ export function FocusKeywordSection({
             try {
                 const coreData = await PageDataService.getCoreData(pageId)
                 if (coreData?.focusKeyword) {
-                    console.log('[FocusKeywordSection] Loading saved keyword:', coreData.focusKeyword)
+                    // console.log('[FocusKeywordSection] Loading saved keyword:', coreData.focusKeyword)
                     setEditedKeyword(coreData.focusKeyword)
                     // Use onKeywordLoad to avoid resetting selected check
                     onKeywordLoad(coreData.focusKeyword)
@@ -56,7 +55,7 @@ export function FocusKeywordSection({
                     }
                 }
             } catch (err) {
-                console.error('[FocusKeywordSection] Error loading keyword:', err)
+                // console.error('[FocusKeywordSection] Error loading keyword:', err)
             }
         }
         load()
@@ -74,9 +73,9 @@ export function FocusKeywordSection({
             // Use onKeywordLoad to preserve current tab selection
             onKeywordLoad(value)
             if (triggerKeywordAnalysis) await triggerKeywordAnalysis(value)
-            console.log('[FocusKeywordSection] Keyword saved to unified storage')
+            // console.log('[FocusKeywordSection] Keyword saved to unified storage')
         } catch (err) {
-            console.error('[FocusKeywordSection] Error saving keyword:', err)
+            // console.error('[FocusKeywordSection] Error saving keyword:', err)
         } finally {
             setIsSavingKeyword(false)
         }
@@ -113,7 +112,8 @@ export function FocusKeywordSection({
                 </div>
             </div>
 
-            <div className="ai-section">
+            {/* AI Features temporarily disabled for initial release */}
+            {/* <div className="ai-section">
                 <button 
                     className="ai-generate-button"
                     onClick={async () => {
@@ -135,7 +135,6 @@ export function FocusKeywordSection({
             {ai?.generating.keyword ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
-                    {/* Shimmer skeleton cards */}
                     {[1, 2, 3].map((index) => (
                         <div key={index} className="ai-suggestion-card shimmer">
                             <div className="ai-suggestion-content">
@@ -163,7 +162,6 @@ export function FocusKeywordSection({
                                     className="ai-suggestion-action-button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(suggestion)
-                                        // Optional: Show a brief toast notification
                                     }}
                                 >
                                     Copy
@@ -200,7 +198,7 @@ export function FocusKeywordSection({
                     <span>Error: {ai.error}</span>
                     <button onClick={ai.clearError}>Dismiss</button>
                 </div>
-            )}
+            )} */}
 
             <label className="field-label">Learn</label>
             <Accordion

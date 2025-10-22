@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { HelpIcon, GoodVsBadIcon, MagicWandIcon } from '../../../assets/icons'
-import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
+import { HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
+// import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { HeadingCounts } from '../HeadingCounts'
@@ -12,10 +12,10 @@ interface H1SectionProps {
     description: string
     headings: SEOHeading[]
     h1Text: string
-    ai?: UseAIGenerationReturn
+    // ai?: UseAIGenerationReturn
 }
 
-export function H1Section({ status, description, headings, h1Text, ai }: H1SectionProps) {
+export function H1Section({ status, description, headings, h1Text }: H1SectionProps) {
     const visibleH1s = useMemo(() => headings.filter(h => h.level === 'h1' && h.visible && !h.duplicateOf), [headings])
 
     return (
@@ -67,7 +67,8 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
                 </div>
             )}
 
-            <div className="ai-section">
+            {/* AI Features temporarily disabled for initial release */}
+            {/* <div className="ai-section">
                 <button 
                     className="ai-generate-button"
                     onClick={async () => {
@@ -89,7 +90,6 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
             {ai?.generating.h1 ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
-                    {/* Shimmer skeleton cards */}
                     {[1, 2, 3].map((index) => (
                         <div key={index} className="ai-suggestion-card shimmer">
                             <div className="ai-suggestion-content">
@@ -139,7 +139,7 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
                     <span>Error: {ai.error}</span>
                     <button onClick={ai.clearError}>Dismiss</button>
                 </div>
-            )}
+            )} */}
 
             <label className="field-label">Learn</label>
             <Accordion 

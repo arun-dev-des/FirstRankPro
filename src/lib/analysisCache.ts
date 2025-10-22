@@ -76,11 +76,11 @@ export function getCachedAnalysis(url: string | null | undefined, keyword: strin
     const age = Date.now() - cached.timestamp
     if (age > ANALYSIS_CACHE_TTL) {
         analysisResultCache.delete(cacheKey)
-        console.log(`⏰ Analysis cache EXPIRED for ${url} (age: ${Math.round(age/1000)}s)`)
+        // console.log(`⏰ Analysis cache EXPIRED for ${url} (age: ${Math.round(age/1000)}s)`)
         return null
     }
     
-    console.log(`✅ Analysis cache HIT for ${url} (age: ${Math.round(age/1000)}s)`)
+    // console.log(`✅ Analysis cache HIT for ${url} (age: ${Math.round(age/1000)}s)`)
     return cached.result
 }
 
@@ -104,5 +104,5 @@ export function setCachedAnalysis(url: string | null | undefined, keyword: strin
 // Add function to clear analysis cache
 export function clearAnalysisCache(): void {
     analysisResultCache.clear()
-    console.log('🗑️ Analysis cache cleared')
+    // console.log('🗑️ Analysis cache cleared')
 } 

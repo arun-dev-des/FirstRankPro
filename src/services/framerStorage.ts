@@ -54,7 +54,7 @@ export async function setNodeData(nodeId: string, key: string, value: string): P
 				return
 			}
 		} catch (err) {
-			console.warn('[setNodeData] Framer API error, falling back to localStorage:', err)
+			// console.warn('[setNodeData] Framer API error, falling back to localStorage:', err)
 		}
 	}
 	// Dev/local fallback - use localStorage with node-scoped key
@@ -62,7 +62,7 @@ export async function setNodeData(nodeId: string, key: string, value: string): P
 		const storageKey = `node:${nodeId}:${key}`
 		localStorage.setItem(storageKey, value)
 	} catch (err) {
-		console.error('[setNodeData] localStorage fallback failed:', err)
+		// console.error('[setNodeData] localStorage fallback failed:', err)
 	}
 }
 
@@ -75,7 +75,7 @@ export async function getNodeData(nodeId: string, key: string): Promise<string |
 				return await node.getPluginData(key)
 			}
 		} catch (err) {
-			console.warn('[getNodeData] Framer API error, falling back to localStorage:', err)
+			// console.warn('[getNodeData] Framer API error, falling back to localStorage:', err)
 		}
 	}
 	// Dev/local fallback - use localStorage with node-scoped key
@@ -121,23 +121,23 @@ export async function cleanupOldEntries(): Promise<void> {
 		
 		// Clean up old seo-keyword entries
 		const oldKeywordKeys = keys.filter(k => k.startsWith('seo-keyword:'))
-		console.log(`[Cleanup] Found ${oldKeywordKeys.length} old seo-keyword entries to delete`)
+		// console.log(`[Cleanup] Found ${oldKeywordKeys.length} old seo-keyword entries to delete`)
 		
 		for (const key of oldKeywordKeys) {
 			await deleteProjectData(key)
-			console.log(`[Cleanup] Deleted: ${key}`)
+			// console.log(`[Cleanup] Deleted: ${key}`)
 		}
 		
 		// Clean up old frame-rank entries (node-level storage)
 		const oldFrameRankKeys = keys.filter(k => k.startsWith('node:') && k.includes(':frame-rank'))
-		console.log(`[Cleanup] Found ${oldFrameRankKeys.length} old frame-rank entries to delete`)
+		// console.log(`[Cleanup] Found ${oldFrameRankKeys.length} old frame-rank entries to delete`)
 		
 		for (const key of oldFrameRankKeys) {
 			await deleteProjectData(key)
-			console.log(`[Cleanup] Deleted: ${key}`)
+			// console.log(`[Cleanup] Deleted: ${key}`)
 		}
 	} catch (err) {
-		console.error('[Cleanup] Error cleaning up old entries:', err)
+		// console.error('[Cleanup] Error cleaning up old entries:', err)
 	}
 }
 

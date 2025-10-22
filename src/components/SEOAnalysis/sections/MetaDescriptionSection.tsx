@@ -1,5 +1,5 @@
-import { MagicWandIcon, HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
-import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
+import { HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
+// import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { SearchPreview } from '../shared/SearchPreview'
@@ -11,10 +11,10 @@ interface MetaDescriptionSectionProps {
     pageName: string
     title: string
     metaDescription: string
-    ai?: UseAIGenerationReturn
+    // ai?: UseAIGenerationReturn
 }
 
-export function MetaDescriptionSection({ status, description, pageName, title, metaDescription, ai }: MetaDescriptionSectionProps) {
+export function MetaDescriptionSection({ status, description, pageName, title, metaDescription }: MetaDescriptionSectionProps) {
     return (
         <div className="optimization-section">
             <StatusBadge status={status} description={description} />
@@ -40,7 +40,8 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
                 </div>
             )}
 
-            <div className="ai-section">
+            {/* AI Features temporarily disabled for initial release */}
+            {/* <div className="ai-section">
                 <button 
                     className="ai-generate-button"
                     onClick={async () => {
@@ -62,7 +63,6 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
             {ai?.generating.meta ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
-                    {/* Shimmer skeleton cards */}
                     {[1, 2, 3].map((index) => (
                         <div key={index} className="ai-suggestion-card shimmer">
                             <div className="ai-suggestion-content">
@@ -112,7 +112,7 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
                     <span>Error: {ai.error}</span>
                     <button onClick={ai.clearError}>Dismiss</button>
                 </div>
-            )}
+            )} */}
 
             <label className="field-label">Learn</label>
             <Accordion 

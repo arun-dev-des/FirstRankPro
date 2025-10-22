@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { framer } from 'framer-plugin'
 import { SEOImage } from '../../types/seo'
 import { FramerImageService } from '../../services/framerImageService'
-import { AIService } from '../../services/aiService'
+// import { AIService } from '../../services/aiService'
 import { clearAnalysisCache } from '../../lib/analysisCache'
 import './styles.css'
 
@@ -24,7 +24,7 @@ export function ImageTable({ images }: ImageTableProps) {
     const [editingStates, setEditingStates] = useState<{ [key: string]: string }>({})
     const [savingStates, setSavingStates] = useState<{ [key: string]: boolean }>({})
     const [savedAlts, setSavedAlts] = useState<{ [key: string]: string }>({})
-    const [generatingAlt, setGeneratingAlt] = useState<{ [key: string]: boolean }>({})
+    // const [generatingAlt, setGeneratingAlt] = useState<{ [key: string]: boolean }>({})
 
     // Helper function to detect if image is SVG
     const isSVG = (src: string): boolean => {
@@ -90,7 +90,7 @@ export function ImageTable({ images }: ImageTableProps) {
 
     const handleSave = async (src: string, group: GroupedImage) => {
         if (group.nodeIds.length === 0) {
-            console.error('Cannot save: no nodeIds for image')
+            // console.error('Cannot save: no nodeIds for image')
             return
         }
 
@@ -130,7 +130,7 @@ export function ImageTable({ images }: ImageTableProps) {
             // No need to trigger immediate re-analysis - UI updates via state
             clearAnalysisCache()
         } catch (error) {
-            console.error('Failed to save alt text:', error)
+            // console.error('Failed to save alt text:', error)
             
             // Show more specific error message based on error type
             if (error instanceof Error) {
@@ -155,7 +155,8 @@ export function ImageTable({ images }: ImageTableProps) {
         return group.alt || ''
     }
 
-    const handleGenerateAltText = async (src: string, group: GroupedImage) => {
+    // AI Features temporarily disabled for initial release
+    /* const handleGenerateAltText = async (src: string, group: GroupedImage) => {
         if (group.nodeIds.length === 0) {
             framer.notify('Cannot generate: No node ID for image', { variant: 'error' })
             return
@@ -248,7 +249,7 @@ export function ImageTable({ images }: ImageTableProps) {
         } finally {
             setGeneratingAlt(prev => ({ ...prev, [src]: false }))
         }
-    }
+    } */
 
 
     if (images.length === 0) {
@@ -272,8 +273,8 @@ export function ImageTable({ images }: ImageTableProps) {
                     {groupedImages.map((group, index) => {
                         const currentAltText = getCurrentAltText(group.src, group)
                         const isSaving = savingStates[group.src]
-                        const isGenerating = generatingAlt[group.src]
-                        const isSVG = group.imageType === 'SVG'
+                        // const isGenerating = generatingAlt[group.src]
+                        // const isSVG = group.imageType === 'SVG'
 
                         return (
                             <tr key={index} className="image-table-row">
@@ -319,19 +320,20 @@ export function ImageTable({ images }: ImageTableProps) {
                                             placeholder="No Alt Text"
                                             className="alt-text-input"
                                             rows={2}
-                                            disabled={isSaving || isGenerating || group.nodeIds.length === 0 || group.isLocked}
+                                            disabled={isSaving || group.nodeIds.length === 0 || group.isLocked}
                                         />
                                         <div className="ai-suggestion-char-button-group">
                                             <button
                                                 className="ai-suggestion-action-button primary save"
                                                 onClick={() => handleSave(group.src, group)}
-                                                disabled={isSaving || isGenerating}
+                                                disabled={isSaving}
                                                 title="Save alt text"
                                             >
                                                 {isSaving ? '⏳ Saving...' : '💾 Save'}
                                             </button>
 
-                                            {!isSVG && (
+                                            {/* AI Features temporarily disabled for initial release */}
+                                            {/* {!isSVG && (
                                                 <button
                                                     className="ai-suggestion-action-button primary save"
                                                     onClick={() => handleGenerateAltText(group.src, group)}
@@ -340,7 +342,7 @@ export function ImageTable({ images }: ImageTableProps) {
                                                 >
                                                     {isGenerating ? '⏳ Generating...' : '✨ Write Alt Text'}
                                                 </button>
-                                            )}
+                                            )} */}
                                         </div>
                                     </div>
                                 </td>
