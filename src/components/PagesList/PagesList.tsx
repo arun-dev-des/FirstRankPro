@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { Page, PublishInfo } from '../../types/page'
 import { PageItem } from './PageItem'
 import { PageDataService } from '../../services/pageDataService'
@@ -53,11 +53,6 @@ export function PagesList({ pages, publishInfo, onPageSelect, searchTerm }: Page
         ), [pages, searchTerm]
     )
 
-    // Create stable callback functions to prevent unnecessary re-renders
-    const createPageSelectHandler = useCallback((page: Page) => {
-        return () => onPageSelect(page)
-    }, [onPageSelect])
-
     return (
         <div className="pages-list">
             {/* Header row for columns */}
@@ -75,17 +70,14 @@ export function PagesList({ pages, publishInfo, onPageSelect, searchTerm }: Page
                     <p>No pages found. Make sure your project has pages and is published.</p>
                 </div>
             ) : (
-                filteredPages.map((page) => {   
-                    const handleSelect = createPageSelectHandler(page)
-                    return (
-                        <PageItem 
-                            key={page.id}
-                            page={page}
-                            onSelect={handleSelect}
-                            analysisSummary={analysisSummaries[page.id]}
-                        />
-                    )
-                })
+                filteredPages.map((page) => (
+                    <PageItem 
+                        key={page.id}
+                        page={page}
+                        onSelect={onPageSelect}
+                        analysisSummary={analysisSummaries[page.id]}
+                    />
+                ))
             )}
         </div>
     )
