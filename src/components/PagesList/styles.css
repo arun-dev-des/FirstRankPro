@@ -5,6 +5,37 @@
     overflow-y: auto;
 }
 
+.pages-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.header-name {
+    flex: 1;
+}
+
+.header-counts {
+    display: flex;
+    min-width: 240px;
+    justify-content: space-between;
+}
+
+.header-pass,
+.header-warning,
+.header-fail {
+    width: 32px;
+    text-align: center;
+}
+
 .page-name {
     flex: 1;
     font-size: 14px;
@@ -16,6 +47,7 @@
 .page-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     background-color: var(--color-surface);
     gap: 8px;
     padding: 16px;
@@ -34,6 +66,55 @@
     color: var(--color-accent);
 }
 
+.page-item:hover .page-icon svg path {
+    fill: var(--color-accent);
+}
+
+.page-icon svg path {
+    opacity: 0.8;
+}
+
 .page-item.selected {
     background-color: var(--color-border);
+}
+
+.page-icon-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.analysis-counts {
+    display: flex;
+    min-width: 240px;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.count-pass,
+.count-warning,
+.count-fail {
+    width: 32px;
+    text-align: center;
+    padding: 2px 2px;
+    border-radius: 4px;
+    font-variant-numeric: tabular-nums;
+    min-width: 40px;
+}
+
+.count-pass {
+    color: #d1fae5;
+    background: #0d100e;
+}
+
+.count-warning {
+    color: #d97706;
+    background: #0f0f0c;
+}
+
+.count-fail {
+    color: #dc2626;
+    background: #141111;
 }

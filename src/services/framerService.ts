@@ -5,10 +5,10 @@ export class FramerService {
     static async getPublishInfo(): Promise<PublishInfo> {
         try {
             const info = await framer.getPublishInfo()
-            console.log('🔄 Raw publish info from Framer:', info)
+            // console.log('🔄 Raw publish info from Framer:', info)
             return info
         } catch (error) {
-            console.error('❌ Error getting publish info:', error)
+            // console.error('❌ Error getting publish info:', error)
             throw error
         }
     }
