@@ -27,13 +27,12 @@ export function PagesList({ pages, publishInfo, onPageSelect, searchTerm }: Page
             
             for (const page of pages) {
                 const summary = await PageDataService.getAnalysisSummary(page.id)
-                const isStale = await PageDataService.isAnalysisStale(page.id, currentDeploymentTimes)
                 
-                if (!summary || isStale) {
-                    // No analysis or stale - show dashes
+                if (!summary) {
+                    // No analysis yet - show dashes
                     summaries[page.id] = { pass: '-', fail: '-', warning: '-' }
                 } else {
-                    // Show actual counts
+                    // Always show actual counts, even if site was republished
                     summaries[page.id] = summary.counts
                 }
             }
