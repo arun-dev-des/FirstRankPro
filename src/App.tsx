@@ -1,12 +1,10 @@
 import { framer } from "framer-plugin"
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { usePages } from './hooks/usePages'
 import { Page } from './types/page'
 import { PagesList } from './components/PagesList/PagesList'
 import { SEOAnalysis } from './components/SEOAnalysis/SEOAnalysis'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
-import { PageDataService } from './services/pageDataService'
-import { cleanupOldEntries } from './services/framerStorage'
 
 import './App.css'
 
@@ -26,34 +24,14 @@ export function App() {
     const [selectedPage, setSelectedPage] = useState<Page | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     
-    const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
+    // const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
+    const { pages, publishInfo, loading, error } = usePages(false)
 
-    // Temporarily disabled polling for CSS debugging
-    // const { pages, publishInfo, loading, error } = usePages(false)
-
-    // Initialize: Clean up old entries and migrate data (runs once on mount)
-    useEffect(() => {
-        const initializeStorage = async () => {
-            try {
-                // Clean up old storage entries
-                await cleanupOldEntries()
-                
-                // Migrate data from frame-rank to first-rank
-                await PageDataService.migrateOldData()
-                
-                console.log('✅ Storage initialization complete')
-            } catch (err) {
-                console.error('❌ Storage initialization failed:', err)
-            }
-        }
-        
-        initializeStorage()
-    }, [])
-
-    const handlePageSelect = (page: Page) => {
+    // Memoize the page select handler to prevent unnecessary re-renders
+    const handlePageSelect = useCallback((page: Page) => {
         setSelectedPage(page)
         setCurrentView('analysis')
-    }
+    }, [])
     
     // Memoize deployment times to prevent unnecessary updates
     const rootDeploymentTimes = useMemo(() => ({
@@ -102,9 +80,6 @@ export function App() {
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             className="search-input"
                                         />
-                                    </div>
-                                    <div className="pages-header-title">
-                                        Pages
                                     </div>
                                     <PagesList 
                                         pages={pages}

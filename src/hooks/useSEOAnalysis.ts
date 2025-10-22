@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { SEOAnalysis } from '../types/seo'
 import { Page } from '../types/page'
 import { SEOService } from '../services/seoService'
+import { PageDataService } from '../services/pageDataService'
 import { computeAnalysisDecision, type AnalysisState, getCachedState, setCachedState, getCachedAnalysis, setCachedAnalysis, sameTimes, clearAnalysisCache } from '../lib/analysisCache'
 
 export function useSEOAnalysis(
@@ -76,6 +77,16 @@ export function useSEOAnalysis(
             // Set and cache the new analysis with composite key (url + keyword + times)
             setAnalysis(result)
             setCachedAnalysis(url, keyword, deploymentTimes, result)
+            
+            // Save analysis summary to Framer storage
+            if (page?.id && deploymentTimes) {
+                await PageDataService.updateAnalysisSummary(
+                    page.id,
+                    result.checks,
+                    result.score,
+                    deploymentTimes
+                )
+            }
             
             // Update state cache with new times
             const state: AnalysisState = { url, keyword, times: deploymentTimes }
