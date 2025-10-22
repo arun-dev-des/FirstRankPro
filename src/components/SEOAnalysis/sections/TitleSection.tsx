@@ -1,5 +1,5 @@
-import { HelpIcon, GoodVsBadIcon } from '../../../assets/icons'
-// import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
+import { HelpIcon, GoodVsBadIcon, MagicWandIcon } from '../../../assets/icons'
+import type { UseAIGenerationReturn } from '../../../hooks/useAIGeneration'
 import { Accordion } from '../../common/Accordion'
 import { StatusBadge } from '../shared/StatusBadge'
 import { SearchPreview } from '../shared/SearchPreview'
@@ -11,10 +11,10 @@ interface TitleSectionProps {
     pageName: string
     title: string
     metaDescription: string
-    // ai?: UseAIGenerationReturn
+    ai?: UseAIGenerationReturn
 }
 
-export function TitleSection({ status, description, pageName, title, metaDescription }: TitleSectionProps) {
+export function TitleSection({ status, description, pageName, title, metaDescription, ai }: TitleSectionProps) {
     return (
         <div className="optimization-section">
             <StatusBadge status={status} description={description} />
@@ -40,8 +40,7 @@ export function TitleSection({ status, description, pageName, title, metaDescrip
                 </div>
             )}
 
-            {/* AI Features temporarily disabled for initial release */}
-            {/* <div className="ai-section">
+            <div className="ai-section">
                 <button 
                     className="ai-generate-button"
                     onClick={async () => {
@@ -112,7 +111,7 @@ export function TitleSection({ status, description, pageName, title, metaDescrip
                     <span>Error: {ai.error}</span>
                     <button onClick={ai.clearError}>Dismiss</button>
                 </div>
-            )} */}
+            )}
 
             <label className="field-label">Learn</label>
             <Accordion 

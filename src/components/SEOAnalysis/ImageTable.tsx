@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { framer } from 'framer-plugin'
 import { SEOImage } from '../../types/seo'
 import { FramerImageService } from '../../services/framerImageService'
-// import { AIService } from '../../services/aiService'
+import { AIService } from '../../services/aiService'
 import { clearAnalysisCache } from '../../lib/analysisCache'
 import './styles.css'
 
@@ -24,7 +24,7 @@ export function ImageTable({ images }: ImageTableProps) {
     const [editingStates, setEditingStates] = useState<{ [key: string]: string }>({})
     const [savingStates, setSavingStates] = useState<{ [key: string]: boolean }>({})
     const [savedAlts, setSavedAlts] = useState<{ [key: string]: string }>({})
-    // const [generatingAlt, setGeneratingAlt] = useState<{ [key: string]: boolean }>({})
+    const [generatingAlt, setGeneratingAlt] = useState<{ [key: string]: boolean }>({})
 
     // Helper function to detect if image is SVG
     const isSVG = (src: string): boolean => {
@@ -155,8 +155,7 @@ export function ImageTable({ images }: ImageTableProps) {
         return group.alt || ''
     }
 
-    // AI Features temporarily disabled for initial release
-    /* const handleGenerateAltText = async (src: string, group: GroupedImage) => {
+    const handleGenerateAltText = async (src: string, group: GroupedImage) => {
         if (group.nodeIds.length === 0) {
             framer.notify('Cannot generate: No node ID for image', { variant: 'error' })
             return
@@ -249,7 +248,7 @@ export function ImageTable({ images }: ImageTableProps) {
         } finally {
             setGeneratingAlt(prev => ({ ...prev, [src]: false }))
         }
-    } */
+    }
 
 
     if (images.length === 0) {
@@ -273,8 +272,8 @@ export function ImageTable({ images }: ImageTableProps) {
                     {groupedImages.map((group, index) => {
                         const currentAltText = getCurrentAltText(group.src, group)
                         const isSaving = savingStates[group.src]
-                        // const isGenerating = generatingAlt[group.src]
-                        // const isSVG = group.imageType === 'SVG'
+                        const isGenerating = generatingAlt[group.src]
+                        const isSVG = group.imageType === 'SVG'
 
                         return (
                             <tr key={index} className="image-table-row">
@@ -332,8 +331,7 @@ export function ImageTable({ images }: ImageTableProps) {
                                                 {isSaving ? '⏳ Saving...' : '💾 Save'}
                                             </button>
 
-                                            {/* AI Features temporarily disabled for initial release */}
-                                            {/* {!isSVG && (
+                                            {!isSVG && (
                                                 <button
                                                     className="ai-suggestion-action-button primary save"
                                                     onClick={() => handleGenerateAltText(group.src, group)}
@@ -342,7 +340,7 @@ export function ImageTable({ images }: ImageTableProps) {
                                                 >
                                                     {isGenerating ? '⏳ Generating...' : '✨ Write Alt Text'}
                                                 </button>
-                                            )} */}
+                                            )}
                                         </div>
                                     </div>
                                 </td>
