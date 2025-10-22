@@ -90,7 +90,7 @@ export function ImageTable({ images }: ImageTableProps) {
 
     const handleSave = async (src: string, group: GroupedImage) => {
         if (group.nodeIds.length === 0) {
-            console.error('Cannot save: no nodeIds for image')
+            // console.error('Cannot save: no nodeIds for image')
             return
         }
 
@@ -130,7 +130,7 @@ export function ImageTable({ images }: ImageTableProps) {
             // No need to trigger immediate re-analysis - UI updates via state
             clearAnalysisCache()
         } catch (error) {
-            console.error('Failed to save alt text:', error)
+            // console.error('Failed to save alt text:', error)
             
             // Show more specific error message based on error type
             if (error instanceof Error) {
@@ -319,13 +319,13 @@ export function ImageTable({ images }: ImageTableProps) {
                                             placeholder="No Alt Text"
                                             className="alt-text-input"
                                             rows={2}
-                                            disabled={isSaving || isGenerating || group.nodeIds.length === 0 || group.isLocked}
+                                            disabled={isSaving || group.nodeIds.length === 0 || group.isLocked}
                                         />
                                         <div className="ai-suggestion-char-button-group">
                                             <button
                                                 className="ai-suggestion-action-button primary save"
                                                 onClick={() => handleSave(group.src, group)}
-                                                disabled={isSaving || isGenerating}
+                                                disabled={isSaving}
                                                 title="Save alt text"
                                             >
                                                 {isSaving ? '⏳ Saving...' : '💾 Save'}

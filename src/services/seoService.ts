@@ -36,7 +36,7 @@ export class SEOService {
             return null
         }
         
-        console.log(`✅ HTML cache HIT for ${url} (age: ${Math.round(age/1000)}s)`)
+        // console.log(`✅ HTML cache HIT for ${url} (age: ${Math.round(age/1000)}s)`)
         return cached.html
     }
 
@@ -55,7 +55,7 @@ export class SEOService {
     // Add method to clear cache when deployment time changes
     static clearHTMLCache(): void {
         this.htmlCache.clear()
-        console.log('🗑️ HTML cache cleared due to deployment update')
+        // console.log('🗑️ HTML cache cleared due to deployment update')
     }
 
     static async fetchPageHTML(url: string): Promise<string> {
@@ -63,12 +63,13 @@ export class SEOService {
         const cached = this.getCachedHTML(url)
         if (cached) return cached
         
-        console.log(`🔍 Fetching HTML for: ${url}`)
+        // console.log(`🔍 Fetching HTML for: ${url}`)
 
         try {
             // Add cache-busting timestamp (changed from Date.now())
             const cacheBuster = Math.floor(Date.now() / 60000) // 60-second cache window
-            const proxyUrl = `${this.PROXY_URL}?url=${encodeURIComponent(url)}&t=${cacheBuster}`
+            // Add allow404 parameter to tell proxy to return HTML for 404 pages
+            const proxyUrl = `${this.PROXY_URL}?url=${encodeURIComponent(url)}&t=${cacheBuster}&allow404=true`
             
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
@@ -83,6 +84,44 @@ export class SEOService {
                 })
 
                 if (!response.ok) {
+                    // Special handling for 404 pages - they're valid pages that return 404 status
+                    if (response.status === 404) {
+                        const contentType = response.headers.get('content-type') || ''
+                        // console.log(`⚠️ Received 404 response. Content-Type: ${contentType}`)
+                        
+                        // If content-type is HTML, the proxy passed through the 404 page HTML
+                        if (contentType.includes('text/html')) {
+                            const html = await response.text()
+                            if (this.isValidHTML(html)) {
+                                // console.log('✅ Successfully fetched 404 page HTML from proxy')
+                                this.setCachedHTML(url, html)
+                                return html
+                            }
+                        }
+                        
+                        // If proxy returns JSON error for 404, try direct fetch as fallback
+                        if (contentType.includes('application/json')) {
+                            // console.log('⚠️ Proxy returned JSON error for 404 page, trying direct fetch...')
+                            try {
+                                const directResponse = await fetch(url, {
+                                    signal: controller.signal,
+                                    mode: 'cors',
+                                    headers: { 'Accept': 'text/html' }
+                                })
+                                
+                                const html = await directResponse.text()
+                                if (this.isValidHTML(html)) {
+                                    // console.log('✅ Successfully fetched 404 page content via direct fetch')
+                                    this.setCachedHTML(url, html)
+                                    return html
+                                }
+                            } catch (directError) {
+                                // console.error('❌ Direct fetch also failed:', directError)
+                                // Fall through to throw the original proxy error
+                            }
+                        }
+                    }
+                    
                     // Try to get error details from response
                     const contentType = response.headers.get('content-type') || ''
                     if (contentType.includes('application/json')) {
@@ -102,7 +141,7 @@ export class SEOService {
                 // Cache the result
                 this.setCachedHTML(url, html)
                 
-                console.log('✅ Successfully fetched HTML via Vercel proxy')
+                // console.log('✅ Successfully fetched HTML via Vercel proxy')
                 return html
 
             } finally {
@@ -333,7 +372,7 @@ export class SEOService {
     }
 
     private static performChecks(data: ExtractedSEOData, keyword: string, url: string): SEOCheck[] {
-        console.log('🚀 performChecks method called!', { data, keyword, url })
+        // console.log('🚀 performChecks method called!', { data, keyword, url })
         
         const checks: SEOCheck[] = []
         
@@ -484,7 +523,7 @@ export class SEOService {
         pageId?: string
     ): Promise<SEOAnalysis> {
         try {
-            console.log('🔍 Starting SEO analysis with deployment times:', deploymentTimes)
+            // console.log('🔍 Starting SEO analysis with deployment times:', deploymentTimes)
 
             // Ensure keyword is always a string (defensive programming)
             const safeKeyword = focusKeyword || ''
@@ -500,16 +539,16 @@ export class SEOService {
             if (pageId) {
                 try {
                     const framerImages = await FramerImageService.getPageImages(pageId)
-                    console.log('✅ Using Framer project images for Alt Image analysis')
+                    // console.log('✅ Using Framer project images for Alt Image analysis')
                     extractedData.images = framerImages || []
                 } catch (error) {
-                    console.log('⚠️ Failed to fetch Framer images; using empty image list for this page')
-                    console.log('Error details:', error)
+                    // console.log('⚠️ Failed to fetch Framer images; using empty image list for this page')
+                    // console.log('Error details:', error)
                     extractedData.images = []
                 }
             } else {
                 // No pageId available → do not use HTML images
-                console.log('⚠️ No pageId provided - skipping image analysis')
+                // console.log('⚠️ No pageId provided - skipping image analysis')
                 extractedData.images = []
             }
             
@@ -521,7 +560,7 @@ export class SEOService {
             const hasValidTimes = deploymentTimes && (deploymentTimes.staging || deploymentTimes.production)
             const timesToStore = hasValidTimes ? deploymentTimes : undefined
 
-            console.log('✅ Analysis complete. Storing times:', timesToStore)
+            // console.log('✅ Analysis complete. Storing times:', timesToStore)
             
             return {
                 pageId: url,
@@ -534,7 +573,7 @@ export class SEOService {
                 keywordStats
             }
         } catch (error) {
-            console.error('❌ Error analyzing page:', error)
+            // console.error('❌ Error analyzing page:', error)
             throw error
         }
     }

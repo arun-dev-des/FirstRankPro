@@ -89,7 +89,6 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
             {ai?.generating.h1 ? (
                 <div className="ai-suggestions">
                     <label className="field-label">AI Suggestions</label>
-                    {/* Shimmer skeleton cards */}
                     {[1, 2, 3].map((index) => (
                         <div key={index} className="ai-suggestion-card shimmer">
                             <div className="ai-suggestion-content">

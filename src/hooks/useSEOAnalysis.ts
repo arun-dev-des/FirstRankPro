@@ -26,17 +26,17 @@ export function useSEOAnalysis(
 
         // If analysis is already in progress, skip cache restore
         if (analysisInProgress.current) {
-            console.log('[CACHE TEST] 🔄 Skipping cache restore - analysis in progress')
+            // console.log('[CACHE TEST] 🔄 Skipping cache restore - analysis in progress')
             return
         }
 
         // Restore last analyzed state from cache (for decision logic)
         const cachedState = getCachedState(page.url)
         if (cachedState) {
-            console.log('[CACHE TEST] 📦 Found cached state:', {
-                url: cachedState.url,
-                times: cachedState.times
-            })
+            // console.log('[CACHE TEST] 📦 Found cached state:', {
+            //     url: cachedState.url,
+            //     times: cachedState.times
+            // })
             lastAnalyzed.current = cachedState
         }
 
@@ -47,7 +47,7 @@ export function useSEOAnalysis(
     const analyzePage = useCallback(async (url: string, keyword: string) => {
         // If analysis is already in progress, skip
         if (analysisInProgress.current) {
-            console.log('[CACHE TEST] ⚠️ Analysis already in progress, skipping')
+            // console.log('[CACHE TEST] ⚠️ Analysis already in progress, skipping')
             return
         }
 
@@ -56,7 +56,7 @@ export function useSEOAnalysis(
         if (cachedState && !sameTimes(cachedState.times, deploymentTimes)) {
             SEOService.clearHTMLCache()
             clearAnalysisCache()
-            console.log('[CACHE TEST] 🔄 Deployment time changed, all caches cleared')
+            // console.log('[CACHE TEST] 🔄 Deployment time changed, all caches cleared')
         }
 
         // Set analysis in progress
@@ -64,12 +64,12 @@ export function useSEOAnalysis(
         setLoading(true)
         setError(null)
         
-        console.log('[CACHE TEST] 🔄 Starting fresh analysis:', {
-            url,
-            keyword,
-            deploymentTimes,
-            pageId: page?.id
-        })
+        // console.log('[CACHE TEST] 🔄 Starting fresh analysis:', {
+        //     url,
+        //     keyword,
+        //     deploymentTimes,
+        //     pageId: page?.id
+        // })
 
         try {
             const result = await SEOService.analyzePage(url, keyword || '', deploymentTimes, page?.id)
@@ -93,9 +93,9 @@ export function useSEOAnalysis(
             lastAnalyzed.current = state
             setCachedState(state)
             
-            console.log('[CACHE TEST] ✅ Analysis complete and cached with new times')
+            // console.log('[CACHE TEST] ✅ Analysis complete and cached with new times')
         } catch (err) {
-            console.error('[CACHE TEST] ❌ Analysis failed:', err)
+            // console.error('[CACHE TEST] ❌ Analysis failed:', err)
             setError(err instanceof Error ? err.message : 'Failed to analyze page')
             setAnalysis(null)
         } finally {
@@ -113,39 +113,39 @@ export function useSEOAnalysis(
         if (!next.url) return
 
         if (analysisInProgress.current) {
-            console.log('[CACHE TEST] ⏳ Skipping decision while analysis in progress')
+            // console.log('[CACHE TEST] ⏳ Skipping decision while analysis in progress')
             return
         }
 
         const decision = computeAnalysisDecision(lastAnalyzed.current, next)
-        console.log('[CACHE TEST] 🤔 Analysis decision:', {
-            prev: {
-                url: lastAnalyzed.current?.url,
-                times: lastAnalyzed.current?.times
-            },
-            next: {
-                url: next.url,
-                times: next.times
-            },
-            decision
-        })
+        // console.log('[CACHE TEST] 🤔 Analysis decision:', {
+        //     prev: {
+        //         url: lastAnalyzed.current?.url,
+        //         times: lastAnalyzed.current?.times
+        //     },
+        //     next: {
+        //         url: next.url,
+        //         times: next.times
+        //     },
+        //     decision
+        // })
 
         if (!decision.needsAnalysis) {
             // Even if decision says no analysis needed, check if cache is still valid
             const cachedAnalysis = getCachedAnalysis(next.url, next.keyword, next.times)
             if (!cachedAnalysis) {
-                console.log('[CACHE TEST] ⏰ Cache expired, forcing re-analysis')
+                // console.log('[CACHE TEST] ⏰ Cache expired, forcing re-analysis')
                 analyzePage(next.url, next.keyword)
                 return
             }
             // Cache hit - restore the cached analysis
-            console.log('[CACHE TEST] ✨ Using cached analysis')
+            // console.log('[CACHE TEST] ✨ Using cached analysis')
             setAnalysis(cachedAnalysis)
             return
         }
 
         const reason = decision.reasons[0]
-        console.log(`[CACHE TEST] 🔄 Running analysis due to: ${reason}`)
+        // console.log(`[CACHE TEST] 🔄 Running analysis due to: ${reason}`)
         analyzePage(next.url, next.keyword)
     }, [page?.url, deploymentTimes, analyzePage, focusKeyword]) // ✅ Added focusKeyword to dependencies
 

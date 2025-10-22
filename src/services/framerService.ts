@@ -46,7 +46,7 @@ export class FramerService {
 
             return projectPages
         } catch (error) {
-            console.error('Error fetching pages:', error)
+            // console.error('Error fetching pages:', error)
             throw error
         }
     }

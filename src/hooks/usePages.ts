@@ -28,7 +28,7 @@ export function usePages(shouldPoll: boolean = true) {
                 failedAttempts = 0
                 setError(false)
             } catch (err) {
-                console.error('❌ Error loading pages:', err)
+                // console.error('❌ Error loading pages:', err)
                 failedAttempts++
                 setError(true)
             } finally {

@@ -15,7 +15,7 @@ export class FramerImageService {
             // Check if user has permission to set attributes globally
             const canSetAttributes = framer.isAllowedTo('setAttributes')
             if (!canSetAttributes) {
-                console.warn('⚠️ User does not have permission to set attributes - all images will be read-only')
+                // console.warn('⚠️ User does not have permission to set attributes - all images will be read-only')
             }
             
             // Extract image data with node IDs
@@ -27,13 +27,13 @@ export class FramerImageService {
                 
                 // Debug: Log first node properties to understand lock detection
                 if (index === 0) {
-                    console.log('🔍 Sample node properties:', Object.keys(node))
-                    console.log('🔍 Checking lock properties:', {
-                        locked: node.locked,
-                        isLocked: node.isLocked,
-                        protected: node.protected,
-                        type: node.type
-                    })
+                    // console.log('🔍 Sample node properties:', Object.keys(node))
+                    // console.log('🔍 Checking lock properties:', {
+                    //     locked: node.locked,
+                    //     isLocked: node.isLocked,
+                    //     protected: node.protected,
+                    //     type: node.type
+                    // })
                 }
                 
                 // Check if this specific node is locked
@@ -54,11 +54,11 @@ export class FramerImageService {
             // Log summary
             const lockedCount = images.filter(img => img.isLocked).length
             const editableCount = images.length - lockedCount
-            console.log(`✅ Loaded ${images.length} images (${editableCount} editable, ${lockedCount} locked)`)
+            // console.log(`✅ Loaded ${images.length} images (${editableCount} editable, ${lockedCount} locked)`)
             
             return images
         } catch (error) {
-            console.error('❌ Error fetching images from Framer:', error)
+            // console.error('❌ Error fetching images from Framer:', error)
             // Return empty array on error - will use HTML fallback
             return []
         }
@@ -143,7 +143,7 @@ export class FramerImageService {
             throw new Error(`No image property found`)
 
         } catch (error) {
-            console.error('Failed to update alt text:', error)
+            // console.error('Failed to update alt text:', error)
             throw error
         }
     }

@@ -51,7 +51,7 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
             const parsed = JSON.parse(evidence || '[]')
             return Array.isArray(parsed) ? parsed : []
         } catch (error) {
-            console.error('Error parsing heading issues:', error)
+            // console.error('Error parsing heading issues:', error)
             return []
         }
     }
@@ -396,7 +396,7 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
                             }
                         } catch (error) {
                             // If parsing fails, it means no keyword is set
-                            console.log('No keyword set, showing warning')
+                            // console.log('No keyword set, showing warning')
                         }
                         
                         // Show warning state when no keyword
