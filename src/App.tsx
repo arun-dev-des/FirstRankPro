@@ -78,8 +78,8 @@ export function App() {
                         ) : (
                             <>
                                 <Navbar 
-                                    url={publishInfo?.staging?.url || publishInfo?.production?.url || 'No URL'}
-                                    environment={publishInfo?.staging ? 'STAGING' : 'PRODUCTION'}
+                                    url={publishInfo?.production?.url || publishInfo?.staging?.url || 'No URL'}
+                                    environment={publishInfo?.production?.url ? 'PRODUCTION' : 'STAGING'}
                                     score={75}
                                     onAuditClick={() => {
                                         // Handle audit click

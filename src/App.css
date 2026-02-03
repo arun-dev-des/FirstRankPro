@@ -10,7 +10,7 @@
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
 
-    /* Colors */
+    /* Colors - Dark Mode (default) */
     --color-bg: #10131E;
     --color-surface: #0A0C13;
     --color-border: #141824;
@@ -18,6 +18,79 @@
     --color-text-secondary: #96A2D0;
     --color-text-tertiary: #565E7B;
     --color-accent: #73D5FF;
+    
+    /* Status Colors - Dark Mode */
+    --color-pass: #22C55E;
+    --color-pass-bg: rgba(34, 197, 94, 0.1);
+    --color-pass-text: #E4FFEE;
+    --color-fail: #EF4444;
+    --color-fail-bg: rgba(239, 68, 68, 0.1);
+    --color-fail-text: #FFD9D9;
+    --color-warning: #EAB308;
+    --color-warning-bg: rgba(234, 179, 8, 0.1);
+    --color-warning-text: #FFF6E0;
+    
+    /* UI Elements - Dark Mode */
+    --color-input-bg: var(--color-surface);
+    --color-card-bg: #2a2a2a;
+    --color-pill-bg: #141824;
+}
+
+/* Light Mode - Framer theme attribute */
+[data-framer-theme="light"],
+[data-framer-theme="light"] :root {
+    --color-bg: #FFFFFF;
+    --color-surface: #F7F8FA;
+    --color-border: #E4E7EC;
+    --color-text-primary: #1A1D26;
+    --color-text-secondary: #4A5568;
+    --color-text-tertiary: #9CA3AF;
+    --color-accent: #0D7FE8;
+    
+    /* Status Colors - Light Mode */
+    --color-pass: #16A34A;
+    --color-pass-bg: rgba(34, 197, 94, 0.12);
+    --color-pass-text: #166534;
+    --color-fail: #DC2626;
+    --color-fail-bg: rgba(239, 68, 68, 0.12);
+    --color-fail-text: #991B1B;
+    --color-warning: #CA8A04;
+    --color-warning-bg: rgba(234, 179, 8, 0.12);
+    --color-warning-text: #854D0E;
+    
+    /* UI Elements - Light Mode */
+    --color-input-bg: #FFFFFF;
+    --color-card-bg: #F3F4F6;
+    --color-pill-bg: #E5E7EB;
+}
+
+/* Fallback: prefers-color-scheme for system preference */
+@media (prefers-color-scheme: light) {
+    :root:not([data-framer-theme="dark"]) {
+        --color-bg: #FFFFFF;
+        --color-surface: #F7F8FA;
+        --color-border: #E4E7EC;
+        --color-text-primary: #1A1D26;
+        --color-text-secondary: #4A5568;
+        --color-text-tertiary: #9CA3AF;
+        --color-accent: #0D7FE8;
+        
+        /* Status Colors - Light Mode */
+        --color-pass: #16A34A;
+        --color-pass-bg: rgba(34, 197, 94, 0.12);
+        --color-pass-text: #166534;
+        --color-fail: #DC2626;
+        --color-fail-bg: rgba(239, 68, 68, 0.12);
+        --color-fail-text: #991B1B;
+        --color-warning: #CA8A04;
+        --color-warning-bg: rgba(234, 179, 8, 0.12);
+        --color-warning-text: #854D0E;
+        
+        /* UI Elements - Light Mode */
+        --color-input-bg: #FFFFFF;
+        --color-card-bg: #F3F4F6;
+        --color-pill-bg: #E5E7EB;
+    }
 }
 
 /* Global styles */

@@ -12,7 +12,7 @@
     padding: 8px 16px;
     font-size: 11px;
     font-weight: 600;
-    color: #666;
+    color: var(--color-text-tertiary);
     border-bottom: 1px solid var(--color-border);
     background-color: var(--color-surface);
     text-transform: uppercase;
@@ -105,16 +105,16 @@
 }
 
 .count-pass {
-    color: #d1fae5;
-    background: #0d100e;
+    color: var(--color-pass-text);
+    background: var(--color-pass-bg);
 }
 
 .count-warning {
-    color: #d97706;
-    background: #0f0f0c;
+    color: var(--color-warning-text);
+    background: var(--color-warning-bg);
 }
 
 .count-fail {
-    color: #dc2626;
-    background: #141111;
+    color: var(--color-fail-text);
+    background: var(--color-fail-bg);
 }

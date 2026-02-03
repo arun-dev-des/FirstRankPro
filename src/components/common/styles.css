@@ -5,14 +5,14 @@
     justify-content: center;
     height: 100%;
     gap: 16px;
-    color: #888;
+    color: var(--color-text-tertiary);
 }
 
 .spinner {
     width: 24px;
     height: 24px;
-    border: 2px solid #333;
-    border-top: 2px solid #6366f1;
+    border: 2px solid var(--color-border);
+    border-top: 2px solid var(--color-accent);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -27,10 +27,10 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    background-color: #2a1f1f;
-    border: 1px solid #ef4444;
+    background-color: var(--color-fail-bg);
+    border: 1px solid var(--color-fail);
     border-radius: 6px;
-    color: #ef4444;
+    color: var(--color-fail-text);
     font-size: 13px;
     margin-bottom: 12px;
 }
@@ -41,7 +41,7 @@
 
 /* Skeleton Loading Styles */
 .skeleton {
-    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;
@@ -79,7 +79,7 @@
 .skeleton-title {
     height: 24px;
     width: 40%;
-    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;
@@ -88,7 +88,7 @@
 .skeleton-line {
     height: 12px;
     width: 100%;
-    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 4px;
@@ -105,7 +105,7 @@
 .skeleton-box {
     height: 80px;
     width: 100%;
-    background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+    background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: 6px;
