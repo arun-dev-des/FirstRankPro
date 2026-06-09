@@ -4,13 +4,21 @@ A comprehensive SEO analysis tool for Framer websites that helps you optimize yo
 
 ## Screenshots
 
-Multi-page SEO overview with per-page pass / warning / fail counts:
+**Quick Summary of SEO Checklist** — at-a-glance status for keyword, title, description, H1, heading counts, keyword placement, image alts, content length, and a SERP preview:
 
-![First Rank Pro — multi-page SEO dashboard](docs/dashboard.png)
+![Quick Summary of SEO Checklist](docs/01-quick-summary.png)
 
-Detailed per-page analysis — heading hierarchy, title, meta description, keyword placement, image alt text, and more:
+**Robust Heading Hierarchy Check** — flags multiple H1s and level jumps, with a full H1–H6 outline:
 
-![First Rank Pro — detailed page analysis](docs/detail.png)
+![Robust Heading Hierarchy Check](docs/02-heading-hierarchy.png)
+
+**Alt Text, SEO Coaching & SERP Preview** — per-image alt-text editing, good-vs-bad guidance, and a live search-result preview:
+
+![Alt Text, SEO Coaching & SERP Preview](docs/03-alt-text-coaching-serp.png)
+
+**Page-by-Page Checklist Summary** — pass / warning / fail counts across every page in your site:
+
+![Page-by-Page Checklist Summary](docs/04-page-checklist.png)
 
 ## Features
 
