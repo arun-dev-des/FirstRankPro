@@ -22,7 +22,10 @@ import { parseUrlSegments } from './seo/urlParser'
 
 export class SEOService {
     private static readonly PROXY_URL = 'https://first-rank-proxy.vercel.app/api/proxy'
-    private static readonly TIMEOUT = 10000 // 10 seconds
+    // Must exceed the proxy's own 15s upstream timeout, otherwise the client aborts
+    // first and the user sees a confusing "The user aborted a request" instead of the
+    // proxy's real response or its 504. Extra headroom covers Vercel cold starts.
+    private static readonly TIMEOUT = 20000 // 20 seconds
     private static readonly HTML_CACHE_TTL = 10 * 60 * 1000 // 10 minutes
     private static htmlCache = new Map<string, { html: string; timestamp: number }>()
 
@@ -151,6 +154,20 @@ export class SEOService {
         } catch (error) {
             // console.error('❌ Error fetching HTML:', error)
             if (error instanceof Error) {
+                // AbortError = our own TIMEOUT fired (request took longer than TIMEOUT ms)
+                if (error.name === 'AbortError') {
+                    throw new Error(
+                        `Failed to fetch page content: timed out after ${this.TIMEOUT / 1000}s fetching ${url}. ` +
+                        `The page may be slow, very large, behind bot protection, or not published yet. Please try again.`
+                    )
+                }
+                // Network-level failure (offline, blocked, CORS) surfaces as TypeError "Failed to fetch"
+                if (error.name === 'TypeError') {
+                    throw new Error(
+                        `Failed to fetch page content: could not reach the proxy (${error.message}) for ${url}. ` +
+                        `Check your connection and that the page is published.`
+                    )
+                }
                 throw new Error(`Failed to fetch page content: ${error.message}`)
             } else {
                 throw new Error('Failed to fetch page content: Unknown error')

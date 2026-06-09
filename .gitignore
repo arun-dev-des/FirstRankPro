@@ -31,3 +31,7 @@ yarn-error.log\*
 # Packed plugin
 
 plugin.zip
+
+# Local dev-only Vite config (machine-specific cert paths)
+
+vite.dev-frp.config.ts

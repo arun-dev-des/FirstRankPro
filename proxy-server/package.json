@@ -1,0 +1,22 @@
+{
+    "name": "riseup-seo-proxy",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "deploy": "vercel deploy --prod"
+    },
+    "dependencies": {
+        "@anthropic-ai/sdk": "^0.67.0",
+        "@vercel/edge": "^1.0.0",
+        "next": "^14.0.0",
+        "openai": "^6.5.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.3.0",
+        "@types/react": "^19.1.10",
+        "@types/react-dom": "^19.1.7",
+        "typescript": "^5.9.2"
+    }
+}

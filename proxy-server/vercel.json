@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "functions": {
+      "pages/api/proxy.ts": {
+        "memory": 1024,
+        "maxDuration": 30
+      },
+      "pages/api/ai-generate.ts": {
+        "memory": 1024,
+        "maxDuration": 30
+      }
+    },
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
