@@ -2,6 +2,16 @@
 
 A comprehensive SEO analysis tool for Framer websites that helps you optimize your pages for search engines.
 
+## Screenshots
+
+Multi-page SEO overview with per-page pass / warning / fail counts:
+
+![First Rank Pro — multi-page SEO dashboard](docs/dashboard.png)
+
+Detailed per-page analysis — heading hierarchy, title, meta description, keyword placement, image alt text, and more:
+
+![First Rank Pro — detailed page analysis](docs/detail.png)
+
 ## Features
 
 ### Current Features
