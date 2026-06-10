@@ -1,15 +1,16 @@
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import SyncRoundedIcon from '@mui/icons-material/SyncRounded';
+import { SyncIcon, SunIcon, MoonIcon } from '../../assets/icons/index.tsx';
+import type { Theme } from '../../hooks/useTheme';
 
 interface NavbarProps {
     url: string;
     environment: 'STAGING' | 'PRODUCTION';
     score?: number;
+    theme: Theme;
     onAuditClick: () => void;
-    onChangeAuditLink: () => void;
+    onToggleTheme: () => void;
 }
 
-export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAuditLink }: NavbarProps) {
+export function Navbar({ url, environment, theme, onAuditClick, onToggleTheme }: NavbarProps) {
     return (
         <nav className="navbar">
             <div className="navbar-content">
@@ -17,25 +18,25 @@ export function Navbar({ url, environment, score = 0, onAuditClick, onChangeAudi
                 <span className="navbar-environment">
                     {environment}
                 </span>
+                <button
+                    className="navbar-theme-toggle"
+                    onClick={onToggleTheme}
+                    title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                    aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                    {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                </button>
             </div>
 
-            {/* <div className="navbar-actions">
-                <button 
-                    onClick={onChangeAuditLink}
-                    className="navbar-button"
-                >
-                    <EditRoundedIcon sx={{ fontSize: 16 }} />
-                    CHANGE AUDIT LINK
-                </button>
-
-                <button 
+            <div className="navbar-actions">
+                <button
                     onClick={onAuditClick}
                     className="navbar-button"
                 >
-                    <SyncRoundedIcon sx={{ fontSize: 16 }} />
-                    RUN AUDIT
+                    <SyncIcon />
+                    RESCAN
                 </button>
-            </div> */}
+            </div>
         </nav>
     );
 }

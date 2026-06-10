@@ -103,7 +103,7 @@
 
 /* Issue highlighting */
 .heading-tree-item.has-issue {
-    border-left: 2px solid #D09500;
+    border-left: 2px solid var(--color-warning-strong);
     padding-left: 12px;
     margin-left: 0 !important;
     border-radius: 4px;
@@ -119,12 +119,12 @@
 }
 
 @keyframes highlight-pulse {
-    0%, 100% { background-color: #5c4714; }
+    0%, 100% { background-color: var(--color-highlight-pulse); }
 }
 
 .heading-level-badge.has-issue {
-    background-color: #D09500;
-    color: white;
+    background-color: var(--color-warning-strong);
+    color: var(--color-warning-strong-text);
     font-weight: 600;
 }
 

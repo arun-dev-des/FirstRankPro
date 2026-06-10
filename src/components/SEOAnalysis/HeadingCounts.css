@@ -36,7 +36,7 @@
 
 .h1-supporting-text {
     font-size: 14px;
-    color: #FFD9D9;
+    color: var(--color-fail-text);
 }
 
 
@@ -49,25 +49,25 @@
 }
 
 .heading-count-container.fail{
-    background-color: #980000;
+    background-color: var(--color-fail-strong);
 }
 
 .heading-count-container.fail .heading-level-badge-container {
-    color: #fff;
+    color: var(--color-fail-strong-text);
 }
 
 .heading-count-container.fail .heading-count-number-container {
-    color: #fff;
+    color: var(--color-fail-strong-text);
 }
 
 .heading-count-container.warning{
-    background-color: #D09500;
+    background-color: var(--color-warning-strong);
 }
 
 .heading-count-container.warning .heading-level-badge-container {
-    color: #fff;
+    color: var(--color-warning-strong-text);
 }
 
 .heading-count-container.warning .heading-count-number-container {
-    color: #fff;
+    color: var(--color-warning-strong-text);
 }

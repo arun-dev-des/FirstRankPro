@@ -1,6 +1,7 @@
 import { framer } from "framer-plugin"
 import { useState, useMemo, useCallback } from 'react'
 import { usePages } from './hooks/usePages'
+import { useTheme } from './hooks/useTheme'
 import { Page } from './types/page'
 import { PagesList } from './components/PagesList/PagesList'
 import { SEOAnalysis } from './components/SEOAnalysis/SEOAnalysis'
@@ -24,8 +25,8 @@ export function App() {
     const [selectedPage, setSelectedPage] = useState<Page | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     
-    const { pages, publishInfo, loading, error } = usePages(currentView === 'pages')
-    // const { pages, publishInfo, loading, error } = usePages(false)
+    const { pages, publishInfo, loading, error, refresh } = usePages()
+    const { theme, toggleTheme } = useTheme()
 
     // Memoize the page select handler to prevent unnecessary re-renders
     const handlePageSelect = useCallback((page: Page) => {
@@ -77,16 +78,13 @@ export function App() {
                             </div>
                         ) : (
                             <>
-                                <Navbar 
+                                <Navbar
                                     url={publishInfo?.production?.url || publishInfo?.staging?.url || 'No URL'}
                                     environment={publishInfo?.production?.url ? 'PRODUCTION' : 'STAGING'}
                                     score={75}
-                                    onAuditClick={() => {
-                                        // Handle audit click
-                                    }}
-                                    onChangeAuditLink={() => {
-                                        // Handle change audit link
-                                    }}
+                                    theme={theme}
+                                    onAuditClick={() => { void refresh() }}
+                                    onToggleTheme={toggleTheme}
                                 />
                                 <div className="pages-content">
                                     <div className="search-container">

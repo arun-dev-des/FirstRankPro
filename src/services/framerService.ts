@@ -13,6 +13,14 @@ export class FramerService {
         }
     }
 
+    // Subscribe to live publish-info changes. Framer invokes the callback
+    // immediately with the current value, then again on every (re)publish —
+    // so the displayed domain self-corrects the moment a custom domain goes live.
+    // Returns an unsubscribe function.
+    static subscribeToPublishInfo(callback: (info: PublishInfo) => void): () => void {
+        return framer.subscribeToPublishInfo(callback)
+    }
+
     static async getPages(): Promise<Page[]> {
         try {
             const pubInfo = await this.getPublishInfo()

@@ -135,6 +135,25 @@ export const PageIcon: FC<IconProps> = () => (
     </svg>
 );
 
+export const SunIcon: FC<IconProps> = ({ className }) => (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+    </svg>
+);
+
+export const MoonIcon: FC<IconProps> = ({ className }) => (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+);
+
+export const SyncIcon: FC<IconProps> = ({ className }) => (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
+    </svg>
+);
+
 export const FrontArrowIcon: FC<IconProps> = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M13.9438 9.0827L9.53933 4.55853C9.35955 4.37387 9.27341 4.15843 9.2809 3.91222C9.28839 3.66601 9.38202 3.45057 9.5618 3.26591C9.74157 3.09664 9.95131 3.00816 10.191 3.00046C10.4307 2.99277 10.6405 3.08125 10.8202 3.26591L16.7528 9.35969C16.8427 9.45202 16.9064 9.55205 16.9438 9.65976C16.9813 9.76748 17 9.8829 17 10.006C17 10.1291 16.9813 10.2445 16.9438 10.3522C16.9064 10.46 16.8427 10.56 16.7528 10.6523L10.8202 16.7461C10.6554 16.9154 10.4494 17 10.2022 17C9.95506 17 9.74157 16.9154 9.5618 16.7461C9.38202 16.5614 9.29213 16.3421 9.29213 16.0882C9.29213 15.8343 9.38202 15.615 9.5618 15.4304L13.9438 10.9293L3.89888 10.9293C3.6442 10.9293 3.43071 10.8408 3.25843 10.6639C3.08614 10.4869 3 10.2676 3 10.006C3 9.7444 3.08614 9.52512 3.25843 9.34815C3.43071 9.17118 3.6442 9.0827 3.89888 9.0827L13.9438 9.0827Z" fill="#96A2D0"/>
