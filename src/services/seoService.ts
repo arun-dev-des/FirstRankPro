@@ -21,10 +21,12 @@ import { extractBodyTextExcerpt } from './seo/textExtractor'
 import { parseUrlSegments } from './seo/urlParser'
 
 export class SEOService {
-    private static readonly PROXY_URL = 'https://first-rank-proxy.vercel.app/api/proxy'
-    // Must exceed the proxy's own 15s upstream timeout, otherwise the client aborts
-    // first and the user sees a confusing "The user aborted a request" instead of the
-    // proxy's real response or its 504. Extra headroom covers Vercel cold starts.
+    // Framer's own CORS proxy (the same worker official plugins use) is the default.
+    // Override with any transparent CORS-proxy prefix: the target URL is appended raw.
+    private static readonly PROXY_URL_PREFIX =
+        import.meta.env.VITE_PROXY_URL || 'https://framer-cors-proxy.framer-team.workers.dev/?'
+    // Generous timeout so slow or very large pages surface a real response (or the
+    // proxy's own error) instead of a confusing client-side abort.
     private static readonly TIMEOUT = 20000 // 20 seconds
     private static readonly HTML_CACHE_TTL = 10 * 60 * 1000 // 10 minutes
     private static htmlCache = new Map<string, { html: string; timestamp: number }>()
@@ -69,10 +71,10 @@ export class SEOService {
         // console.log(`🔍 Fetching HTML for: ${url}`)
 
         try {
-            // Add cache-busting timestamp (changed from Date.now())
-            const cacheBuster = Math.floor(Date.now() / 60000) // 60-second cache window
-            // Add allow404 parameter to tell proxy to return HTML for 404 pages
-            const proxyUrl = `${this.PROXY_URL}?url=${encodeURIComponent(url)}&t=${cacheBuster}&allow404=true`
+            // The proxy is transparent: it forwards status and body verbatim (including
+            // 404 pages with their HTML), so the target URL is appended as-is. Freshness
+            // is handled by our own in-memory cache plus 'no-store' below.
+            const proxyUrl = `${this.PROXY_URL_PREFIX}${url}`
             
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
@@ -81,6 +83,7 @@ export class SEOService {
                 const response = await fetch(proxyUrl, {
                     signal: controller.signal,
                     mode: 'cors',
+                    cache: 'no-store',
                     headers: {
                         'Accept': 'text/html'
                     }
