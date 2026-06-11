@@ -113,24 +113,24 @@ export function FocusKeywordSection({
                 </div>
             </div>
 
-            <div className="ai-section">
-                <button 
-                    className="ai-generate-button"
-                    onClick={async () => {
-                        if (ai) {
+            {ai && (
+                <div className="ai-section">
+                    <button
+                        className="ai-generate-button"
+                        onClick={async () => {
                             try {
                                 await ai.generate('keyword')
                             } catch (error) {
                                 console.error('Error generating keyword:', error)
                             }
-                        }
-                    }}
-                    disabled={!ai || ai.generating.keyword}
-                >
-                    <MagicWandIcon />
-                    {ai?.generating.keyword ? 'Generating...' : 'Generate new Main Keyword'}
-                </button>
-            </div>
+                        }}
+                        disabled={ai.generating.keyword}
+                    >
+                        <MagicWandIcon />
+                        {ai.generating.keyword ? 'Generating...' : 'Generate new Main Keyword'}
+                    </button>
+                </div>
+            )}
 
             {ai?.generating.keyword ? (
                 <div className="ai-suggestions">

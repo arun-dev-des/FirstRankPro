@@ -67,24 +67,24 @@ export function H1Section({ status, description, headings, h1Text, ai }: H1Secti
                 </div>
             )}
 
-            <div className="ai-section">
-                <button 
-                    className="ai-generate-button"
-                    onClick={async () => {
-                        if (ai) {
+            {ai && (
+                <div className="ai-section">
+                    <button
+                        className="ai-generate-button"
+                        onClick={async () => {
                             try {
                                 await ai.generate('h1')
                             } catch (error) {
                                 console.error('Error generating H1:', error)
                             }
-                        }
-                    }}
-                    disabled={!ai || ai.generating.h1}
-                >
-                    <MagicWandIcon />
-                    {ai?.generating.h1 ? 'Generating...' : 'Generate new H1 Heading'}
-                </button>
-            </div>
+                        }}
+                        disabled={ai.generating.h1}
+                    >
+                        <MagicWandIcon />
+                        {ai.generating.h1 ? 'Generating...' : 'Generate new H1 Heading'}
+                    </button>
+                </div>
+            )}
 
             {ai?.generating.h1 ? (
                 <div className="ai-suggestions">

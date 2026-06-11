@@ -11,6 +11,7 @@ import { QuickSummarySection } from './sections/QuickSummarySection'
 import './styles.css'
 import { BackIcon } from '../../assets/icons'
 import { PageDataService } from '../../services/pageDataService'
+import { AI_GENERATION_ENABLED } from '../../config/featureFlags'
 
 interface SEOAnalysisProps {
     page: Page
@@ -204,7 +205,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
                                 extractedData={analysis.extractedData}
                                 triggerKeywordAnalysis={triggerKeywordAnalysis}
                                 pageId={page.id}
-                                ai={ai}
+                                ai={AI_GENERATION_ENABLED ? ai : undefined}
                             />
                         )}
                     </div>

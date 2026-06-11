@@ -40,24 +40,24 @@ export function MetaDescriptionSection({ status, description, pageName, title, m
                 </div>
             )}
 
-            <div className="ai-section">
-                <button 
-                    className="ai-generate-button"
-                    onClick={async () => {
-                        if (ai) {
+            {ai && (
+                <div className="ai-section">
+                    <button
+                        className="ai-generate-button"
+                        onClick={async () => {
                             try {
                                 await ai.generate('meta', pageName)
                             } catch (error) {
                                 console.error('Error generating meta description:', error)
                             }
-                        }
-                    }}
-                    disabled={!ai || ai.generating.meta}
-                >
-                    <MagicWandIcon />
-                    {ai?.generating.meta ? 'Generating...' : 'Generate new Description'}
-                </button>
-            </div>
+                        }}
+                        disabled={ai.generating.meta}
+                    >
+                        <MagicWandIcon />
+                        {ai.generating.meta ? 'Generating...' : 'Generate new Description'}
+                    </button>
+                </div>
+            )}
 
             {ai?.generating.meta ? (
                 <div className="ai-suggestions">

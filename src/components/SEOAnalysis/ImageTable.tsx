@@ -4,6 +4,7 @@ import { SEOImage } from '../../types/seo'
 import { FramerImageService } from '../../services/framerImageService'
 import { AIService } from '../../services/aiService'
 import { clearAnalysisCache } from '../../lib/analysisCache'
+import { AI_GENERATION_ENABLED } from '../../config/featureFlags'
 import './styles.css'
 
 interface ImageTableProps {
@@ -331,7 +332,7 @@ export function ImageTable({ images }: ImageTableProps) {
                                                 {isSaving ? '⏳ Saving...' : '💾 Save'}
                                             </button>
 
-                                            {!isSVG && (
+                                            {AI_GENERATION_ENABLED && !isSVG && (
                                                 <button
                                                     className="ai-suggestion-action-button primary save"
                                                     onClick={() => handleGenerateAltText(group.src, group)}

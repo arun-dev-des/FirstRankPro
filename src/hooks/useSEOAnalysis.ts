@@ -144,8 +144,7 @@ export function useSEOAnalysis(
             return
         }
 
-        const reason = decision.reasons[0]
-        // console.log(`[CACHE TEST] 🔄 Running analysis due to: ${reason}`)
+        // console.log(`[CACHE TEST] 🔄 Running analysis due to: ${decision.reasons[0]}`)
         analyzePage(next.url, next.keyword)
     }, [page?.url, deploymentTimes, analyzePage, focusKeyword]) // ✅ Added focusKeyword to dependencies
 

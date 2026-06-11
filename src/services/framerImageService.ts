@@ -51,11 +51,6 @@ export class FramerImageService {
                 }
             })
             
-            // Log summary
-            const lockedCount = images.filter(img => img.isLocked).length
-            const editableCount = images.length - lockedCount
-            // console.log(`✅ Loaded ${images.length} images (${editableCount} editable, ${lockedCount} locked)`)
-            
             return images
         } catch (error) {
             // console.error('❌ Error fetching images from Framer:', error)

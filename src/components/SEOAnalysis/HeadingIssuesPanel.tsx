@@ -7,7 +7,7 @@ interface HeadingIssuesPanelProps {
     onLocateHeading?: (index: number) => void
 }
 
-export function HeadingIssuesPanel({ issues, onLocateHeading }: HeadingIssuesPanelProps) {
+export function HeadingIssuesPanel({ issues }: HeadingIssuesPanelProps) {
     if (issues.length === 0) return null
     
     const getIssueDescription = (issue: HeadingIssue): string => {

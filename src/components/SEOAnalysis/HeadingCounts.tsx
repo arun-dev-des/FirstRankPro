@@ -1,13 +1,11 @@
-import React from 'react';
 import { SEOHeading } from '../../types/seo';
 import './HeadingCounts.css';
 
 interface HeadingCountsProps {
     headings: SEOHeading[];
-    className?: string;
 }
 
-export function HeadingCounts({ headings, className = '' }: HeadingCountsProps) {
+export function HeadingCounts({ headings }: HeadingCountsProps) {
     // Calculate heading counts by level
     const h1s = headings.filter(h => h.level === 'h1' && !h.duplicateOf);
     const h2s = headings.filter(h => h.level === 'h2' && !h.duplicateOf);

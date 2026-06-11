@@ -1,7 +1,7 @@
 import React from 'react'
 import { Page } from '../../types/page'
 import './styles.css'
-import { FrontArrowIcon, HomeIcon, PageIcon } from '@/assets/icons'
+import { HomeIcon, PageIcon } from '@/assets/icons'
 
 interface PageItemProps {
     page: Page

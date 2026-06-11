@@ -229,16 +229,6 @@ body {
     font-weight: var(--font-weight-regular);
 }
 
-.navbar-environment {
-    padding: 4px 8px;
-    font-size: 12px;
-    line-height: 16px;
-    font-weight: var(--font-weight-semibold);
-    background-color: var(--color-border);
-    border-radius: 4px;
-    color: var(--color-text-primary);
-}
-
 .navbar-theme-toggle {
     margin-left: auto;
     display: inline-flex;
@@ -259,6 +249,52 @@ body {
 .navbar-theme-toggle:hover {
     color: var(--color-accent);
     background-color: var(--color-surface);
+}
+
+/* Domain switcher (shown only when more than one distinct domain exists).
+   The visible text + caret hug each other; a transparent native <select>
+   overlays them so clicking the domain opens the picker. */
+.navbar-domain-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    margin-left: -6px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.navbar-domain-switch:hover {
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.navbar-domain-switch:focus-within {
+    border-color: var(--color-accent);
+}
+
+.navbar-domain-caret {
+    color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+
+.navbar-domain-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+}
+
+.navbar-domain-select option {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg);
 }
 
 .navbar-actions {

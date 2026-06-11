@@ -40,24 +40,24 @@ export function TitleSection({ status, description, pageName, title, metaDescrip
                 </div>
             )}
 
-            <div className="ai-section">
-                <button 
-                    className="ai-generate-button"
-                    onClick={async () => {
-                        if (ai) {
+            {ai && (
+                <div className="ai-section">
+                    <button
+                        className="ai-generate-button"
+                        onClick={async () => {
                             try {
                                 await ai.generate('title', pageName)
                             } catch (error) {
                                 console.error('Error generating title:', error)
                             }
-                        }
-                    }}
-                    disabled={!ai || ai.generating.title}
-                >
-                    <MagicWandIcon />
-                    {ai?.generating.title ? 'Generating...' : 'Generate new Title'}
-                </button>
-            </div>
+                        }}
+                        disabled={ai.generating.title}
+                    >
+                        <MagicWandIcon />
+                        {ai.generating.title ? 'Generating...' : 'Generate new Title'}
+                    </button>
+                </div>
+            )}
 
             {ai?.generating.title ? (
                 <div className="ai-suggestions">

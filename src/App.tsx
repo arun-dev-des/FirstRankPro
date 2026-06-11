@@ -25,7 +25,7 @@ export function App() {
     const [selectedPage, setSelectedPage] = useState<Page | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     
-    const { pages, publishInfo, loading, error, refresh } = usePages()
+    const { pages, publishInfo, loading, error, refresh, activeUrl, domains, selectDomain } = usePages()
     const { theme, toggleTheme } = useTheme()
 
     // Memoize the page select handler to prevent unnecessary re-renders
@@ -79,10 +79,11 @@ export function App() {
                         ) : (
                             <>
                                 <Navbar
-                                    url={publishInfo?.production?.url || publishInfo?.staging?.url || 'No URL'}
-                                    environment={publishInfo?.production?.url ? 'PRODUCTION' : 'STAGING'}
+                                    url={activeUrl || 'No URL'}
                                     score={75}
                                     theme={theme}
+                                    domains={domains}
+                                    onDomainChange={selectDomain}
                                     onAuditClick={() => { void refresh() }}
                                     onToggleTheme={toggleTheme}
                                 />
