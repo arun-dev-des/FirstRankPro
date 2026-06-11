@@ -131,8 +131,8 @@ export function ImageTable({ images }: ImageTableProps) {
             // No need to trigger immediate re-analysis - UI updates via state
             clearAnalysisCache()
         } catch (error) {
-            // console.error('Failed to save alt text:', error)
-            
+            console.error('Failed to update alt text:', error)
+
             // Show more specific error message based on error type
             if (error instanceof Error) {
                 if (error.message.includes('insufficient permissions') || error.message.includes('setAttributes')) {
@@ -140,7 +140,7 @@ export function ImageTable({ images }: ImageTableProps) {
                 } else if (error.message.includes('No image property found')) {
                     framer.notify('Cannot edit: Image format not supported', { variant: 'error' })
                 } else {
-                    framer.notify('Failed to update alt text', { variant: 'error' })
+                    framer.notify(`Failed to update alt text: ${error.message}`, { variant: 'error' })
                 }
             } else {
                 framer.notify('Failed to update alt text', { variant: 'error' })

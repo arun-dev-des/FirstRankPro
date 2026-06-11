@@ -420,27 +420,30 @@ export function QuickSummarySection({ analysis, onTabSelect }: QuickSummarySecti
 
             {/* Heading Hierarchy */}
             {hierarchyCheck && (
-                <button 
-                    className="clickable"
-                    onClick={() => onTabSelect?.('hierarchy-check')}
-                >
-                    <div className="field-label-group">
-                        <div className="field-label-group-summary">
-                            <span className="status-icon-small">
-                                    {getStatusIcon(hierarchyCheck.status)}
-                                </span>
-                            <label className={`field-label-summary ${hierarchyCheck.status}`}>
-                                {hierarchyCheck.description}
-                            </label>
+                <>
+                    <button 
+                        className="clickable"
+                        onClick={() => onTabSelect?.('hierarchy-check')}
+                    >
+                        <div className="field-label-group">
+                            <div className="field-label-group-summary">
+                                <span className="status-icon-small">
+                                        {getStatusIcon(hierarchyCheck.status)}
+                                    </span>
+                                <label className={`field-label-summary ${hierarchyCheck.status}`}>
+                                    {hierarchyCheck.description}
+                                </label>
+                            </div>
                         </div>
-                    </div>
+                    </button>
+                    {/* HeadingTree renders its own buttons, so it must not live inside the button above */}
                     <div className="heading-tree-section">
                         <HeadingTree 
                             headings={extractedData.headings} 
                             issues={parseHeadingIssues(hierarchyCheck.evidence)}
                         />
                     </div>
-                </button>
+                </>
             )}
 
             <hr />

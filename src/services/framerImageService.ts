@@ -71,31 +71,35 @@ export class FramerImageService {
         const trimmed = (altText || '').trim()
 
         try {
-            // Get the node from Framer
-            const node = await framer.getNode(nodeId)
-            if (!node) {
-                throw new Error(`Node not found: ${nodeId}`)
-            }
-
             // Check permissions using Framer's official API
             if (!framer.isAllowedTo('setAttributes')) {
                 throw new Error(`insufficient permissions to set attributes`)
             }
 
-            // Try to update backgroundImage first (most common for background images)
-            if (node.backgroundImage) {
-                const clonedImage = node.backgroundImage.cloneWithAttributes({
+            // Resolve the node via the same query that discovered it: getNode() does
+            // not resolve every node getNodesWithAttributeSet() returns (e.g. nodes
+            // on other web pages), which surfaces as "Node not found" on save.
+            const imageNodes = await framer.getNodesWithAttributeSet('backgroundImage')
+            const imageNode = imageNodes.find(candidate => candidate.id === nodeId) as any
+            if (imageNode?.backgroundImage) {
+                const clonedImage = imageNode.backgroundImage.cloneWithAttributes({
                     altText: trimmed
                 })
-                
-                await node.setAttributes({
+
+                await imageNode.setAttributes({
                     backgroundImage: clonedImage
                 })
-                
+
                 if (showNotification) {
                     framer.notify('Alt text updated successfully', { variant: 'success' })
                 }
                 return
+            }
+
+            // Fall back to a direct lookup for component-instance image controls
+            const node = await framer.getNode(nodeId)
+            if (!node) {
+                throw new Error(`Node not found: ${nodeId}`)
             }
 
             // Try to update image control (for image components)
