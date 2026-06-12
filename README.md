@@ -2,6 +2,8 @@
 
 A comprehensive SEO analysis tool for Framer websites that helps you optimize your pages for search engines.
 
+**🚀 Install it from the [Framer Marketplace](https://www.framer.com/marketplace/plugins/first-rank-pro/)**
+
 ## Screenshots
 
 **Quick Summary of SEO Checklist** — at-a-glance status for keyword, title, description, H1, heading counts, keyword placement, image alts, content length, and a SERP preview:
