@@ -63,3 +63,7 @@ For issues or feature requests, please contact support.
 ## Version
 
 0.1.0 - Initial release
+
+## License
+
+[MIT](LICENSE) — free to use, modify, and distribute.
