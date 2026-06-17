@@ -87,8 +87,14 @@ site (all pages)**?
 - **Whole site** → use "Optimize the whole site (all pages)" below — it runs these
   same steps per page with a single publish for the whole batch.
 
-**Step 0 — Baseline.** Call `/api/audit` with the URL + focus keyword. Record
-`score` and `checks` as `before`. State it plainly: "Baseline: **62/100**."
+**Step 0 — Baseline.** Call `/api/audit` with the URL + focus keyword.
+- **If the response has an `error`** (the URL 404s, the project/page isn't published
+  yet, can't be reached, or is invalid), **ABORT the audit**: report the error to the
+  user and make NO edits and NO publish. Never run the fix steps against a page the
+  engine couldn't audit. (For a whole-site run, skip the unreachable page and note
+  it; don't abort the whole batch.)
+- Otherwise record `score` and `checks` as `before` and state it plainly:
+  "Baseline: **62/100**."
 
 **Step 1 — Worklist.** From `before.checks`, take every check with `status` of
 `fail` or `warning`. Sort by `importance` (high → low). Each carries `reason`,
