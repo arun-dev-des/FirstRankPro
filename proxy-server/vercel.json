@@ -8,6 +8,10 @@
       "pages/api/ai-generate.ts": {
         "memory": 1024,
         "maxDuration": 30
+      },
+      "pages/api/audit.ts": {
+        "memory": 1024,
+        "maxDuration": 30
       }
     },
     "env": {

@@ -119,6 +119,7 @@ export function SEOAnalysis({ page, publishInfo, rootDeploymentTimes, onBack }: 
         { id: 'keyword-placement', name: 'Main Keyword Placement' },
         { id: 'image-alts', name: 'Image Alts' },
         { id: 'content-length', name: 'Content Length' },
+        { id: 'structured-data', name: 'Structured Data' },
     ]
 
     // Build display checks from fixed tabs
