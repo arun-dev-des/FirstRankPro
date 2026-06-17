@@ -255,11 +255,26 @@ function performKeywordPlacementChecks(data: ExtractedSEOData, keyword: string):
 
 // ---------- Check orchestration + scoring ----------
 
+export interface RunChecksOptions {
+    /**
+     * Include the "deeper than Framer" checks (e.g. structured-data / JSON-LD).
+     * Defaults to FALSE so the shipped plugin's scoring stays exactly as its
+     * existing users know it. The /api/audit agent path opts in with `true`.
+     */
+    includeDeepChecks?: boolean
+}
+
 /**
  * Run every deterministic SEO check on extracted data.
- * Returns the full ordered `SEOCheck[]` (the same set the plugin renders).
+ * Returns the ordered `SEOCheck[]`. By default this is the foundational set the
+ * plugin renders; pass `{ includeDeepChecks: true }` to add the deeper checks.
  */
-export function runChecks(data: ExtractedSEOData, keyword: string, url: string): SEOCheck[] {
+export function runChecks(
+    data: ExtractedSEOData,
+    keyword: string,
+    url: string,
+    options: RunChecksOptions = {}
+): SEOCheck[] {
     const checks: SEOCheck[] = []
 
     checks.push(...validateFocusKeyword(keyword))
@@ -271,9 +286,11 @@ export function runChecks(data: ExtractedSEOData, keyword: string, url: string):
     checks.push(...validateImageAlts(data.images || []))
     checks.push(...validateContentLength(data.wordCount || 0))
 
-    // Deeper-than-Framer: grade JSON-LD structured data (already parsed). Always
-    // pushed (even on pass) so the score denominator is stable run-to-run.
-    checks.push(...validateStructuredData(data.structuredData || []))
+    if (options.includeDeepChecks) {
+        // Deeper-than-Framer: grade JSON-LD structured data (already parsed).
+        // Always pushed (even on pass) so the score denominator is stable.
+        checks.push(...validateStructuredData(data.structuredData || []))
+    }
 
     return checks
 }

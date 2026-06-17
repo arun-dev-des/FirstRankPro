@@ -167,7 +167,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const doc = dom.window.document as unknown as Document
 
         const extractedData = extractSEODataFromDoc(doc, url)
-        const checks = runChecks(extractedData, focusKeyword, url)
+        // Agent path opts into the deeper-than-Framer checks (structured-data).
+        const checks = runChecks(extractedData, focusKeyword, url, { includeDeepChecks: true })
         const score = scoreChecks(checks)
 
         const summary = checks.reduce(

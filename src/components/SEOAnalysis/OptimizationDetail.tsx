@@ -10,7 +10,6 @@ import { HeadingHierarchySection } from './sections/HeadingHierarchySection'
 import { KeywordPlacementSection } from './sections/KeywordPlacementSection'
 import { ContentSection } from './sections/ContentSection'
 import { ImageAltSection } from './sections/ImageAltSection'
-import { StructuredDataSection } from './sections/StructuredDataSection'
 
 interface OptimizationDetailProps {
     check: SEOCheck
@@ -140,16 +139,6 @@ export function OptimizationDetail({
                 <ContentSection
                     status={check.status}
                     description={check.description}
-                />
-            )
-        }
-
-        if (check.id === 'structured-data') {
-            return (
-                <StructuredDataSection
-                    status={check.status}
-                    description={check.description}
-                    evidence={check.evidence}
                 />
             )
         }
