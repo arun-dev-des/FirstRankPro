@@ -68,10 +68,11 @@ PAGE STRUCTURE (top to bottom):
          OS variants (tabs, or two labeled blocks):
          • macOS / Linux:
            mkdir -p ~/.claude/skills/first-rank-pro-referee && curl -fL -o ~/.claude/skills/first-rank-pro-referee/SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
-         • Windows (PowerShell):
-           New-Item -ItemType Directory -Force "$HOME\.claude\skills\first-rank-pro-referee" | Out-Null; curl.exe -fL -o "$HOME\.claude\skills\first-rank-pro-referee\SKILL.md" https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+         • Windows (PowerShell) — no quotes, so nothing gets smart-converted:
+           New-Item -ItemType Directory -Force $HOME\.claude\skills\first-rank-pro-referee | Out-Null; curl.exe -fL -o $HOME\.claude\skills\first-rank-pro-referee\SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
 
-       Step 3 — Open your agent (e.g. Claude Code) and connect your project:
+       Step 3 — Open your agent (e.g. Claude Code) and connect your project (the
+         command is EXACTLY /framer — do not add any word after it):
          /framer
 
        Step 4 — Tell your agent:
