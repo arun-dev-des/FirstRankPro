@@ -122,6 +122,10 @@ unpublished edits won't move the score.
 
 ## Programmatic SEO at CMS scale (the finale)
 
+> **Plan requirement:** CMS collections are a paid Framer feature — **Basic** (2
+> collections) or **Pro** (10), *not Free*. This loop needs a Basic+ site with a
+> published collection; it can't run on a Free project.
+
 The agent path makes one command optimize an entire collection:
 
 1. Set a templated per-page title across the collection:
@@ -183,3 +187,7 @@ return generic alt that passes the binary check but reads poorly.
   with title / meta / H1 / structured-data; run the alt loop as a separate,
   bounded "fix N at once" beat.
 - **`noIndexSite` is page-scoped**, not RootNode-scoped — target the page node.
+- **Mind the Framer plan.** SEO metadata editing ("Built-in SEO") and CMS
+  collections are **Basic+** features — they aren't on the Free plan. The
+  single-page loop (title/meta/H1) needs Built-in SEO (Basic+); the CMS finale
+  needs CMS collections (Basic+/Pro). Demo on a paid project, not a Free one.
