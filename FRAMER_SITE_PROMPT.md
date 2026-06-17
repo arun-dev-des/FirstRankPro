@@ -73,9 +73,10 @@ PAGE STRUCTURE (top to bottom):
        npx @framer/agent setup
      Step 2 — Connect your project:
        /framer
-     Step 3 — Add the First Rank Pro SEO skill (into your agent's skills folder,
-       e.g. ~/.claude/skills/):
-       curl -o SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+     Step 3 — Add the First Rank Pro SEO skill (Claude Code: it must live in a
+       folder — ~/.claude/skills/first-rank-pro-referee/SKILL.md):
+       mkdir -p ~/.claude/skills/first-rank-pro-referee
+       curl -fL -o ~/.claude/skills/first-rank-pro-referee/SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
      Step 4 — Tell your agent:
        "Audit this page's SEO, fix the failing checks, publish, and prove the climb."
    Under the card, muted: "Works with Claude Code, Cursor, Codex, Gemini CLI, and
