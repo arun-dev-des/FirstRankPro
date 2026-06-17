@@ -52,8 +52,7 @@ PAGE STRUCTURE (top to bottom):
 
 2) HERO — INSTALL (FIRST FOLD, the focus; give it the most space and weight):
    - Eyebrow (accent): "SEO Agent for Framer"
-   - Headline (big): "Install an SEO agent for your Framer site — and prove it
-     actually worked."
+   - Headline (big): "The AI SEO agent that audits and fixes your SEO autonomously."
    - Subhead (one line, muted): "Connect it to your AI agent in four steps. It
      audits your page, fixes the failing SEO checks in Framer, publishes, and proves
      the before→after score climb."
