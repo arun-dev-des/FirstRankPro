@@ -140,7 +140,16 @@ function extractStructuredData(doc: Document): any[] {
  * The caller is responsible for parsing HTML → Document (DOMParser in the
  * browser, jsdom on the server).
  */
-export function extractSEODataFromDoc(doc: Document, url: string): ExtractedSEOData {
+export interface ExtractDataOptions {
+    /** Pass false on the jsdom server path to skip the slow getComputedStyle check. */
+    useComputedStyle?: boolean
+}
+
+export function extractSEODataFromDoc(
+    doc: Document,
+    url: string,
+    options: ExtractDataOptions = {}
+): ExtractedSEOData {
     // Extract basic meta data
     const titleElement = doc.querySelector('title')
     const metaDesc = doc.querySelector('meta[name="description"]')
@@ -175,7 +184,7 @@ export function extractSEODataFromDoc(doc: Document, url: string): ExtractedSEOD
         metaDescription: metaDesc?.getAttribute('content')?.trim() || '',
         url,
         canonicalUrl: canonical?.getAttribute('href') || null,
-        headings: extractHeadings(doc, { dedupe: true }),
+        headings: extractHeadings(doc, { dedupe: true, useComputedStyle: options.useComputedStyle ?? true }),
         images,
         links,
         textContent: bodyText,

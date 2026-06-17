@@ -166,7 +166,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const dom = new JSDOM(html)
         const doc = dom.window.document as unknown as Document
 
-        const extractedData = extractSEODataFromDoc(doc, url)
+        // Skip getComputedStyle on the server (jsdom rebuilds the CSS cascade per
+        // heading — ~3s on a large page; the cheap inline/attribute checks suffice).
+        const extractedData = extractSEODataFromDoc(doc, url, { useComputedStyle: false })
         // Agent path opts into the deeper-than-Framer checks (structured-data).
         const checks = runChecks(extractedData, focusKeyword, url, { includeDeepChecks: true })
         const score = scoreChecks(checks)

@@ -2,6 +2,15 @@ import { SEOHeading } from '../../types/seo'
 
 export interface ExtractOptions {
     dedupe?: boolean
+    /**
+     * Run the (expensive) getComputedStyle visibility check. Defaults true.
+     * Set false on the headless/jsdom server path: there getComputedStyle rebuilds
+     * the CSS cascade per heading (~3s on a large page) for little accuracy gain —
+     * the inline-style/attribute fallbacks already catch Framer's hiding patterns.
+     * (The browser plugin path uses a DOMParser doc whose defaultView is null, so
+     * getComputedStyle is skipped there anyway.)
+     */
+    useComputedStyle?: boolean
 }
 
 /**
@@ -9,7 +18,7 @@ export interface ExtractOptions {
  * and parent-scoped deduplication (HeadingsMap parity)
  */
 export function extractHeadings(doc: Document, opts: ExtractOptions = {}): SEOHeading[] {
-    const { dedupe = true } = opts
+    const { dedupe = true, useComputedStyle = true } = opts
     const win = doc.defaultView as Window
     
     const nodes = Array.from(doc.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
@@ -26,7 +35,7 @@ export function extractHeadings(doc: Document, opts: ExtractOptions = {}): SEOHe
         if (!text) return
         
         // Robust visibility check
-        if (!isElementHidden(el, win)) {
+        if (!isElementHidden(el, win, useComputedStyle)) {
             // Update stack for parent-scoped deduplication
             while (stack.length > 0 && parseInt(stack[stack.length - 1].slice(1)) >= levelNum) {
                 stack.pop()
@@ -62,7 +71,7 @@ export function extractHeadings(doc: Document, opts: ExtractOptions = {}): SEOHe
 /**
  * Robust visibility detection for elements
  */
-function isElementHidden(el: Element, win: Window): boolean {
+function isElementHidden(el: Element, win: Window, useComputedStyle = true): boolean {
     // 1) Semantics/attributes
     if ((el as HTMLElement).hidden) return true
     if (el.getAttribute('aria-hidden') === 'true') return true
@@ -77,14 +86,20 @@ function isElementHidden(el: Element, win: Window): boolean {
     // 3) Framer-specific hints (defensive)
     if ((el as HTMLElement).closest('[data-framer-component][data-framer-hidden="true"]')) return true
     
-    // 4) Computed style if available (browser/JSDOM with layout)
-    try {
-        const cs = win.getComputedStyle(el as Element)
-        if (cs.display === 'none' || cs.visibility === 'hidden' || cs.contentVisibility === 'hidden') {
-            return true
+    // 4) Computed style — only when explicitly enabled. On jsdom this rebuilds the
+    // full CSS cascade per heading (~3s on a large page); the server path disables
+    // it and relies on the cheap inline/attribute checks above + the ancestor check
+    // below. (In the browser plugin, the DOMParser doc's defaultView is null, so
+    // this was already skipped via the catch.)
+    if (useComputedStyle) {
+        try {
+            const cs = win.getComputedStyle(el as Element)
+            if (cs.display === 'none' || cs.visibility === 'hidden' || cs.contentVisibility === 'hidden') {
+                return true
+            }
+        } catch {
+            // getComputedStyle may not exist; ignore
         }
-    } catch {
-        // getComputedStyle may not exist; ignore
     }
     
     // 5) Ancestor hidden?
