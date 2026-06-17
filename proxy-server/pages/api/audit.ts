@@ -112,6 +112,9 @@ async function fetchHTML(url: string): Promise<string> {
     try {
         const response = await fetch(url, {
             signal: controller.signal,
+            // Always pull the freshest HTML so a re-audit right after publish doesn't
+            // grade a stale CDN copy.
+            cache: 'no-store',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (compatible; FirstRankPro/1.0; +https://first-rank-proxy.vercel.app)',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -119,6 +122,8 @@ async function fetchHTML(url: string): Promise<string> {
                 'Accept-Encoding': 'gzip, deflate',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
             },
         })
         if (!response.ok) {

@@ -96,11 +96,17 @@ site (all pages)**?
 - Otherwise record `score` and `checks` as `before` and state it plainly:
   "Baseline: **62/100**."
 
-**Step 1 — Worklist.** From `before.checks`, take every check with `status` of
-`fail` or `warning`. Sort by `importance` (high → low). Each carries `reason`,
-`evidence`, `framerAgentOp`, and `fixInstruction`.
+**Step 1 — Worklist.** From `before.checks`, take **only** the `fail`/`warning`
+checks; sort by `importance` (high → low). Each carries `reason`, `evidence`,
+`framerAgentOp`, and `fixInstruction`. **Discard every `pass` — never read, find, or
+touch a node for a check that already passes.** If the worklist is empty, report
+"already optimal" and skip Steps 2–4 entirely.
 
-**Step 2 — Apply via the DSL.** For each item, run its `framerAgentOp`:
+**Step 2 — Apply via the DSL (one batch).** Build a SINGLE change set covering every
+worklist item and call `applyChanges` **once** — title, meta, H1, heading levels, and
+alt text together. Do NOT make a separate `applyChanges` per field (each is a slow
+Framer round-trip). Read only the nodes the failing checks need — title/meta-only
+fixes need no node reads at all. The ops, by `framerAgentOp`:
 - `metadata.title` / `metadata.description` — set the per-page SEO title/description.
 - `setAttributes` — set the main heading to `h1`; fix any skipped heading levels.
 - JSON-LD (`structured-data`) — **manual step**: the Framer Agent cannot write
@@ -114,11 +120,17 @@ site (all pages)**?
 **Step 3 — Review (receipt #1).** Call `framer.agent.reviewChanges()` and show
 the structured diff: what was inserted/updated, and any appliedWithIssues.
 
-**Step 4 — Publish.** `agent.publish()`. The audit reads the **live** URL, so
-unpublished edits won't move the score.
+**Step 4 — Publish (exactly once).** Call `agent.publish()` **one time per run**,
+after the single `applyChanges`. **Never publish between fixes** — publish + CDN
+propagation is the slowest beat, so publishing N times makes a run N× slower. (On a
+whole-site run: still ONE publish for all pages.) The audit reads the **live** URL,
+so unpublished edits won't move the score.
 
-**Step 5 — Re-audit + receipts (receipt #2).** Call `/api/audit` again (same url
-+ keyword) → `after`. Diff `before` vs `after` by check `id` and show the climb:
+**Step 5 — Re-audit + receipts (receipt #2).** Re-call `/api/audit` (same url +
+keyword) → `after`. If a previously-failing check still shows its OLD `evidence`, the
+new HTML hasn't propagated yet — wait ~10–15s and retry, **at most 3 attempts,
+stopping the instant the changed checks flip** (re-audit only the changed page(s),
+not the whole site). Diff `before` vs `after` by check `id` and show the climb:
 
 > **SEO score: 62 → 89  (+27)**
 >
@@ -206,8 +218,11 @@ return generic alt that passes the binary check but reads poorly.
 
 - **Determinism is the point.** Re-audit the *unchanged* page → identical score.
   To prove it, audit twice before editing; the number won't move.
-- **Publish between audits**, always. The #1 reason a score "doesn't improve" is
-  editing without `agent.publish()`.
+- **Publish once, between baseline and re-audit — but exactly once.** The #1 reason
+  a score "doesn't improve" is editing without `agent.publish()`; the #1 reason a run
+  is *slow* is publishing more than once (each publish pays the CDN-propagation wait).
+- **Speed checklist:** one `applyChanges`, one `publish`, skip `pass` checks, read
+  only nodes the failing checks need, and poll the re-audit instead of a long sleep.
 - **Edits are session/branch-based; the score reflects published HTML.** So a
   live demo moves the dial in distinct apply → publish → re-score beats, not
   continuously.
