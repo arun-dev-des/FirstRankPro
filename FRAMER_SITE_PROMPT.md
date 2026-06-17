@@ -98,8 +98,9 @@ PAGE STRUCTURE (top to bottom):
      score with per-check receipts. The grader is independent of the editor."
    - "Structured data (JSON-LD)" — "Grades Organization / Article / FAQPage schema —
      depth most tools skip. (Adding it is a quick Site-Settings step.)"
-   - "Optimize a whole CMS at once" — "Set a templated title across a collection —
-     metadata.title = '{{Title}} — Brand' — and the engine grades every page."
+   - "One page or your whole site" — "Choose a single page or all pages. For the
+     whole site, the agent audits and fixes every page, publishes once, and the
+     engine grades them all. CMS collections: one templated title optimizes the lot."
    - "Image alt text at scale" — "Bulk-caption content images and mark decorative
      icons empty; the engine verifies coverage crosses 80%."
 

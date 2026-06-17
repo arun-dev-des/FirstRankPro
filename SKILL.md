@@ -81,6 +81,12 @@ Content-Type: application/json
 
 ## The loop — run this exactly
 
+**First, ask the scope.** Ask the user: optimize **this page**, or the **whole
+site (all pages)**?
+- **This page** → run Steps 0–5 below on that one URL.
+- **Whole site** → use "Optimize the whole site (all pages)" below — it runs these
+  same steps per page with a single publish for the whole batch.
+
 **Step 0 — Baseline.** Call `/api/audit` with the URL + focus keyword. Record
 `score` and `checks` as `before`. State it plainly: "Baseline: **62/100**."
 
@@ -119,6 +125,25 @@ unpublished edits won't move the score.
 >
 > *Graded by an independent deterministic engine — same audit, before and after.
 > Measured proof, not a self-report.*
+
+## Optimize the whole site (all pages)
+
+When the user chooses **all pages**:
+
+1. **Enumerate pages.** Fetch the site's `sitemap.xml` (every published URL) — or
+   list the project's pages via the Framer agent. Covers static pages AND CMS pages.
+2. **Baseline (batch).** Audit each URL with `/api/audit`. For each page derive its
+   **own focus keyword** from its title/content (don't reuse one global keyword).
+   Record per-page `before` scores and report the average.
+3. **Fix each page.** Run Steps 1–2 of the per-page loop on every page (title, meta,
+   H1, headings, alt text via the DSL). For a CMS collection, one templated
+   `metadata.title = "{{Title}} — Brand"` optimizes the whole collection at once.
+4. **JSON-LD once.** Add site-wide structured data (manual, Site Settings) — it
+   applies to every page.
+5. **Publish once.** `agent.publish()` republishes the whole site in one go.
+6. **Re-audit all + aggregate receipts.** Audit every URL again; show the aggregate
+   climb and a per-page table — e.g. "12 pages: avg 70 → 88." Each page is graded
+   independently, so the batch result is proven, not asserted.
 
 ## Programmatic SEO at CMS scale (the finale)
 
