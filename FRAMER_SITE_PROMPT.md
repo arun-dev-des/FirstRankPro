@@ -9,8 +9,11 @@ The widget is a Framer **code component**. Create it before/after generating:
 2. Paste the code from [`framer-components/SEOAuditWidget.tsx`](framer-components/SEOAuditWidget.tsx).
 3. The prompt below tells the Agent to place this component in the hero.
 
-Then paste everything in the ``` block into **Framer Agent mode**. Fill placeholders
-(skill download link) before/after generating.
+Then paste everything in the ``` block into **Framer Agent mode**.
+
+> **Skill download link** is wired to the `main` raw URL below — it goes live once
+> **PR #6 is merged to main**. Until then, use the branch URL:
+> `https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/feat/seo-referee-agent/SKILL.md`
 
 ---
 
@@ -70,9 +73,9 @@ PAGE STRUCTURE (top to bottom):
        npx @framer/agent setup
      Step 2 — Connect your project:
        /framer
-     Step 3 — Add the First Rank Pro SEO skill:
-       (drop SKILL.md into your agent's skills folder, e.g. ~/.claude/skills/ —
-        download: [PLACEHOLDER: skill download URL])
+     Step 3 — Add the First Rank Pro SEO skill (into your agent's skills folder,
+       e.g. ~/.claude/skills/):
+       curl -o SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
      Step 4 — Tell your agent:
        "Audit this page's SEO, fix the failing checks, publish, and prove the climb."
    Under the card, muted: "Works with Claude Code, Cursor, Codex, Gemini CLI, and
