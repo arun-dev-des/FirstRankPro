@@ -33,7 +33,7 @@ You choose the scope: **a single page, or the whole site** (it enumerates every 
 
 ## How it uses Framer Agents (meaningfully)
 
-This isn't a plugin that sidesteps the agent — it **supercharges the external Framer Agent path**. After `npx @framer/agent setup` and `/framer`, the Framer Agent does all the SEO writing it's good at (`metadata.title`, `metadata.description`, heading levels via `setAttributes`, `ImageAsset.altText`, `agent.publish()`), guided by an exact, machine-readable worklist from the engine. Two complementary receipts make it airtight:
+This isn't a plugin that sidesteps the agent — it **supercharges the external Framer Agent path**. After `npx @framer/agent setup` and `/framer`, the SEO Framer Agent does all the SEO writing it's good at (`metadata.title`, `metadata.description`, heading levels via `setAttributes`, `ImageAsset.altText`, `agent.publish()`), guided by an exact, machine-readable worklist from the engine. Two complementary receipts make it airtight:
 
 - **The agent's own `reviewChanges()`** — what was changed.
 - **The engine's independent score** — that it actually worked.
