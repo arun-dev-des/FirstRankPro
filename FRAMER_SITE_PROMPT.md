@@ -1,13 +1,13 @@
 # Framer Agent prompt — generate the SEO Agent website
 
-This site has a **live audit widget** in the hero: a visitor enters their page URL
-and the SEO score + check results render right below (no focus keyword needed).
+Install-first landing page for the SEO Agent, with a live audit widget right below
+the fold (enter a page URL → SEO score + results, no focus keyword needed).
 
 ## Do this first (one manual step)
-The widget is a Framer **code component**. Create it before/after generating:
+The audit widget is a Framer **code component**. Create it before/after generating:
 1. In Framer: **Assets → Code → New Code File**, name it `SEOAuditWidget`.
 2. Paste the code from [`framer-components/SEOAuditWidget.tsx`](framer-components/SEOAuditWidget.tsx).
-3. The prompt below tells the Agent to place this component in the hero.
+3. The prompt below tells the Agent where to place it.
 
 Then paste everything in the ``` block into **Framer Agent mode**.
 
@@ -19,14 +19,14 @@ Then paste everything in the ``` block into **Framer Agent mode**.
 
 ```
 Build a single, polished, fully responsive landing page for an AI tool called
-"First Rank Pro — the SEO Agent for Framer". The hero contains a LIVE SEO audit
-widget (a visitor types their page URL and sees their SEO score below). The rest
-of the page explains what the agent can do and how to install it. Set the page's
-own SEO well (it's an SEO product — dogfood it).
+"First Rank Pro — the SEO Agent for Framer". The page is INSTALL-FIRST: the hero
+(first fold) is focused on installing the agent. A live SEO audit widget sits right
+below the fold so visitors can try it. The rest explains what the agent can do. Set
+the page's own SEO well (it's an SEO product — dogfood it).
 
 IMPORTANT — there is a custom CODE COMPONENT named "SEOAuditWidget" (already added
-to this project under Assets → Code). Place that component where the prompt says
-"[AUDIT WIDGET]" below. Do not rebuild it — just insert the existing component.
+to this project under Assets → Code). Place it where the prompt says "[AUDIT
+WIDGET]". Do not rebuild it — just insert the existing component.
 
 WHAT THE PRODUCT IS (write accurate copy): an SEO agent skill + a live scoring
 engine. You connect your Framer project to an external AI agent (Claude Code,
@@ -50,46 +50,46 @@ DESIGN SYSTEM:
 PAGE STRUCTURE (top to bottom):
 
 1) NAV (sticky, transparent): left = "First Rank Pro" wordmark; right = links
-   "Capabilities", "How it works", "Install", and a green button "Install".
+   "Install", "Try it", "Capabilities", and a green button "Install".
 
-2) HERO — the live audit (the centerpiece; give it the most space):
+2) HERO — INSTALL (FIRST FOLD, the focus; give it the most space and weight):
    - Eyebrow (accent): "SEO Agent for Framer"
-   - Headline (big): "Score your Framer page's SEO in seconds — then let the agent
-     fix it."
-   - Subhead (one line, muted): "Enter your page below for an instant, deterministic
-     SEO score. Then install the agent to fix the failing checks and prove the climb."
+   - Headline (big): "Install an SEO agent for your Framer site — and prove it
+     actually worked."
+   - Subhead (one line, muted): "Connect it to your AI agent in four steps. It
+     audits your page, fixes the failing SEO checks in Framer, publishes, and proves
+     the before→after score climb."
+   - INSTALL CARD (the centerpiece of the first fold — bordered, accent; render each
+     command in its own monospace code block with a copy button and STRAIGHT ASCII
+     quotes — never curly quotes, they break on paste):
+
+       Step 1 — Set up the Framer bridge (run in a terminal):
+         npx @framer/agent setup
+
+       Step 2 — Install the First Rank Pro skill, then restart your agent. Show TWO
+         OS variants (tabs, or two labeled blocks):
+         • macOS / Linux:
+           mkdir -p ~/.claude/skills/first-rank-pro-referee && curl -fL -o ~/.claude/skills/first-rank-pro-referee/SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+         • Windows (PowerShell):
+           New-Item -ItemType Directory -Force "$HOME\.claude\skills\first-rank-pro-referee" | Out-Null; curl.exe -fL -o "$HOME\.claude\skills\first-rank-pro-referee\SKILL.md" https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+
+       Step 3 — Open your agent (e.g. Claude Code) and connect your project:
+         /framer
+
+       Step 4 — Tell your agent:
+         "Audit this page's SEO, fix the failing checks, publish, and prove the climb."
+
+   - Under the card: a muted line "Works with Claude Code, Cursor, Codex, Gemini CLI,
+     and Windsurf." and a small proof chip — monospace "73" (red) "→" "93" (green),
+     caption "graded live, deterministic".
+
+3) TRY IT LIVE — the audit widget (right below the fold). Heading: "See your score
+   first." Subhead (muted): "Enter any published Framer page for an instant,
+   deterministic SEO score — no signup, no focus keyword."
    - [AUDIT WIDGET] — place the SEOAuditWidget code component here, full content
-     width. (It's an input + "Audit" button; the score and per-check results render
-     directly below it. No focus keyword needed.)
-   - Small grey line under the widget: "No signup. Works on any published Framer
-     page. Graded by a deterministic engine — same page, same score."
-
-3) INSTALL — "Score low? Install the agent to fix it." (high on the page, right
-   after the hero — this is the conversion step). Heading: "Install the SEO Agent."
-   Body (one line): "Once you've seen your score, install the agent and it fixes the
-   failing checks for you." Then an INSTALL CARD (bordered, accent; render each
-   command in its own monospace code block with a copy button and STRAIGHT ASCII
-   quotes — never curly quotes, they break on paste):
-
-     Step 1 — Set up the Framer bridge (run in a terminal):
-       npx @framer/agent setup
-
-     Step 2 — Install the First Rank Pro skill, then restart your agent. Show TWO
-       OS variants (tabs, or two labeled blocks):
-       • macOS / Linux:
-         mkdir -p ~/.claude/skills/first-rank-pro-referee && curl -fL -o ~/.claude/skills/first-rank-pro-referee/SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
-       • Windows (PowerShell):
-         New-Item -ItemType Directory -Force "$HOME\.claude\skills\first-rank-pro-referee" | Out-Null; curl.exe -fL -o "$HOME\.claude\skills\first-rank-pro-referee\SKILL.md" https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
-
-     Step 3 — Open your agent (e.g. Claude Code) and connect your project:
-       /framer
-
-     Step 4 — Tell your agent:
-       "Audit this page's SEO, fix the failing checks, publish, and prove the climb."
-
-   Under the card, muted: "Works with Claude Code, Cursor, Codex, Gemini CLI, and
-   Windsurf. The skill lives at ~/.claude/skills/first-rank-pro-referee/SKILL.md on
-   every OS — only the install command's shell differs."
+     width. (Input + "Audit" button; score and per-check results render below it.)
+   - Small grey line under it: "Same page, same score, every time. Then install the
+     agent above to fix the failing checks."
 
 4) CAPABILITIES — "Everything the agent can do" (grid of cards):
    - "Audit any page" — "Score any live Framer URL 0–100 with a deterministic
@@ -127,18 +127,19 @@ PAGE STRUCTURE (top to bottom):
        curl -s -X POST https://first-rank-proxy.vercel.app/api/audit -H 'Content-Type: application/json' -d '{"url":"https://your-site.framer.app/"}'
    - "Prefer a visual scoreboard inside Framer? First Rank Pro is also a plugin. [link]"
 
-8) FOOTER CTA: Heading: "Score your page. Then fix it." Green button "Install the
-   agent" (anchors to Install). Small print: "First Rank Pro — an SEO agent that
-   optimizes your Framer site and proves it. Framer Agents Hackathon entry."
+8) FOOTER CTA: Heading: "Install the agent. Then prove it." Green button "Install"
+   (anchors to the hero install card). Small print: "First Rank Pro — an SEO agent
+   that optimizes your Framer site and proves it. Framer Agents Hackathon entry."
 
 SEO FOR THIS PAGE:
 - Title: "First Rank Pro — the SEO Agent for Framer"
-- Meta: "Score your Framer page's SEO instantly, then let an AI agent fix the
-  failing checks and prove the before→after climb with a deterministic engine."
+- Meta: "Install an AI SEO agent for Framer: it audits your page, fixes the failing
+  checks, publishes, and proves the before→after score climb with a deterministic
+  engine."
 - One H1 only (the hero headline). Logical H2s per section.
 - After generating, add Organization + WebSite JSON-LD in Site Settings → Custom
   Code → end of <head> (note this to me; the agent can't write head code directly).
 
-Keep the writing tight and instructional. The live audit widget and installation
-are the priority — clarity over marketing fluff.
+Keep the writing tight and instructional. Installation (the hero) is the priority,
+the live audit widget second — clarity over marketing fluff.
 ```
