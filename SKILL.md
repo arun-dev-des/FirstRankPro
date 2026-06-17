@@ -132,6 +132,41 @@ The agent path makes one command optimize an entire collection:
    show the **aggregate** climb — e.g. "50 pages, average score 58 → 86." Each
    page is graded independently; the engine proves the batch actually worked.
 
+## Image alts at scale (the other "fix N at once" loop)
+
+`image-alts` is a bulk loop, and it's an **agent-path job** — the plugin's
+alt-writer only reaches CSS background nodes, while Framer content images are
+`ImageAsset`s on `<img>` tags. Key facts that make this tractable:
+
+- **`altText` lives on the `ImageAsset`, not the `<img>` tag.** One write per
+  unique asset propagates to every `<img>` that reuses it — so the work scales
+  with **unique assets**, not tag count (a page can have 500 `<img>` but ~30
+  unique content assets).
+- **Most "missing alt" assets are decorative** (small SVG icons: arrows, play
+  buttons, glyphs). Those should get `alt=""` (decorative), **not** a
+  description — bulk-set them. The real writing work is the **raster content
+  images** (`.png`/`.jpg`), usually a couple dozen.
+
+**The loop:**
+1. **Audit** → read `image-alts` evidence `{ total, withAlt, withoutAlt }` for the
+   true unique-asset denominator (the audit dedupes by normalized CDN src).
+2. **Enumerate & classify** the `ImageAsset`s with empty `altText`: decorative
+   SVG icons vs. raster content images.
+3. **Decorative → `altText = ""`** in bulk.
+4. **Content images → vision caption.** Reuse the shipped vision service: `POST
+   https://first-rank-proxy.vercel.app/api/generate-alt-text` with
+   `{ "imageUrl": "<asset CDN url>" }` → returns `{ altText, model }` (Gemini
+   1.5 Flash, GPT-4o-mini fallback). Throttle/serialize (≈45s timeout each).
+5. **Write** `ImageAsset.altText` once per unique asset.
+6. **`agent.publish()`**, then **re-audit** → `image-alts` flips to `pass` when
+   coverage exceeds **80%** (strict). Mop up stragglers.
+
+**Honest framing:** the score move is modest (`image-alts` is medium weight —
+roughly +4 to +6 points). Sell this as **accessibility + a clean, bounded,
+fully-verified closed loop** (audit → caption → write → publish → re-audit), not
+as a dramatic number jump. Eyeball the content-image captions — vision models can
+return generic alt that passes the binary check but reads poorly.
+
 ## Notes & guardrails
 
 - **Determinism is the point.** Re-audit the *unchanged* page → identical score.
@@ -141,9 +176,10 @@ The agent path makes one command optimize an entire collection:
 - **Edits are session/branch-based; the score reflects published HTML.** So a
   live demo moves the dial in distinct apply → publish → re-score beats, not
   continuously.
-- **Image counts differ by source.** The headless audit counts `<img>` tags;
-  some Framer images are CSS background nodes that aren't `<img>`, so `image-alts`
-  may read differently here than inside the plugin. Drive the headline climb with
-  title / meta / H1 / structured-data (which match exactly); treat alt text as a
-  bonus.
+- **Image alts are an agent-path job** (see the bulk loop above). The audit
+  counts `<img>` tags and dedupes by CDN src; the agent writes `ImageAsset.altText`
+  (one write per unique asset). CSS-background images emit no `<img>`, so they
+  neither count nor are fixable here — that's expected. Drive the *headline* climb
+  with title / meta / H1 / structured-data; run the alt loop as a separate,
+  bounded "fix N at once" beat.
 - **`noIndexSite` is page-scoped**, not RootNode-scoped — target the page node.
