@@ -1,19 +1,56 @@
-import { useState, useCallback } from "react"
+import {
+    useCallback,
+    useMemo,
+    useState,
+    startTransition,
+    type KeyboardEvent,
+} from "react"
 import { addPropertyControls, ControlType } from "framer"
 
+// User request: Update the existing SEOAuditWidget.tsx code component to match the user's originally supplied SEOAuditWidget code as closely as possible. Keep the component display name SEOAuditWidget and default export. Use property controls named accent, placeholder, and endpoint with defaults #34D399, yoursite.framer.app, and https://first-rank-proxy.vercel.app/api/audit. Runtime behavior must match: if URL is empty show "Enter a page URL to audit."; if missing protocol prefix https://; POST JSON { url: target }; button text is "Audit" and loading text is "Auditing…"; render score, summary counts, sorted checks by status order fail/warning/pass/summary, and footer copy "Graded by First Rank Pro — a deterministic SEO engine. Same page, same score." Preserve the dark inline styles from the provided code, including input/button row. Do not add unrelated behavior or dependencies. TypeScript adjustments are fine only as needed to compile.
+
+interface MyComponentProps {
+    accent: string
+    placeholder: string
+    endpoint: string
+}
+
+type AuditCheck = {
+    key?: string
+    id?: string
+    name?: string
+    status: string
+    reason?: string
+    message?: string
+}
+
+type AuditResult = {
+    score?: number
+    summary?: {
+        fail?: number
+        warning?: number
+        pass?: number
+        summary?: number
+    }
+    checks?:
+        | AuditCheck[]
+        | Record<
+              string,
+              {
+                  id?: string
+                  name?: string
+                  status?: string
+                  reason?: string
+                  message?: string
+              }
+          >
+}
+
 /**
- * First Rank Pro — live SEO audit widget.
- *
- * Enter any Framer page URL and get a deterministic SEO score (0–100) plus the
- * per-check results, rendered right below the input. No focus keyword needed.
- *
- * Add in Framer: Assets → Code → New Code File → paste this → drag onto the page.
- * The audit endpoint is CORS-open, so it works on the published site.
- *
- * @framerSupportedLayoutWidth any-prefer-fixed
- * @framerSupportedLayoutHeight any
+ * @framerSupportedLayoutWidth fixed
+ * @framerSupportedLayoutHeight fixed
  */
-export default function SEOAuditWidget(props) {
+export default function SEOAuditWidget(props: MyComponentProps) {
     const {
         accent = "#34D399",
         placeholder = "yoursite.framer.app",
@@ -23,101 +60,364 @@ export default function SEOAuditWidget(props) {
     const [url, setUrl] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const [result, setResult] = useState(null)
+    const [result, setResult] = useState<AuditResult | null>(null)
 
     const runAudit = useCallback(async () => {
-        setError("")
-        setResult(null)
-        let target = url.trim()
-        if (!target) {
-            setError("Enter a page URL to audit.")
+        const trimmedUrl = url.trim()
+        if (!trimmedUrl) {
+            startTransition(() => {
+                setError("Enter a page URL to audit.")
+                setResult(null)
+            })
             return
         }
-        if (!/^https?:\/\//i.test(target)) target = "https://" + target
-        setLoading(true)
+
+        const target = /^https?:\/\//i.test(trimmedUrl)
+            ? trimmedUrl
+            : `https://${trimmedUrl}`
+
+        startTransition(() => {
+            setLoading(true)
+            setError("")
+            setResult(null)
+        })
+
         try {
-            const res = await fetch(endpoint, {
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ url: target }),
             })
-            const data = await res.json()
-            if (!res.ok || data.error) {
-                setError(data.error || "Audit failed. Check the URL and try again.")
-            } else {
-                setResult(data)
+
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`)
             }
-        } catch (e) {
-            setError("Couldn't reach the audit service. Check the URL and try again.")
+
+            const data = await response.json()
+            startTransition(() => {
+                setResult(data)
+            })
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Audit failed."
+            startTransition(() => {
+                setError(message)
+                setResult(null)
+            })
         } finally {
-            setLoading(false)
+            startTransition(() => {
+                setLoading(false)
+            })
         }
-    }, [url, endpoint])
+    }, [endpoint, url])
 
-    const onKeyDown = (e) => {
-        if (e.key === "Enter") runAudit()
-    }
+    const onInputKeyDown = useCallback(
+        (event: KeyboardEvent<HTMLInputElement>) => {
+            if (event.key === "Enter") {
+                event.preventDefault()
+                runAudit()
+            }
+        },
+        [runAudit]
+    )
 
-    const scoreColor = (s) => (s >= 80 ? accent : s >= 50 ? "#FBBF24" : "#F87171")
-    const statusColor = { pass: accent, warning: "#FBBF24", fail: "#F87171", summary: "#9A9AA2" }
-    const statusIcon = { pass: "✓", warning: "!", fail: "✕", summary: "•" }
-    const order = { fail: 0, warning: 1, pass: 2, summary: 3 }
-    const checks = result ? [...result.checks].sort((a, b) => order[a.status] - order[b.status]) : []
+    const sortedChecks = useMemo<AuditCheck[]>(() => {
+        if (!result?.checks) return []
+        const statusOrder: Record<string, number> = {
+            fail: 0,
+            warning: 1,
+            pass: 2,
+            summary: 3,
+        }
+
+        if (Array.isArray(result.checks)) {
+            return [...result.checks].sort((a, b) => {
+                const aStatus = String(a?.status ?? "").toLowerCase()
+                const bStatus = String(b?.status ?? "").toLowerCase()
+                const aRank =
+                    aStatus in statusOrder
+                        ? statusOrder[aStatus]
+                        : Number.MAX_SAFE_INTEGER
+                const bRank =
+                    bStatus in statusOrder
+                        ? statusOrder[bStatus]
+                        : Number.MAX_SAFE_INTEGER
+                if (aRank !== bRank) return aRank - bRank
+                const aLabel = String(a?.name ?? a?.id ?? a?.key ?? "")
+                const bLabel = String(b?.name ?? b?.id ?? b?.key ?? "")
+                return aLabel.localeCompare(bLabel)
+            })
+        }
+
+        const checksRecord = result.checks as Record<
+            string,
+            { id?: string; name?: string; status?: string; reason?: string; message?: string }
+        >
+        return Object.keys(checksRecord)
+            .map((key) => ({
+                key,
+                id: checksRecord[key]?.id ?? key,
+                name: checksRecord[key]?.name,
+                ...checksRecord[key],
+                status: String(checksRecord[key]?.status ?? ""),
+            }))
+            .sort((a, b) => {
+                const aStatus = String(a.status).toLowerCase()
+                const bStatus = String(b.status).toLowerCase()
+                const aRank =
+                    aStatus in statusOrder
+                        ? statusOrder[aStatus]
+                        : Number.MAX_SAFE_INTEGER
+                const bRank =
+                    bStatus in statusOrder
+                        ? statusOrder[bStatus]
+                        : Number.MAX_SAFE_INTEGER
+                if (aRank !== bRank) return aRank - bRank
+                const aLabel = String(a.name ?? a.id ?? a.key ?? "")
+                const bLabel = String(b.name ?? b.id ?? b.key ?? "")
+                return aLabel.localeCompare(bLabel)
+            })
+    }, [result])
+
+    const summary = useMemo(() => {
+        const fromResult = result?.summary
+        if (fromResult) {
+            return {
+                fail: Number(fromResult.fail ?? 0),
+                warning: Number(fromResult.warning ?? 0),
+                pass: Number(fromResult.pass ?? 0),
+                summary: Number(fromResult.summary ?? 0),
+            }
+        }
+
+        return sortedChecks.reduce(
+            (acc, check) => {
+                const status = String(check.status).toLowerCase()
+                if (status === "fail") acc.fail += 1
+                else if (status === "warning") acc.warning += 1
+                else if (status === "pass") acc.pass += 1
+                else if (status === "summary") acc.summary += 1
+                return acc
+            },
+            { fail: 0, warning: 0, pass: 0, summary: 0 }
+        )
+    }, [result, sortedChecks])
+
+    // Group checks into the three scoring dimensions. The geo-*/eeat-* ids only
+    // appear once the GEO + E-E-A-T checks are deployed; until then only the
+    // "Classic SEO" group renders (empty groups are dropped).
+    const groupedChecks = useMemo(() => {
+        const groups: { key: string; label: string; checks: AuditCheck[] }[] = [
+            { key: "classic", label: "Classic SEO", checks: [] },
+            { key: "geo", label: "GEO · AI-citability", checks: [] },
+            { key: "eeat", label: "E-E-A-T trust", checks: [] },
+        ]
+        for (const check of sortedChecks) {
+            const id = String(check.id ?? check.key ?? "").toLowerCase()
+            if (id.startsWith("geo-")) groups[1].checks.push(check)
+            else if (id.startsWith("eeat-")) groups[2].checks.push(check)
+            else groups[0].checks.push(check)
+        }
+        return groups.filter((group) => group.checks.length > 0)
+    }, [sortedChecks])
 
     return (
-        <div style={styles.wrap}>
-            <div style={styles.inputRow}>
-                <input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    onKeyDown={onKeyDown}
-                    placeholder={placeholder}
-                    style={styles.input}
-                    spellCheck={false}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                />
-                <button
-                    onClick={runAudit}
-                    disabled={loading}
-                    style={{ ...styles.button, background: accent, opacity: loading ? 0.6 : 1 }}
-                >
-                    {loading ? "Auditing…" : "Audit"}
-                </button>
+        <div
+            style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                background: "#111111",
+                color: "#EDEDED",
+                borderRadius: 12,
+                border: "1px solid #222222",
+                boxSizing: "border-box",
+                padding: 16,
+                fontFamily:
+                    'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                overflow: "auto",
+            }}
+        >
+            <div style={{ display: "grid", gap: 12 }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                        id="seo-audit-url"
+                        type="url"
+                        value={url}
+                        onChange={(event) => {
+                            const nextValue = event.target.value
+                            startTransition(() => setUrl(nextValue))
+                        }}
+                        onKeyDown={onInputKeyDown}
+                        placeholder={placeholder}
+                        style={{
+                            flex: 1,
+                            minWidth: 0,
+                            background: "#1B1B1B",
+                            color: "#F5F5F5",
+                            border: "1px solid #2D2D2D",
+                            borderRadius: 8,
+                            padding: "10px 12px",
+                            outline: "none",
+                            boxSizing: "border-box",
+                        }}
+                        aria-label="Website URL"
+                    />
+                    <button
+                        type="button"
+                        onClick={runAudit}
+                        disabled={loading}
+                        style={{
+                            width: 96,
+                            border: "none",
+                            borderRadius: 8,
+                            padding: "10px 12px",
+                            background: accent,
+                            color: "#04220F",
+                            cursor: loading ? "not-allowed" : "pointer",
+                            opacity: loading ? 0.75 : 1,
+                            fontWeight: 600,
+                        }}
+                        aria-busy={loading}
+                    >
+                        {loading ? "Auditing…" : "Audit"}
+                    </button>
+                </div>
             </div>
 
-            {error ? <div style={styles.error}>{error}</div> : null}
+            {error ? (
+                <div
+                    role="status"
+                    style={{
+                        marginTop: 12,
+                        fontSize: 12,
+                        color: "#FF8A8A",
+                        lineHeight: 1.4,
+                    }}
+                >
+                    {error}
+                </div>
+            ) : null}
 
             {result ? (
-                <div style={styles.results}>
-                    <div style={styles.scoreRow}>
-                        <div style={{ ...styles.score, color: scoreColor(result.score) }}>
-                            {result.score}
-                            <span style={styles.scoreMax}>/100</span>
+                <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+                    <div
+                        style={{
+                            background: "#161616",
+                            border: "1px solid #2B2B2B",
+                            borderRadius: 8,
+                            padding: "12px",
+                        }}
+                    >
+                        <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                            Score
                         </div>
-                        <div style={styles.summary}>
-                            <span style={{ color: accent }}>{result.summary.pass} passed</span>
-                            <span style={{ color: "#FBBF24" }}>{result.summary.warning} warnings</span>
-                            <span style={{ color: "#F87171" }}>{result.summary.fail} failing</span>
+                        <div
+                            style={{
+                                fontSize: 28,
+                                fontWeight: 700,
+                                color: "#F9FAFB",
+                            }}
+                        >
+                            {Number(result.score ?? 0)}
+                        </div>
+                        <div
+                            style={{
+                                marginTop: 8,
+                                display: "flex",
+                                gap: 10,
+                                flexWrap: "wrap",
+                                fontSize: 12,
+                                color: "#D1D5DB",
+                            }}
+                        >
+                            <span>Fail: {summary.fail}</span>
+                            <span>Warning: {summary.warning}</span>
+                            <span>Pass: {summary.pass}</span>
+                            <span>Summary: {summary.summary}</span>
                         </div>
                     </div>
-
-                    <div style={styles.checkList}>
-                        {checks.map((c) => (
-                            <div key={c.id} style={styles.checkRow}>
-                                <span style={{ ...styles.icon, color: statusColor[c.status] }}>
-                                    {statusIcon[c.status]}
+                    {groupedChecks.map((group) => (
+                        <div key={group.key} style={{ display: "grid", gap: 8 }}>
+                            <div
+                                style={{
+                                    marginTop: 4,
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    letterSpacing: 0.5,
+                                    textTransform: "uppercase",
+                                    color: "#9CA3AF",
+                                }}
+                            >
+                                {group.label}{" "}
+                                <span style={{ color: "#6B7280", fontWeight: 400 }}>
+                                    ({group.checks.length})
                                 </span>
-                                <div style={styles.checkText}>
-                                    <div style={styles.checkName}>{c.name}</div>
-                                    <div style={styles.checkReason}>{c.reason}</div>
-                                </div>
                             </div>
-                        ))}
-                    </div>
-
-                    <div style={styles.foot}>
-                        Graded by First Rank Pro — a deterministic SEO engine. Same page, same score.
+                            {group.checks.map((check, index: number) => (
+                                <div
+                                    key={`${String(check.id ?? check.key ?? check.name ?? "check")}-${index}`}
+                                    style={{
+                                        background: "#191919",
+                                        border: "1px solid #2B2B2B",
+                                        borderRadius: 8,
+                                        padding: "10px 12px",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            gap: 8,
+                                        }}
+                                    >
+                                        <span style={{ fontSize: 13, color: "#F5F5F5" }}>
+                                            {String(
+                                                check.name ??
+                                                    check.id ??
+                                                    check.key ??
+                                                    "Check"
+                                            )}
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontSize: 12,
+                                                color:
+                                                    String(check.status).toLowerCase() === "pass"
+                                                        ? "#78E08F"
+                                                        : String(check.status).toLowerCase() === "fail"
+                                                          ? "#FF8A8A"
+                                                          : "#FFB86B",
+                                            }}
+                                        >
+                                            {String(check.status)}
+                                        </span>
+                                    </div>
+                                    {(check.reason ?? check.message) ? (
+                                        <div
+                                            style={{
+                                                marginTop: 6,
+                                                fontSize: 12,
+                                                color: "#BEBEBE",
+                                                lineHeight: 1.4,
+                                            }}
+                                        >
+                                            {String(check.reason ?? check.message)}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                    <div
+                        style={{
+                            marginTop: 2,
+                            fontSize: 11,
+                            color: "#9CA3AF",
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        Graded by First Rank Pro — a deterministic SEO engine.
+                        Same page, same score.
                     </div>
                 </div>
             ) : null}
@@ -125,87 +425,12 @@ export default function SEOAuditWidget(props) {
     )
 }
 
-const styles = {
-    wrap: {
-        width: "100%",
-        fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif",
-        color: "#EDEDED",
-        boxSizing: "border-box",
-    },
-    inputRow: { display: "flex", gap: 8, width: "100%" },
-    input: {
-        flex: 1,
-        minWidth: 0,
-        height: 50,
-        padding: "0 16px",
-        borderRadius: 10,
-        border: "1px solid #2A2A30",
-        background: "#141418",
-        color: "#EDEDED",
-        fontSize: 15,
-        outline: "none",
-        boxSizing: "border-box",
-    },
-    button: {
-        height: 50,
-        padding: "0 24px",
-        borderRadius: 10,
-        border: "none",
-        color: "#0A0A0B",
-        fontSize: 15,
-        fontWeight: 600,
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-    },
-    error: {
-        marginTop: 12,
-        padding: "10px 14px",
-        borderRadius: 10,
-        background: "rgba(248,113,113,0.10)",
-        color: "#F87171",
-        fontSize: 14,
-    },
-    results: {
-        marginTop: 20,
-        padding: 20,
-        borderRadius: 14,
-        border: "1px solid #1E1E22",
-        background: "#0E0E11",
-    },
-    scoreRow: { display: "flex", alignItems: "baseline", gap: 18, flexWrap: "wrap" },
-    score: {
-        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, monospace",
-        fontSize: 56,
-        fontWeight: 700,
-        lineHeight: 1,
-    },
-    scoreMax: { fontSize: 20, color: "#9A9AA2", marginLeft: 4 },
-    summary: { display: "flex", gap: 16, fontSize: 14, fontWeight: 500, flexWrap: "wrap" },
-    checkList: { marginTop: 18, display: "flex", flexDirection: "column" },
-    checkRow: {
-        display: "flex",
-        gap: 12,
-        padding: "11px 0",
-        borderTop: "1px solid #1A1A1E",
-        alignItems: "flex-start",
-    },
-    icon: {
-        fontFamily: "ui-monospace, monospace",
-        fontWeight: 700,
-        fontSize: 14,
-        width: 16,
-        textAlign: "center",
-        flexShrink: 0,
-        marginTop: 1,
-    },
-    checkText: { display: "flex", flexDirection: "column", gap: 2 },
-    checkName: { fontSize: 14, fontWeight: 600 },
-    checkReason: { fontSize: 13, color: "#9A9AA2", lineHeight: 1.5 },
-    foot: { marginTop: 16, fontSize: 12, color: "#6B6B72" },
-}
-
 addPropertyControls(SEOAuditWidget, {
-    accent: { type: ControlType.Color, title: "Accent", defaultValue: "#34D399" },
+    accent: {
+        type: ControlType.Color,
+        title: "Accent",
+        defaultValue: "#34D399",
+    },
     placeholder: {
         type: ControlType.String,
         title: "Placeholder",
