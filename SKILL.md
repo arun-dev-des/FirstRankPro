@@ -78,6 +78,21 @@ Content-Type: application/json
 | `image-alts` | % of images with alt text | `ImageAsset.altText` |
 | `content-length` | ≥ 300 words of real content | edit page text |
 | `structured-data` | valid JSON-LD — *deeper than Framer* | **manual**: Site Settings → Custom Code → End of `<head>` |
+| `geo-passage-length` | paragraphs chunked ~40–200 words (citable) | edit page text |
+| `geo-answer-structure` | lists / tables / Q&A present | edit page text |
+| `geo-attribution-density` | outbound citations to 2+ domains | edit page text (add source links) |
+| `geo-citable-schema` | FAQ/Article/Org JSON-LD present | **manual**: Site Settings → Custom Code → End of `<head>` |
+| `eeat-https` | served over HTTPS | publish over HTTPS (default) |
+| `eeat-authorship` | author + publish/update date declared | Article JSON-LD / visible byline |
+| `eeat-contact` | contact link or Organization contact schema | add contact link / Organization JSON-LD |
+
+The `geo-*` checks grade **AI-citability** (how readily ChatGPT / Perplexity / Google
+AI Overviews can quote the page — passage chunking, answer-shaped structure, outbound
+citations, and the JSON-LD types those engines cite). The `eeat-*` checks grade
+**E-E-A-T trust signals** (HTTPS, declared authorship + freshness, contactability). Both
+families are **fully deterministic** (no LLM, no network) and run only on this referee
+path — they're how the engine proves a page is optimized for *AI search*, not just classic
+SEO. Concepts adapted from the MIT-licensed [claude-seo](https://github.com/AgriciDaniel/claude-seo) project.
 
 ## The loop — run this exactly
 

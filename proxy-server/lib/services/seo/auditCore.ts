@@ -32,6 +32,17 @@ import { extractContentFeatures } from './contentFeatureExtractor'
 import { extractBodyTextExcerpt } from './textExtractor'
 import { parseUrlSegments } from './urlParser'
 import { validateStructuredData } from './deepChecks'
+import {
+    validateGeoPassageLength,
+    validateGeoAnswerStructure,
+    validateGeoAttributionDensity,
+    validateGeoCitableSchema,
+} from './geoChecks'
+import {
+    validateEeatHttps,
+    validateEeatAuthorship,
+    validateEeatContact,
+} from './eeatChecks'
 
 // ---------- DOM extraction helpers (lifted verbatim from seoService.ts) ----------
 
@@ -88,6 +99,18 @@ function extractFirstParagraph(doc: Document): string {
         }
     }
     return ''
+}
+
+/**
+ * Word count per body paragraph — fuels the GEO "passage chunk length" check
+ * (answer engines quote passages, not whole pages). Same `<p>` granularity the
+ * codebase already trusts for `extractFirstParagraph`.
+ */
+function extractParagraphWordCounts(doc: Document): number[] {
+    return Array.from(doc.querySelectorAll('p'))
+        .map(p => (p.textContent?.trim() || ''))
+        .filter(t => t.length > 0)
+        .map(t => t.split(/\s+/).filter(Boolean).length)
 }
 
 function extractOpenGraphData(doc: Document): ExtractedSEOData['openGraphData'] {
@@ -159,6 +182,10 @@ export function extractSEODataFromDoc(
     const charset = doc.querySelector('meta[charset]')
     const language = doc.documentElement.getAttribute('lang')
 
+    // E-E-A-T signals: a declared author and a freshness/date affordance.
+    const metaAuthor = doc.querySelector('meta[name="author"]')?.getAttribute('content')?.trim() || null
+    const hasDateSignal = !!doc.querySelector('time')
+
     // Extract text content
     const bodyText = doc.body?.textContent?.trim() || ''
     const wordCount = bodyText.split(/\s+/).length
@@ -202,6 +229,9 @@ export function extractSEODataFromDoc(
         internalLinks,
         externalLinks,
         imageAlts,
+        paragraphWordCounts: extractParagraphWordCounts(doc),
+        metaAuthor,
+        hasDateSignal,
     }
 }
 
@@ -299,6 +329,17 @@ export function runChecks(
         // Deeper-than-Framer: grade JSON-LD structured data (already parsed).
         // Always pushed (even on pass) so the score denominator is stable.
         checks.push(...validateStructuredData(data.structuredData || []))
+
+        // GEO / AI-citability: how readily an answer engine can quote this page.
+        checks.push(...validateGeoPassageLength(data.paragraphWordCounts || []))
+        checks.push(...validateGeoAnswerStructure(data.contentFeatures))
+        checks.push(...validateGeoAttributionDensity(data.externalLinks || [], data.wordCount || 0))
+        checks.push(...validateGeoCitableSchema(data.structuredData || []))
+
+        // E-E-A-T: trust signals (secure connection, authorship/freshness, contactability).
+        checks.push(...validateEeatHttps(url))
+        checks.push(...validateEeatAuthorship(data.structuredData || [], data.metaAuthor || null, !!data.hasDateSignal))
+        checks.push(...validateEeatContact(data.links || [], data.structuredData || []))
     }
 
     return checks

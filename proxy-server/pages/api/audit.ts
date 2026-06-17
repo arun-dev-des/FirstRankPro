@@ -101,6 +101,51 @@ function fixFor(check: SEOCheck, keyword: string): Pick<AuditCheckOut, 'writable
                 framerAgentOp: 'manual: Site Settings → Custom Code → End of <head>',
                 fixInstruction: 'Add JSON-LD manually in Framer: Site Settings → Custom Code → "End of <head> tag" (NOT a canvas Embed — those get sandboxed). Use Organization, Article, or FAQPage with all required fields. For @graph form, put @context once on the wrapper.',
             }
+        // --- GEO / AI-citability ---
+        case 'geo-passage-length':
+            return {
+                writableBy: 'framer-agent',
+                framerAgentOp: 'edit page text content',
+                fixInstruction: 'Break long paragraphs into citable chunks of ~40–200 words (≈3–5 sentences) and lead each with a self-contained claim. Avoid wall-of-text paragraphs over 300 words — answer engines quote passages, not whole pages.',
+            }
+        case 'geo-answer-structure':
+            return {
+                writableBy: 'framer-agent',
+                framerAgentOp: 'edit page text content',
+                fixInstruction: 'Add answer-shaped structure: a list or comparison table, plus 2–3 H2/H3 headings phrased as the questions your audience asks, each followed by a concise 1–3 sentence direct answer.',
+            }
+        case 'geo-attribution-density':
+            return {
+                writableBy: 'framer-agent',
+                framerAgentOp: 'edit page text content (add outbound citation links)',
+                fixInstruction: 'Cite 2+ authoritative external sources (studies, docs, reputable publications) across distinct domains — roughly one citation per 1,000 words. Well-sourced pages are more likely to be cited by answer engines.',
+            }
+        case 'geo-citable-schema':
+            return {
+                // Same manual head-injection path as structured-data.
+                writableBy: 'framer-agent',
+                framerAgentOp: 'manual: Site Settings → Custom Code → End of <head>',
+                fixInstruction: 'Add the JSON-LD types answer engines cite most — FAQPage (or QAPage), plus Article and Organization — via Site Settings → Custom Code → "End of <head> tag" (NOT a canvas Embed). FAQPage with question/acceptedAnswer pairs is the strongest single AI-citability schema.',
+            }
+        // --- E-E-A-T trust signals ---
+        case 'eeat-https':
+            return {
+                writableBy: 'framer-agent',
+                framerAgentOp: 'publish over HTTPS (Framer default)',
+                fixInstruction: 'Serve the page over HTTPS. Framer publishes over HTTPS by default — ensure the audited URL uses the https:// origin.',
+            }
+        case 'eeat-authorship':
+            return {
+                writableBy: 'framer-agent',
+                framerAgentOp: 'Article/BlogPosting JSON-LD (author + datePublished) or visible byline',
+                fixInstruction: 'Declare both an author and a datePublished — via Article/BlogPosting JSON-LD (added in Site Settings → Custom Code → End of <head>) or a visible byline plus a <time> element. Authorship and freshness are core E-E-A-T signals.',
+            }
+        case 'eeat-contact':
+            return {
+                writableBy: 'framer-agent',
+                framerAgentOp: 'add contact link (mailto:/tel:) or Organization JSON-LD',
+                fixInstruction: 'Add a visible contact affordance: a mailto:/tel: link or contact page, and/or Organization JSON-LD with contactPoint, address, and sameAs profiles. Contactability is a core trust signal.',
+            }
         default:
             return { writableBy: 'framer-agent', framerAgentOp: 'edit project', fixInstruction: `Review and address: ${id}.` }
     }

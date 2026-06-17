@@ -11,7 +11,7 @@
 import { SEOCheck } from '../../types/seo'
 
 /** Normalize a node's `@type` (string | string[]) to a string array. */
-function typesOf(node: any): string[] {
+export function typesOf(node: any): string[] {
     const t = node?.['@type']
     if (!t) return []
     return Array.isArray(t) ? t.map(String) : [String(t)]
@@ -23,7 +23,7 @@ function typesOf(node: any): string[] {
  * object (the standard `@graph` form) is inherited by its child nodes, per the
  * JSON-LD spec — so children don't repeat it and must not be flagged for it.
  */
-function flattenNodes(structuredData: any[]): any[] {
+export function flattenNodes(structuredData: any[]): any[] {
     const out: any[] = []
     const visit = (item: any, inheritedContext: any): void => {
         if (!item) return

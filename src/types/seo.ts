@@ -72,6 +72,10 @@ export interface ExtractedSEOData {
     internalLinks?: SEOLink[]
     externalLinks?: SEOLink[]
     imageAlts?: string[]
+    // GEO / E-E-A-T signals (referee-only deep checks)
+    paragraphWordCounts?: number[]
+    metaAuthor?: string | null
+    hasDateSignal?: boolean
 }
 
 export interface SEOCheck {
@@ -81,7 +85,7 @@ export interface SEOCheck {
     description: string
     evidence: string
     importance: 'high' | 'medium' | 'low'
-    category: 'technical' | 'content' | 'meta' | 'headings' | 'images' | 'links'
+    category: 'technical' | 'content' | 'meta' | 'headings' | 'images' | 'links' | 'geo' | 'trust'
     suggestions?: string[]
 }
 
