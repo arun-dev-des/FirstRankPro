@@ -11,9 +11,7 @@ The audit widget is a Framer **code component**. Create it before/after generati
 
 Then paste everything in the ``` block into **Framer Agent mode**.
 
-> **Skill download link** is wired to the `main` raw URL below — it goes live once
-> **PR #6 is merged to main**. Until then, use the branch URL:
-> `https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/feat/seo-referee-agent/SKILL.md`
+> The install command's skill link (`…/main/SKILL.md`) is live.
 
 ---
 
@@ -125,7 +123,8 @@ PAGE STRUCTURE (top to bottom):
      <head>) — the one manual step."
    - "Developers can call the engine directly:" then a code block:
        curl -s -X POST https://first-rank-proxy.vercel.app/api/audit -H 'Content-Type: application/json' -d '{"url":"https://your-site.framer.app/"}'
-   - "Prefer a visual scoreboard inside Framer? First Rank Pro is also a plugin. [link]"
+   - "Prefer a visual scoreboard inside Framer? First Rank Pro is also a plugin —
+     https://www.framer.com/marketplace/plugins/first-rank-pro/"
 
 8) FOOTER CTA: Heading: "Install the agent. Then prove it." Green button "Install"
    (anchors to the hero install card). Small print: "First Rank Pro — an SEO agent
