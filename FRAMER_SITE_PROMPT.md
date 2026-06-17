@@ -67,20 +67,29 @@ PAGE STRUCTURE (top to bottom):
 3) INSTALL — "Score low? Install the agent to fix it." (high on the page, right
    after the hero — this is the conversion step). Heading: "Install the SEO Agent."
    Body (one line): "Once you've seen your score, install the agent and it fixes the
-   failing checks for you." Then an INSTALL CARD (bordered, accent, monospace steps,
-   each in a code block with a copy affordance):
-     Step 1 — Connect Framer to your agent:
+   failing checks for you." Then an INSTALL CARD (bordered, accent; render each
+   command in its own monospace code block with a copy button and STRAIGHT ASCII
+   quotes — never curly quotes, they break on paste):
+
+     Step 1 — Set up the Framer bridge (run in a terminal):
        npx @framer/agent setup
-     Step 2 — Connect your project:
+
+     Step 2 — Install the First Rank Pro skill, then restart your agent. Show TWO
+       OS variants (tabs, or two labeled blocks):
+       • macOS / Linux:
+         mkdir -p ~/.claude/skills/first-rank-pro-referee && curl -fL -o ~/.claude/skills/first-rank-pro-referee/SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+       • Windows (PowerShell):
+         New-Item -ItemType Directory -Force "$HOME\.claude\skills\first-rank-pro-referee" | Out-Null; curl.exe -fL -o "$HOME\.claude\skills\first-rank-pro-referee\SKILL.md" https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+
+     Step 3 — Open your agent (e.g. Claude Code) and connect your project:
        /framer
-     Step 3 — Add the First Rank Pro SEO skill (Claude Code: it must live in a
-       folder — ~/.claude/skills/first-rank-pro-referee/SKILL.md):
-       mkdir -p ~/.claude/skills/first-rank-pro-referee
-       curl -fL -o ~/.claude/skills/first-rank-pro-referee/SKILL.md https://raw.githubusercontent.com/arun-dev-des/FirstRankPro/main/SKILL.md
+
      Step 4 — Tell your agent:
        "Audit this page's SEO, fix the failing checks, publish, and prove the climb."
+
    Under the card, muted: "Works with Claude Code, Cursor, Codex, Gemini CLI, and
-   Windsurf."
+   Windsurf. The skill lives at ~/.claude/skills/first-rank-pro-referee/SKILL.md on
+   every OS — only the install command's shell differs."
 
 4) CAPABILITIES — "Everything the agent can do" (grid of cards):
    - "Audit any page" — "Score any live Framer URL 0–100 with a deterministic
