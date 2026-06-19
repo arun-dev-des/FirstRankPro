@@ -107,7 +107,14 @@ function extractFirstParagraph(doc: Document): string {
  * codebase already trusts for `extractFirstParagraph`.
  */
 function extractParagraphWordCounts(doc: Document): number[] {
-    return Array.from(doc.querySelectorAll('p'))
+    // Count only BODY-content paragraphs: prefer a main-content container, and
+    // exclude site chrome (nav/header/footer/aside). Otherwise hundreds of tiny
+    // UI <p> (nav labels, button captions) pollute the citable-passage ratio and
+    // the GEO passage-length check false-fails on real content pages.
+    const root =
+        doc.querySelector('main, article, [role="main"]') || doc.body || doc.documentElement
+    return Array.from(root.querySelectorAll('p'))
+        .filter(p => !p.closest('nav, header, footer, aside'))
         .map(p => (p.textContent?.trim() || ''))
         .filter(t => t.length > 0)
         .map(t => t.split(/\s+/).filter(Boolean).length)
@@ -182,9 +189,18 @@ export function extractSEODataFromDoc(
     const charset = doc.querySelector('meta[charset]')
     const language = doc.documentElement.getAttribute('lang')
 
-    // E-E-A-T signals: a declared author and a freshness/date affordance.
-    const metaAuthor = doc.querySelector('meta[name="author"]')?.getAttribute('content')?.trim() || null
-    const hasDateSignal = !!doc.querySelector('time')
+    // E-E-A-T signals: a declared author and a freshness/date affordance. Beyond
+    // <meta name="author">/<time>, accept structural byline/date markup (rel,
+    // itemprop, byline/author classes, article:published_time) so pages without
+    // JSON-LD aren't unfairly failed. (Plain unmarked byline text is still not
+    // detected — that needs schema or markup.)
+    const metaAuthor =
+        doc.querySelector('meta[name="author"]')?.getAttribute('content')?.trim() ||
+        doc.querySelector('[rel="author"], [itemprop="author"], [class*="byline"], [class*="author"]')?.textContent?.trim() ||
+        null
+    const hasDateSignal = !!doc.querySelector(
+        'time, [itemprop="datePublished"], [itemprop="dateModified"], meta[property="article:published_time"], meta[property="article:modified_time"]'
+    )
 
     // Extract text content
     const bodyText = doc.body?.textContent?.trim() || ''

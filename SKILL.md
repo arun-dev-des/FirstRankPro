@@ -168,15 +168,17 @@ is `{ pagePath }`. Concatenate every edit into that one string:
 
 ```js
 framer.agent.applyChanges(
-  'SET v:<h1NodeId>:0:0 text="New H1 with keyword"; SET v:<imgNodeId> altText="...";',
+  'SET <h1NodeId> text="New H1 with keyword" tag="h1"; SET <imgNodeId> altText="...";',
   { pagePath: "/" }
 )
 ```
 
-`:0:0` selects text on the primary variant — copy it as-is. Per-page `metadata.*` and
-per-node `SET` commands can live in the **same** string. To find a node id + its
-current text before a `SET`, read it with `framer.agent.serialize({ id, depth })`. Read
-only the nodes the failing checks need — title/meta-only fixes need no node reads.
+Use the **plain node id** for ordinary canvas text (`SET <id> text="…" tag="h1"`). The
+`v:<nodeId>/<controlKey>:0:0` form is **only** for CMS- or control-bound rich text — never
+use a bare `v:<id>:0:0`. Per-page `metadata.*` and per-node `SET` commands can live in the
+**same** string. To find a node id + its current text before a `SET`, read it with
+`framer.agent.serialize({ id, depth })`. Read only the nodes the failing checks need —
+title/meta-only fixes need no node reads.
 
 The ops, by `framerAgentOp`:
 - `metadata.title` / `metadata.description` — set the per-page SEO title/description
@@ -188,10 +190,13 @@ The ops, by `framerAgentOp`:
 - `geo-*` / `content-length` / `keyword-placement` (**edit page text**) — rewrite real
   copy as text-node `SET`s in the same batch: chunk paragraphs into ~40–200-word
   citable passages, add a list/table/Q&A block, work the keyword into title/meta/H1,
-  add 2+ outbound source links. No suitable content area → surface it as a
-  recommendation, don't invent content.
-- `eeat-authorship` / `eeat-contact` — add a visible byline + publish/update date and a
-  contact link. **Never fabricate an author or date — ask the user.**
+  add 2+ outbound source links (set `link.href` AND a `linkStylePreset` on the link's
+  rich-text node — a link with no preset triggers a review warning). No suitable content
+  area → surface it as a recommendation, don't invent content.
+- `eeat-authorship` / `eeat-contact` — add a visible byline + date as text
+  (`SET <id> text="By <name> · <date>"`) and a contact link (`link.href="mailto:…"` or a
+  contact-page link). Marked-up `<time>` / Article JSON-LD is a manual step. **Never
+  fabricate an author, date, or email — ask the user for the real values.**
 - JSON-LD (`structured-data` + `geo-citable-schema`) — **manual step**: the Framer Agent
   cannot write custom `<head>` code, and canvas Embeds get sandboxed/stripped. A
   headless agent can't click Site Settings, so instead **output the exact

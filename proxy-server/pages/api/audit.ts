@@ -3,6 +3,11 @@ import { JSDOM } from 'jsdom'
 import { extractSEODataFromDoc, runChecks, scoreChecks } from '../../lib/services/seo/auditCore'
 import { SEOCheck } from '../../lib/types/seo'
 
+// Parse the JSON body ourselves so a malformed body returns a clean, CORS'd JSON
+// error from this handler — instead of Next's built-in parser throwing a plain-text
+// 400 before our CORS headers are even set.
+export const config = { api: { bodyParser: false } }
+
 /**
  * POST /api/audit  — the independent SEO "referee".
  *
@@ -175,12 +180,24 @@ async function fetchHTML(url: string): Promise<string> {
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
+        const contentType = response.headers.get('content-type') || ''
+        if (!/text\/html|xhtml/i.test(contentType)) {
+            throw new Error(`Not an HTML page (content-type: ${contentType || 'unknown'})`)
+        }
         const html = await response.text()
         if (!html) throw new Error('Empty response from target URL')
         return html
     } finally {
         clearTimeout(timeoutId)
     }
+}
+
+async function readRawBody(req: NextApiRequest): Promise<string> {
+    const chunks: Buffer[] = []
+    for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : (chunk as Buffer))
+    }
+    return Buffer.concat(chunks).toString('utf8')
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -193,12 +210,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return
     }
     if (req.method !== 'POST') {
+        res.setHeader('Allow', 'POST, OPTIONS')
         res.status(405).json({ error: 'Method not allowed. Use POST.' })
         return
     }
 
+    let body: { url?: unknown; focusKeyword?: unknown }
     try {
-        const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {}
+        const raw = await readRawBody(req)
+        body = raw ? JSON.parse(raw) : {}
+    } catch {
+        res.status(400).json({ error: 'Invalid JSON body.' })
+        return
+    }
+
+    try {
         const url: unknown = body.url
         const focusKeyword: string = typeof body.focusKeyword === 'string' ? body.focusKeyword : ''
 
@@ -262,9 +288,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Unknown error'
-        const isAbort = error instanceof Error && error.name === 'AbortError'
-        res.status(isAbort ? 504 : 500).json({
-            error: isAbort ? 'Timed out fetching the target URL.' : `Audit failed: ${message}`,
-        })
+        const name = error instanceof Error ? error.name : ''
+        if (name === 'AbortError') {
+            res.status(504).json({ error: 'Timed out fetching the target URL.' })
+        } else if (name === 'TypeError' || /^(HTTP \d|Not an HTML page|Empty response|fetch failed)/i.test(message)) {
+            // Upstream fetch / non-HTML / unreachable — a bad-gateway class, not a 500.
+            res.status(502).json({ error: `Could not fetch the target URL: ${message}` })
+        } else {
+            res.status(500).json({ error: `Audit failed: ${message}` })
+        }
     }
 }

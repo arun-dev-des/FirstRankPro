@@ -45,6 +45,34 @@ export function flattenNodes(structuredData: any[]): any[] {
     return out
 }
 
+/**
+ * Like flattenNodes but ALSO recurses into nested object property values (e.g. an
+ * Organization embedded as `publisher` / `author`, or types nested under
+ * `mainEntity`). Use ONLY for nested type/contact detection (eeat-contact,
+ * geo-citable-schema) — NOT for `structured-data` validity type-counting, which
+ * must stay top-level + @graph to match the validity score.
+ */
+export function flattenNodesDeep(structuredData: any[]): any[] {
+    const out: any[] = []
+    const seen = new Set<any>()
+    const visit = (item: any): void => {
+        if (!item || typeof item !== 'object') return
+        if (seen.has(item)) return
+        seen.add(item)
+        if (Array.isArray(item)) {
+            item.forEach(visit)
+            return
+        }
+        out.push(item)
+        for (const key of Object.keys(item)) {
+            if (key === '@context' || key === '@type') continue
+            visit(item[key])
+        }
+    }
+    ;(structuredData || []).forEach(visit)
+    return out
+}
+
 /** Validate one schema node against its type's required fields. Returns issues. */
 function validateNode(node: any): string[] {
     const issues: string[] = []

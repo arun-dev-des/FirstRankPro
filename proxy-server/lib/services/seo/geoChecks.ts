@@ -14,7 +14,7 @@
  */
 
 import { SEOCheck, SEOLink, ExtractedSEOData } from '../../types/seo'
-import { flattenNodes, typesOf } from './deepChecks'
+import { flattenNodesDeep, typesOf } from './deepChecks'
 
 /**
  * Passage chunk length.
@@ -167,7 +167,7 @@ export function validateGeoAttributionDensity(externalLinks: SEOLink[], wordCoun
 const CITABLE_TYPES = new Set(['faqpage', 'qapage', 'article', 'blogposting', 'newsarticle', 'howto', 'organization'])
 
 export function validateGeoCitableSchema(structuredData: any[]): SEOCheck[] {
-    const nodes = flattenNodes(structuredData || [])
+    const nodes = flattenNodesDeep(structuredData || [])
     const allTypes = Array.from(new Set(nodes.flatMap(typesOf).map(t => t.toLowerCase())))
     const present = new Set(allTypes.filter(t => CITABLE_TYPES.has(t)))
 

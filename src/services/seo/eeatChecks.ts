@@ -12,7 +12,7 @@
  */
 
 import { SEOCheck, SEOLink } from '../../types/seo'
-import { flattenNodes, typesOf } from './deepChecks'
+import { flattenNodesDeep, typesOf } from './deepChecks'
 
 /** A JSON-LD field counts as "present" if it's a non-empty value/object/array. */
 function isPresent(v: any): boolean {
@@ -49,12 +49,14 @@ export function validateEeatHttps(url: string): SEOCheck[] {
 
 /**
  * Authorship & freshness (Experience / Expertise). Reads JSON-LD first, then
- * falls back to HTML signals (<meta name="author">, a <time> element) so pages
- * without schema aren't unfairly penalized. Both present → pass; one → warning;
- * neither → fail.
+ * falls back to structural HTML markup (meta author, rel/itemprop author or a
+ * byline/author class; a <time>, itemprop date, or article:published_time meta)
+ * so schema-less pages aren't unfairly penalized. A byline that is plain, unmarked
+ * text isn't detected — declare it in schema or with markup. Both present → pass;
+ * one → warning; neither → fail.
  */
 export function validateEeatAuthorship(structuredData: any[], metaAuthor: string | null, hasDateSignal: boolean): SEOCheck[] {
-    const nodes = flattenNodes(structuredData || [])
+    const nodes = flattenNodesDeep(structuredData || [])
     const authorInSchema = nodes.some(n => isPresent(n?.author))
     const dateInSchema = nodes.some(n => isPresent(n?.datePublished) || isPresent(n?.dateModified))
 
@@ -75,14 +77,14 @@ export function validateEeatAuthorship(structuredData: any[], metaAuthor: string
         status = 'warning'
         description = hasAuthor ? 'Author is declared but no publish/update date found' : 'A date is present but no author is declared'
         suggestions = [
-            'Declare both an author and a datePublished — in Article/BlogPosting JSON-LD or a visible byline',
+            'Declare both an author and a datePublished — in Article/BlogPosting JSON-LD, or a marked-up byline (rel="author"/itemprop) + a <time>/published-date meta',
             'Answer engines weigh authorship and freshness when deciding what to cite',
         ]
     } else {
         status = 'fail'
         description = 'No author or publish/update date found'
         suggestions = [
-            'Add author + datePublished via Article/BlogPosting JSON-LD (or a visible byline and <time>)',
+            'Add author + datePublished via Article/BlogPosting JSON-LD, or a marked-up byline (rel/itemprop) + a <time> / article:published_time meta',
             'Authorship and freshness are core E-E-A-T trust signals',
         ]
     }
@@ -97,7 +99,7 @@ export function validateEeatAuthorship(structuredData: any[], metaAuthor: string
  */
 export function validateEeatContact(links: SEOLink[], structuredData: any[]): SEOCheck[] {
     const hasMailtoTel = (links || []).some(l => /^(mailto:|tel:)/i.test(l.href || ''))
-    const nodes = flattenNodes(structuredData || [])
+    const nodes = flattenNodesDeep(structuredData || [])
     const orgContact = nodes.some(n => {
         const isOrg = typesOf(n).some(t => t.toLowerCase() === 'organization')
         return isOrg && (isPresent(n?.contactPoint) || isPresent(n?.sameAs) || isPresent(n?.address))
