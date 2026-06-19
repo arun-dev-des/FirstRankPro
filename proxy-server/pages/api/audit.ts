@@ -34,9 +34,10 @@ interface AuditCheckOut {
 
 /**
  * Maps a check id → the concrete Framer Agent DSL operation, who can apply it,
- * and an imperative instruction. The external-agent surface can write all of
- * this programmatically (metadata.*, setAttributes, setCustomCode, altText, …),
- * so a failing audit is a directly-executable worklist.
+ * and an imperative instruction. The external-agent DSL writes most of this
+ * programmatically (metadata.*, `SET … tag=`, `SET … altText=`, page text, redirects,
+ * CMS), so a failing audit is a directly-executable worklist. JSON-LD / custom <head>
+ * code is the exception — a manual Site Settings step.
  */
 function fixFor(check: SEOCheck, keyword: string): Pick<AuditCheckOut, 'writableBy' | 'framerAgentOp' | 'fixInstruction'> {
     const id = check.id
@@ -63,26 +64,26 @@ function fixFor(check: SEOCheck, keyword: string): Pick<AuditCheckOut, 'writable
         case 'h1-check':
             return {
                 writableBy: 'framer-agent',
-                framerAgentOp: "setAttributes: heading level (ensure one h1)",
-                fixInstruction: `Ensure the page has exactly one H1. Use setAttributes to set the main heading element to level h1 and include ${kw}.`,
+                framerAgentOp: 'SET <textId> tag="h1"',
+                fixInstruction: `Ensure the page has exactly one H1. Set the main heading text node's tag to h1 (SET <textId> tag="h1"; values p|h1..h6) and include ${kw}.`,
             }
         case 'hierarchy-check':
             return {
                 writableBy: 'framer-agent',
-                framerAgentOp: 'setAttributes: heading levels',
-                fixInstruction: "Fix the heading hierarchy with setAttributes: keep a single H1 and don't skip levels (H1 → H2 → H3).",
+                framerAgentOp: 'SET <textId> tag="h2|h3|…"',
+                fixInstruction: 'Fix the heading hierarchy: keep a single H1 and don\'t skip levels. Set each heading text node\'s tag (SET <textId> tag="h2", etc.).',
             }
         case 'keyword-placement':
             return {
                 writableBy: 'framer-agent',
-                framerAgentOp: 'metadata.title + metadata.description + H1 text',
-                fixInstruction: `Make ${kw} appear in the metadata.title, metadata.description, and the H1 text (naturally — no stuffing).`,
+                framerAgentOp: 'SET metadata.title + metadata.description + <h1Id> text',
+                fixInstruction: `Make ${kw} appear in metadata.title, metadata.description, and the H1 text (SET <h1Id> text="…") — naturally, no stuffing.`,
             }
         case 'image-alts':
             return {
-                writableBy: 'firstrankpro-plugin',
-                framerAgentOp: 'ImageAsset.altText',
-                fixInstruction: "Set ImageAsset.altText on images missing it (Framer Agent), or use First Rank Pro's Image Alts panel which writes alt text to the image nodes via the SDK.",
+                writableBy: 'framer-agent',
+                framerAgentOp: 'SET <id> altText="…"  (or $control__<img>.alt)',
+                fixInstruction: 'Set alt text on images missing it: SET <id> altText="…" for node fills, or SET <id> $control__<img>.alt="…" for image/CMS controls. (Alt lives on the asset, so one write propagates to every reuse.)',
             }
         case 'content-length':
             return {

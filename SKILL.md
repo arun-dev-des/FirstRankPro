@@ -13,8 +13,9 @@ description: >-
 # First Rank Pro — the SEO Referee
 
 The Framer Agent can write most of the SEO stack through its DSL — per-page
-`metadata.title` / `metadata.description`, heading levels via `setAttributes`,
-`ImageAsset.altText`, page text, redirects, CMS CRUD, and `framer.agent.publish()`.
+`metadata.title` / `metadata.description`, heading tags via `SET … tag="h1"`, image
+alt text via `SET … altText="…"`, page text, redirects, CMS CRUD, and
+`framer.agent.publish(...)`.
 The one piece it can't write itself is JSON-LD / custom `<head>` code — that lands
 via a manual Site Settings step (see Step 2). And what it can't do *at all* on its
 own is prove the result moved the needle: there is no number, no independent grade.
@@ -87,10 +88,10 @@ the same way.
 | `main-keyword` | a focus keyword is set | analysis input |
 | `page-title` | title present, not just the page name | `metadata.title` (per-page) |
 | `page-description` | meta description present | `metadata.description` (per-page) |
-| `h1-check` | exactly one H1 | `setAttributes` heading level |
-| `hierarchy-check` | logical H1→H6, no skipped levels | `setAttributes` heading levels |
-| `keyword-placement` | keyword in title, meta, and H1 | title + description + H1 text |
-| `image-alts` | % of images with alt text | `ImageAsset.altText` |
+| `h1-check` | exactly one H1 | `SET <id> tag="h1"` |
+| `hierarchy-check` | logical H1→H6, no skipped levels | `SET <id> tag="h2"/"h3"…` |
+| `keyword-placement` | keyword in title, meta, and H1 | title + description + H1 `text` |
+| `image-alts` | % of images with alt text | `SET <id> altText="…"` |
 | `content-length` | ≥ 300 words of real content | edit page text |
 | `structured-data` | valid JSON-LD — *deeper than Framer* | **manual**: Site Settings → Custom Code → End of `<head>` |
 | `geo-passage-length` | paragraphs chunked ~40–200 words (citable) | edit page text |
@@ -108,6 +109,29 @@ citations, and the JSON-LD types those engines cite). The `eeat-*` checks grade
 families are **fully deterministic** (no LLM, no network) and run only on this referee
 path — they're how the engine proves a page is optimized for *AI search*, not just classic
 SEO. Concepts adapted from the MIT-licensed [claude-seo](https://github.com/AgriciDaniel/claude-seo) project.
+
+### What the agent can't write (handle, don't fake)
+
+The DSL writes the full on-page stack above. It **cannot** write the following — never
+loop on a missing op; emit / ask / recommend and leave a receipt:
+
+- **JSON-LD / custom `<head>` code** — emit the `<script type="application/ld+json">`
+  for the user to paste into **Site Settings → Custom Code → End of `<head>`** (NOT a
+  canvas Embed — those get stripped). *Better when the page is a CMS detail page:* write
+  the JSON-LD into a `formattedText` CMS field — that IS agent-writable. Mark the check
+  *human-action-required* and continue.
+- **Canonical URL** — Framer auto-emits a correct self-canonical; treat "no custom
+  canonical" as low severity and only hand off to Page Settings for true cross-domain
+  cases. Never claim to have set it.
+- **Author / contact values** — the byline (`text`/`<time>`) and `mailto:` link *are*
+  writable, but the data isn't inventable: **ask the user** for the real author, date,
+  email — never fabricate.
+- **Localization** — UI/plugin only; **never** machine-translate text in place via
+  `SET text=`. Point the user to the Localization view.
+- **Per-page favicon** (only site-wide `rootNode`), **code components**, **page
+  rename/delete/reorder** — not on the agent DSL; ask the user.
+
+Redirects are writable but always emit **HTTP 308** (permanent), not literally 301.
 
 ## The loop — run this exactly
 
@@ -155,9 +179,12 @@ current text before a `SET`, read it with `framer.agent.serialize({ id, depth })
 only the nodes the failing checks need — title/meta-only fixes need no node reads.
 
 The ops, by `framerAgentOp`:
-- `metadata.title` / `metadata.description` — set the per-page SEO title/description.
-- `setAttributes` — set the main heading to `h1`; fix any skipped heading levels.
-- `ImageAsset.altText` — set alt text on images missing it.
+- `metadata.title` / `metadata.description` — set the per-page SEO title/description
+  (or on `rootNode` for the site default; `{{Title}}` templates work for CMS).
+- `SET <textId> tag="h1"` — set the main heading's tag to h1; fix skipped levels with
+  `SET <textId> tag="h2"` etc. (the tag *is* the heading level; values `p`|`h1`..`h6`).
+- `SET <id> altText="…"` (or `SET <id> $control__<img>.alt="…"` for image/CMS controls)
+  — set alt text on images missing it. Alt lives on the asset, so one write propagates.
 - `geo-*` / `content-length` / `keyword-placement` (**edit page text**) — rewrite real
   copy as text-node `SET`s in the same batch: chunk paragraphs into ~40–200-word
   citable passages, add a list/table/Q&A block, work the keyword into title/meta/H1,
@@ -175,12 +202,16 @@ The ops, by `framerAgentOp`:
   doesn't exist.
 - (CMS) `metadata.title = "{{Field}} — Brand"` — template across a collection.
 
-**Step 3 — Review (receipt #1).** Call `framer.agent.reviewChanges()` and show
-the structured diff: what was inserted/updated, and any appliedWithIssues.
+**Step 3 — Review (receipt #1, MANDATORY).** After any `applyChanges`, you **must**
+call `framer.agent.reviewChanges()` before ending the turn — it's required to finalize
+the edit, not just a demo flourish. Show the structured diff: what was inserted/updated,
+and any `appliedWithIssues`.
 
-**Step 4 — Publish (exactly once).** Call `framer.agent.publish({ action: "publish" })`
-**one time per run**, after the single `applyChanges` — it returns the live URL; capture
-it and feed it to `/api/audit`. **Never publish between fixes** — publish + CDN
+**Step 4 — Publish (exactly once).** Publish with the two-step flow:
+`framer.agent.publish({ action: "preview" })` (returns the staging/production URLs + a
+`confirmationHash`), then `framer.agent.publish({ action: "confirm_publish",
+confirmationHash })`. Do this **one time per run**, after the single `applyChanges`.
+Capture the returned live URL and feed it to `/api/audit`. **Never publish between fixes** — publish + CDN
 propagation is the slowest beat, so publishing N times makes a run N× slower. (On a
 whole-site run: still ONE publish for all pages.) The audit reads the **live** URL, so
 unpublished edits won't move the score.
@@ -223,8 +254,8 @@ When the user chooses **all pages**:
    whole collection in a single command — the high-leverage move.
 4. **JSON-LD once.** Add site-wide structured data (manual, Site Settings) — it applies
    to every page.
-5. **Publish once.** `framer.agent.publish({ action: "publish" })` republishes the
-   whole site in one go.
+5. **Publish once.** `framer.agent.publish({ action: "preview" })` then
+   `{ action: "confirm_publish", confirmationHash }` republishes the whole site in one go.
 6. **Re-audit all + aggregate receipts.** Audit every URL again; show the aggregate
    climb and a per-page table — e.g. "12 pages: avg 70 → 88." Each page is graded
    independently, so the batch result is proven, not asserted.
@@ -258,7 +289,7 @@ alt-writer only reaches CSS background nodes, while Framer content images are
    https://first-rank-proxy.vercel.app/api/generate-alt-text` with
    `{ "imageUrl": "<asset CDN url>" }` → returns `{ altText, model }` (Gemini
    1.5 Flash, GPT-4o-mini fallback). Throttle/serialize (≈45s timeout each).
-5. **Write** `ImageAsset.altText` once per unique asset.
+5. **Write** alt text once per unique asset: `SET <id> altText="…"` (or `$control__<img>.alt`).
 6. **`framer.agent.publish(...)`**, then **re-audit** → `image-alts` flips to `pass` when
    coverage exceeds **80%** (strict). Mop up stragglers.
 
@@ -281,7 +312,7 @@ return generic alt that passes the binary check but reads poorly.
   live demo moves the dial in distinct apply → publish → re-score beats, not
   continuously.
 - **Image alts are an agent-path job** (see the bulk loop above). The audit
-  counts `<img>` tags and dedupes by CDN src; the agent writes `ImageAsset.altText`
+  counts `<img>` tags and dedupes by CDN src; the agent writes alt via `SET … altText="…"`
   (one write per unique asset). CSS-background images emit no `<img>`, so they
   neither count nor are fixable here — that's expected. Drive the *headline* climb
   with title / meta / H1 / structured-data; run the alt loop as a separate,
