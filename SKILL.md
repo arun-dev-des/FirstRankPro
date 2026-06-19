@@ -12,11 +12,13 @@ description: >-
 
 # First Rank Pro — the SEO Referee
 
-The Framer Agent can write the entire SEO stack through its DSL — per-page
+The Framer Agent can write most of the SEO stack through its DSL — per-page
 `metadata.title` / `metadata.description`, heading levels via `setAttributes`,
-JSON-LD via `setCustomCode`, `ImageAsset.altText`, redirects, CMS CRUD, and
-`agent.publish()`. What it *cannot* do on its own is prove the result moved the
-needle: there is no number, no independent grade. This skill adds exactly that.
+`ImageAsset.altText`, page text, redirects, CMS CRUD, and `framer.agent.publish()`.
+The one piece it can't write itself is JSON-LD / custom `<head>` code — that lands
+via a manual Site Settings step (see Step 2). And what it can't do *at all* on its
+own is prove the result moved the needle: there is no number, no independent grade.
+This skill adds exactly that.
 
 The engine is **rule-based — no LLM in the scoring path**. The same page always
 produces the same score. That is what makes a before→after climb *proof* rather
@@ -37,16 +39,29 @@ Content-Type: application/json
 ```
 
 - `url` (required): the **published, live** URL to grade. The engine fetches live
-  HTML, so edits must be **published** (`agent.publish()`) before they show up.
+  HTML, so edits must be **published** (`framer.agent.publish(...)`) before they show up.
 - `focusKeyword` (recommended): the keyword the page should rank for.
+
+**How to call it.** This is a plain HTTP endpoint — call it from your shell with
+`curl` (NOT a Framer DSL op):
+
+```bash
+curl -s -X POST https://first-rank-proxy.vercel.app/api/audit \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://your-site.framer.app/","focusKeyword":"your keyword"}'
+```
+
+Parse `score` and `checks[]` from stdout. Same `curl` for Step 0 (baseline) and
+Step 5 (re-audit). The alt-text vision endpoint (`/api/generate-alt-text`) is called
+the same way.
 
 ### Response
 
 ```jsonc
 {
   "url": "...", "focusKeyword": "...",
-  "score": 62,                                  // deterministic 0-100
-  "summary": { "pass": 3, "warning": 3, "fail": 3, "total": 9 },
+  "score": 62,                                  // deterministic 0-100 (illustrative pre-fix baseline)
+  "summary": { "pass": 11, "warning": 2, "fail": 3, "total": 16 },   // 16 checks total
   "checks": [
     {
       "id": "page-title", "name": "Page Title",
@@ -114,38 +129,69 @@ site (all pages)**?
 **Step 1 — Worklist.** From `before.checks`, take **only** the `fail`/`warning`
 checks; sort by `importance` (high → low). Each carries `reason`, `evidence`,
 `framerAgentOp`, and `fixInstruction`. **Discard every `pass` — never read, find, or
-touch a node for a check that already passes.** If the worklist is empty, report
-"already optimal" and skip Steps 2–4 entirely.
+touch a node for a check that already passes.** If nothing is left to fix, report
+"already optimal" and skip Steps 2–4. Distinguish *optimal* from *only manual /
+content-judgement items remain*: if the only items left are JSON-LD or content-only
+`geo-*`/`eeat-*` recommendations you can't safely auto-write, surface them as
+recommendations and stop — don't loop.
 
 **Step 2 — Apply via the DSL (one batch).** Build a SINGLE change set covering every
-worklist item and call `applyChanges` **once** — title, meta, H1, heading levels, and
-alt text together. Do NOT make a separate `applyChanges` per field (each is a slow
-Framer round-trip). Read only the nodes the failing checks need — title/meta-only
-fixes need no node reads at all. The ops, by `framerAgentOp`:
+worklist item and call `framer.agent.applyChanges` **once** — don't make a separate
+call per field (each is a slow round-trip).
+
+`applyChanges` grammar: first arg is one string of `;`-separated commands; second arg
+is `{ pagePath }`. Concatenate every edit into that one string:
+
+```js
+framer.agent.applyChanges(
+  'SET v:<h1NodeId>:0:0 text="New H1 with keyword"; SET v:<imgNodeId> altText="...";',
+  { pagePath: "/" }
+)
+```
+
+`:0:0` selects text on the primary variant — copy it as-is. Per-page `metadata.*` and
+per-node `SET` commands can live in the **same** string. To find a node id + its
+current text before a `SET`, read it with `framer.agent.serialize({ id, depth })`. Read
+only the nodes the failing checks need — title/meta-only fixes need no node reads.
+
+The ops, by `framerAgentOp`:
 - `metadata.title` / `metadata.description` — set the per-page SEO title/description.
 - `setAttributes` — set the main heading to `h1`; fix any skipped heading levels.
-- JSON-LD (`structured-data`) — **manual step**: the Framer Agent cannot write
-  custom `<head>` code, and canvas Embeds get sandboxed/stripped. Add the
-  `<script type="application/ld+json">` (Organization / Article / FAQPage) via
-  **Site Settings → Custom Code → "End of `<head>` tag"** so it lands in the
-  published HTML. With the `@graph` form, put `@context` once on the wrapper.
 - `ImageAsset.altText` — set alt text on images missing it.
+- `geo-*` / `content-length` / `keyword-placement` (**edit page text**) — rewrite real
+  copy as text-node `SET`s in the same batch: chunk paragraphs into ~40–200-word
+  citable passages, add a list/table/Q&A block, work the keyword into title/meta/H1,
+  add 2+ outbound source links. No suitable content area → surface it as a
+  recommendation, don't invent content.
+- `eeat-authorship` / `eeat-contact` — add a visible byline + publish/update date and a
+  contact link. **Never fabricate an author or date — ask the user.**
+- JSON-LD (`structured-data` + `geo-citable-schema`) — **manual step**: the Framer Agent
+  cannot write custom `<head>` code, and canvas Embeds get sandboxed/stripped. A
+  headless agent can't click Site Settings, so instead **output the exact
+  `<script type="application/ld+json">` block** (Organization / Article / FAQPage; with
+  the `@graph` form put `@context` once on the wrapper) for the user to paste into
+  **Site Settings → Custom Code → "End of `<head>` tag"**, mark the check
+  *human-action-required* in the receipts, and continue — don't loop for a DSL op that
+  doesn't exist.
 - (CMS) `metadata.title = "{{Field}} — Brand"` — template across a collection.
 
 **Step 3 — Review (receipt #1).** Call `framer.agent.reviewChanges()` and show
 the structured diff: what was inserted/updated, and any appliedWithIssues.
 
-**Step 4 — Publish (exactly once).** Call `agent.publish()` **one time per run**,
-after the single `applyChanges`. **Never publish between fixes** — publish + CDN
+**Step 4 — Publish (exactly once).** Call `framer.agent.publish({ action: "publish" })`
+**one time per run**, after the single `applyChanges` — it returns the live URL; capture
+it and feed it to `/api/audit`. **Never publish between fixes** — publish + CDN
 propagation is the slowest beat, so publishing N times makes a run N× slower. (On a
-whole-site run: still ONE publish for all pages.) The audit reads the **live** URL,
-so unpublished edits won't move the score.
+whole-site run: still ONE publish for all pages.) The audit reads the **live** URL, so
+unpublished edits won't move the score.
 
 **Step 5 — Re-audit + receipts (receipt #2).** Re-call `/api/audit` (same url +
 keyword) → `after`. If a previously-failing check still shows its OLD `evidence`, the
 new HTML hasn't propagated yet — wait ~10–15s and retry, **at most 3 attempts,
-stopping the instant the changed checks flip** (re-audit only the changed page(s),
-not the whole site). Diff `before` vs `after` by check `id` and show the climb:
+stopping the instant the changed checks flip** (re-audit only the changed page(s), not
+the whole site). If `evidence` is still unchanged after 3 tries, report "not yet
+propagated" and stop — do NOT treat stale HTML as a failed fix and re-edit. Diff
+`before` vs `after` by check `id` and show the climb:
 
 > **SEO score: 62 → 89  (+27)**
 >
@@ -163,36 +209,29 @@ not the whole site). Diff `before` vs `after` by check `id` and show the climb:
 
 When the user chooses **all pages**:
 
-1. **Enumerate pages.** Fetch the site's `sitemap.xml` (every published URL) — or
-   list the project's pages via the Framer agent. Covers static pages AND CMS pages.
-2. **Baseline (batch).** Audit each URL with `/api/audit`. For each page derive its
-   **own focus keyword** from its title/content (don't reuse one global keyword).
-   Record per-page `before` scores and report the average.
-3. **Fix each page.** Run Steps 1–2 of the per-page loop on every page (title, meta,
-   H1, headings, alt text via the DSL). For a CMS collection, one templated
-   `metadata.title = "{{Title}} — Brand"` optimizes the whole collection at once.
-4. **JSON-LD once.** Add site-wide structured data (manual, Site Settings) — it
-   applies to every page.
-5. **Publish once.** `agent.publish()` republishes the whole site in one go.
+1. **Enumerate pages.** Fetch the site's `sitemap.xml` (every published URL), or list
+   the project's pages via the Framer agent's pages op — each entry has a `path` (e.g.
+   `/pricing`). Covers static pages AND CMS pages. **URL ↔ pagePath:** `/api/audit`
+   takes the full URL; `applyChanges` takes `{ pagePath }`. Map by stripping the site
+   origin from the URL; home is `/`.
+2. **Baseline (batch).** Audit each URL with `/api/audit`. Derive each page's **own
+   focus keyword** from its title/content (don't reuse one global keyword). Record
+   per-page `before` scores and report the average.
+3. **Fix each page.** Run Steps 1–2 of the per-page loop on every page (one
+   `applyChanges` per page). **CMS sub-case:** for a collection, one templated
+   `metadata.title = "{{Title}} — Brand"` (and templated description) optimizes the
+   whole collection in a single command — the high-leverage move.
+4. **JSON-LD once.** Add site-wide structured data (manual, Site Settings) — it applies
+   to every page.
+5. **Publish once.** `framer.agent.publish({ action: "publish" })` republishes the
+   whole site in one go.
 6. **Re-audit all + aggregate receipts.** Audit every URL again; show the aggregate
    climb and a per-page table — e.g. "12 pages: avg 70 → 88." Each page is graded
    independently, so the batch result is proven, not asserted.
 
-## Programmatic SEO at CMS scale (the finale)
-
-> **Plan requirement:** CMS collections are a paid Framer feature — **Basic** (2
-> collections) or **Pro** (10), *not Free*. This loop needs a Basic+ site with a
-> published collection; it can't run on a Free project.
-
-The agent path makes one command optimize an entire collection:
-
-1. Set a templated per-page title across the collection:
-   `metadata.title = "{{Title}} — Brand"` (and a templated description).
-2. Add site-wide JSON-LD once (manual: Site Settings → Custom Code → end of `<head>`).
-3. `agent.publish()`.
-4. **Audit every page** in the collection (loop `/api/audit` over each URL) and
-   show the **aggregate** climb — e.g. "50 pages, average score 58 → 86." Each
-   page is graded independently; the engine proves the batch actually worked.
+> **Plan requirement:** CMS collections are a paid Framer feature — **Basic** (2) or
+> **Pro** (10), *not Free*. The CMS sub-case needs a Basic+ site with a published
+> collection; it can't run on a Free project.
 
 ## Image alts at scale (the other "fix N at once" loop)
 
@@ -220,7 +259,7 @@ alt-writer only reaches CSS background nodes, while Framer content images are
    `{ "imageUrl": "<asset CDN url>" }` → returns `{ altText, model }` (Gemini
    1.5 Flash, GPT-4o-mini fallback). Throttle/serialize (≈45s timeout each).
 5. **Write** `ImageAsset.altText` once per unique asset.
-6. **`agent.publish()`**, then **re-audit** → `image-alts` flips to `pass` when
+6. **`framer.agent.publish(...)`**, then **re-audit** → `image-alts` flips to `pass` when
    coverage exceeds **80%** (strict). Mop up stragglers.
 
 **Honest framing:** the score move is modest (`image-alts` is medium weight —
@@ -234,7 +273,7 @@ return generic alt that passes the binary check but reads poorly.
 - **Determinism is the point.** Re-audit the *unchanged* page → identical score.
   To prove it, audit twice before editing; the number won't move.
 - **Publish once, between baseline and re-audit — but exactly once.** The #1 reason
-  a score "doesn't improve" is editing without `agent.publish()`; the #1 reason a run
+  a score "doesn't improve" is editing without `framer.agent.publish(...)`; the #1 reason a run
   is *slow* is publishing more than once (each publish pays the CDN-propagation wait).
 - **Speed checklist:** one `applyChanges`, one `publish`, skip `pass` checks, read
   only nodes the failing checks need, and poll the re-audit instead of a long sleep.
