@@ -5,9 +5,11 @@ export type Theme = 'light' | 'dark'
 // The effective theme is always driven by document.body[data-framer-theme],
 // which is the same attribute Framer sets and all of our CSS keys off.
 function getInitialTheme(): Theme {
+    // Follow Framer's editor appearance when it has set the attribute; otherwise
+    // default to dark to match the CSS, which keys light off this same attribute.
     const attr = document.body.dataset.framerTheme
     if (attr === 'light' || attr === 'dark') return attr
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'dark'
 }
 
 export function useTheme() {

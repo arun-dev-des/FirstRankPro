@@ -131,67 +131,14 @@
     --color-tag-purple: #7E22CE;
 }
 
-/* Fallback: prefers-color-scheme for system preference */
-@media (prefers-color-scheme: light) {
-    :root:not([data-framer-theme="dark"]) {
-        color-scheme: light;
-        --color-bg: #FFFFFF;
-        --color-surface: #F7F8FA;
-        --color-border: #E4E7EC;
-        --color-text-primary: #1A1D26;
-        --color-text-secondary: #4A5568;
-        --color-text-tertiary: #667085;
-        --color-accent: #0A66C2;
-        
-        /* Status Colors - Light Mode */
-        --color-pass: #15803D;
-        --color-pass-bg: rgba(34, 197, 94, 0.12);
-        --color-pass-text: #166534;
-        --color-fail: #C81E1E;
-        --color-fail-bg: rgba(239, 68, 68, 0.12);
-        --color-fail-text: #991B1B;
-        --color-warning: #9A6700;
-        --color-warning-bg: rgba(234, 179, 8, 0.12);
-        --color-warning-text: #854D0E;
-        
-        /* UI Elements - Light Mode */
-        --color-input-bg: #FFFFFF;
-        --color-card-bg: #F3F4F6;
-        --color-pill-bg: #E5E7EB;
-
-        /* Extended tokens - Light Mode */
-        --color-button-primary: #2563eb;
-        --color-button-primary-hover: #1d4ed8;
-        --color-button-primary-text: #FFFFFF;
-        --color-button-neutral: #9CA3AF;
-        --color-accent-hover: #0056b3;
-        --color-ai-gradient-start: #6985FF;
-        --color-ai-gradient-end: #8B3FE0;
-        --color-ai-surface: #EDE9FE;
-        --color-ai-on-gradient: #FFFFFF;
-        --color-neutral-surface: #F3F4F6;
-        --color-neutral-surface-alt: #E5E7EB;
-        --color-on-neutral-surface: #1A1D26;
-        --color-on-pass-solid: #FFFFFF;
-        --color-pass-hover: #166534;
-        --color-info: #1565c0;
-        --color-info-bg: #E3F2FD;
-        --color-info-text: #1565c0;
-        --color-serp-title: #1A56DB;
-        --color-serp-meta: #5F6368;
-        --color-warning-strong: #B45309;
-        --color-warning-strong-text: #FFFFFF;
-        --color-fail-strong: #B91C1C;
-        --color-fail-strong-text: #FFFFFF;
-        --color-highlight-pulse: #FDE68A;
-        --color-check-warning-bg: #FFFBEB;
-        --color-check-warning-border: #FDE68A;
-        --color-check-fail-bg: #FEF2F2;
-        --color-check-fail-border: #FECACA;
-        --color-tag-purple-bg: #F3E8FF;
-        --color-tag-purple: #7E22CE;
-    }
-}
+/*
+ * Theme defaults to dark (the `:root` tokens above). Light mode is opt-in via
+ * `data-framer-theme="light"` on <body>, set either by Framer's editor or by our
+ * own toggle. We intentionally do NOT fall back to prefers-color-scheme: the
+ * attribute is written on <body> while a media-query guard would have to test
+ * <html>, so a light-OS preference used to leak light tokens onto <html> that
+ * <body> inherited — making the dark toggle a no-op. Dark-by-default avoids that.
+ */
 
 /* Global styles */
 * {
